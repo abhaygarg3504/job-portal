@@ -1,8 +1,14 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { assets } from '../assets/assets'
 import { AppContext } from '../context/AppContext'
+import axios from "axios"
+import {useNavigate} from "react-router-dom"
+import { toast } from 'react-toastify'
+
 
 const RecuriterLogin = () => {
+
+  const navigate = useNavigate()
   
   const [state, setState] = useState('Login')
   const [name, setName] = useState('')
@@ -12,13 +18,55 @@ const RecuriterLogin = () => {
 
   const [isTextDataSubmitted, setisTextDataSubmitted] = useState(false)
 
-  const { setShowRecuriterLogin } = useContext(AppContext)
+  const { setShowRecuriterLogin, backendURL, setcompanyToken, setcompanyData } = useContext(AppContext)
 
   const submitHandler = async(e)=>{
     e.preventDefault()
     if(state === "Sign Up" && !isTextDataSubmitted){
-      setisTextDataSubmitted(true)
+     return setisTextDataSubmitted(true)
     }
+
+    try{
+
+      if(state === "Login"){
+        const { data } = await axios.post(backendURL+'/api/company/login', {email, password})
+
+        if(data.success){
+          setcompanyData(data.company)
+          setcompanyToken(data.token)
+          localStorage.setItem('companyToken', data.token)  
+          setShowRecuriterLogin(false)
+          navigate('/dashboard')
+        } else{
+          toast.error(data.message)
+        }
+
+      } else{
+
+        const formData = new FormData()
+        formData.append('name', name)
+        formData.append('email', email)
+        formData.append('password', password)
+        formData.append('image', image)
+
+        const {data} = await axios.post(backendURL+'/api/company/register', formData)
+        if(data.success){
+          setcompanyData(data.company)
+          setcompanyToken(data.token)
+          localStorage.setItem('companyToken', data.token)  
+          setShowRecuriterLogin(false)
+          navigate('/dashboard')
+        } else{
+          toast.error(data.message)
+        }
+      }
+
+    }
+    catch(err){
+      console.log(`error in submitHandler : ${err}`)
+      toast.error(err.message)
+    }
+
   }
 
   useEffect(()=>{

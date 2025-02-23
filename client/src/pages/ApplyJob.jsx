@@ -7,21 +7,33 @@ import kconvert from 'k-convert'
 import moment from 'moment'
 import JobCard from '../components/JobCard';
 import Footer from '../components/Footer';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const ApplyJob = () => {
   const { id } = useParams();
   const [jobData, setJobData] = useState(null);
-  const { jobs } = useContext(AppContext);
+  const { jobs, backendURL } = useContext(AppContext);
+
+
+  const fetchJob = async() => {
+    try{
+      
+    const {data} = await axios.get(backendURL+ `/api/jobs/${id}`)
+    if(data.success){
+      setJobData(data.job)
+    } else{
+      toast.error(data.message)
+    }
+    }
+    catch(err){
+      toast.error(err.message)
+    }
+  }
 
   useEffect(() => {
-    if (!jobs || jobs.length === 0) return;
-
-    const data = jobs.find(job => job._id === id);
-    if (data) {
-      setJobData(data);
-      console.log(data);
-    }
-  }, [id, jobs]);
+    fetchJob()
+  }, [id]);
 
   return jobData ? (
     <>
@@ -33,7 +45,7 @@ const ApplyJob = () => {
         <div className='flex flex-col md:gap-129 md:flex-row items-center'>
           
           <div className=''>
-          <img className='h-24 bg-white rounded-lg p-4 mr-4 max:md:mb-4 border' src={assets.company_icon} alt="" />
+          <img className='h-24 bg-white rounded-lg p-4 mr-4 max:md:mb-4 border' src={jobData.companyId.image} alt="" />
           <div className='text-neutral-700 text-center md:text-left'>
             <h1>{jobData.title}</h1>
             <div className='flex flex-row flex-wrap max-md:justify-center gap-y-2 gap-6 items-center text-gray-600 mt-2'>
