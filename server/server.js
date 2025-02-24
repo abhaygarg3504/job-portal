@@ -71,8 +71,6 @@ app.set("views", path.join(path.resolve(), "views"));
 app.use("/api/company", companyRouter);
 app.use("/api/jobs", jobRouter);
 app.use("/api/users", userRouter);
-
-// Use raw-body for webhooks to avoid JSON parsing issues
 app.post("/webhooks", clerkWebhook);
 
 app.get("/api/company/register", (req, res) => {
