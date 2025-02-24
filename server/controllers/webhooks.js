@@ -6,7 +6,7 @@ dotenv.config();
 
 export const clerkWebhook = async (req, res) => {
     try {
-        console.log("request hit webhook endpoint")
+        console.log("Request hit webhook endpoint"); // Debugging log
         const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
         const payload = JSON.stringify(req.body);
 
@@ -15,7 +15,7 @@ export const clerkWebhook = async (req, res) => {
             "svix-timestamp": req.headers["svix-timestamp"],
             "svix-signature": req.headers["svix-signature"]
         });
-        console.log("svix verified")
+        console.log("Svix verified"); // Debugging log
         const { data, type } = req.body;
 
         switch (type) {
