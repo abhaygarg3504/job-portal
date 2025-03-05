@@ -55,6 +55,15 @@ import { clerkMiddleware } from "@clerk/express";
 
 const app = express();
 
+const corsConfig = {
+    origin : "*",
+    credential: true,
+    methods : ["GET", "POST", "PUT", "DELETE"],
+};
+
+app.use(cors(corsConfig));
+app.options("", cors(corsConfig));
+
 app.use(cors());
 app.use(express.json()); // <-- Move this before clerkMiddleware
 app.use(clerkMiddleware()); 
