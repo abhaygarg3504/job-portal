@@ -61,10 +61,9 @@ const corsConfig = {
     methods : ["GET", "POST", "PUT", "DELETE"],
 };
 
+app.use(cors());
 app.use(cors(corsConfig));
 app.options("", cors(corsConfig));
-
-app.use(cors());
 app.use(express.json()); // <-- Move this before clerkMiddleware
 app.use(clerkMiddleware()); 
 
