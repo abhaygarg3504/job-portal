@@ -47,13 +47,13 @@ import { AppContext } from '../context/AppContext';
 
 const Navbar = () => {
     const { openSignIn } = useClerk();
-    const { user, isSignedIn } = useUser(); // Check if the user is signed in
+    const { user, isSignedIn } = useUser(); 
     const navigate = useNavigate();
     const { setShowRecuriterLogin, backendURL } = useContext(AppContext);
     const [isUserStored, setIsUserStored] = useState(false); 
     
     const sendUserDataToBackend = async () => {
-        if (!user || isUserStored) return; // Ensure user is available & avoid duplicate requests
+        if (!user || isUserStored) return; 
 
         const userData = {
             id: user.id,
