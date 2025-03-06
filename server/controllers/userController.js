@@ -3,24 +3,50 @@ import JobApplication from "../models/JobApplication.js";
 import User from "../models/User.js";
 import { v2 as cloudinary } from "cloudinary";
 
-// Middleware to extract Clerk user ID from headers
 export const getUserId = (req) => {
-    const userId = req.headers["x-user-id"]; // Ensure frontend sends this header
-    if (!userId) throw new Error("User ID not found in request headers");
+    const userId = req.query.id;
+    if (!userId) throw new Error("User ID not found in request query");
     return userId;
 };
 
 export const getUserData = async (req, res) => {
     try {
-        const userId = getUserId(req);
-        const user = await User.findById(userId);
+        const id = req.params.id; // ✅ Get user ID from URL params
 
-        if (!user) {
-            return res.status(404).json({ success: false, message: "User Not Found" });
+        if (!id) {
+            return res.status(400).json({ success: false, message: "User ID is required" });
         }
+
+        let user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
         return res.json({ success: true, user });
     } catch (err) {
         console.error(`Error in getUserData: ${err.message}`);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+};
+
+// ✅ Create a new function to handle user creation
+export const createUserData = async (req, res) => {
+    try {
+        const { id, name, resume, image, email } = req.body; // ✅ Get user data from request body
+
+        if (!id || !email) {
+            return res.status(400).json({ success: false, message: "User ID and Email are required" });
+        }
+
+        let user = await User.findById(id);
+        if (!user) {
+            user = new User({ _id: id, name, resume, image, email });
+            await user.save();
+        }
+
+        return res.json({ success: true, user });
+    } catch (err) {
+        console.error(`Error in createUserData: ${err.message}`);
         return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };

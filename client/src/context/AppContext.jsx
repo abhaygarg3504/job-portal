@@ -72,24 +72,32 @@ export const AppContextProvider = (props) => {
     };
 
     // function to use fetch user Data
-    const fetchUserData = async() => {
-        try{
-            const token = await getToken()
-            const {data} = await axios.get(backendURL + '/api/users/user',
-                {headers: {Authorization: `Bearer ${token}`}})
-            
-            if(data.success){
-                setUserData(data.user)
-            } else{
-                console.error(`some error in fectch user data in try is ${data.message}`)
-                toast.error(data.message)
+    const fetchUserData = async () => {
+        try {
+            const token = await getToken();
+            const userId = user?.id; // ✅ Get user ID from Clerk
+    
+            if (!userId) {
+                console.error("User ID is missing");
+                toast.error("User ID is required");
+                return;
             }
+    
+            const { data } = await axios.get(`${backendURL}/api/users/user/${userId}`, { // ✅ Pass user ID in URL
+                headers: { Authorization: `Bearer ${token}` }
+            });
+    
+            if (data.success) {
+                setUserData(data.user);
+            } else {
+                console.error(`Some error in fetch user data in try: ${data.message}`);
+                toast.error(data.message);
+            }
+        } catch (err) {
+            console.error(`Some error in fetch user data in catch: ${err.message}`);
+            toast.error(err.message);
         }
-        catch(err){
-            console.error(`some error in fectch user dat in catch is ${err.message}`)
-            toast.error(err.message)
-        }
-    }
+    };
     
 
     useEffect(()=>{
