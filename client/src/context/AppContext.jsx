@@ -83,7 +83,7 @@ export const AppContextProvider = (props) => {
                 return;
             }
     
-            const { data } = await axios.get(`${backendURL}/api/users/user/${userId}`, { // ✅ Pass user ID in URL
+            const { data } = await axios.get(`${backendURL}/api/users/user/${userId}`, { 
                 headers: { Authorization: `Bearer ${token}` }
             });
     
@@ -126,7 +126,8 @@ export const AppContextProvider = (props) => {
     const value = {
         setSearchFilter,searchFilter,isSearched,setIsSearched, jobs, setJobs,
          showRecuriterLogin, setShowRecuriterLogin, companyToken, setcompanyToken, companyData,
-        setcompanyData, backendURL
+        setcompanyData, backendURL, userData, setUserData, userApplications, setUserApplications,
+        fetchUserData
     }; 
     return (
         <AppContext.Provider value={value}>

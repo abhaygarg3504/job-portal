@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import  Navbar  from '../components/Navbar'
 import { assets } from '../assets/assets';
@@ -10,11 +10,13 @@ import Footer from '../components/Footer';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
+
 const ApplyJob = () => {
   const { id } = useParams();
   const [jobData, setJobData] = useState(null);
-  const { jobs, backendURL } = useContext(AppContext);
+  const { jobs, backendURL, userData, userApplications } = useContext(AppContext);
 
+  const navigate = useNavigate()
 
   const fetchJob = async() => {
     try{
@@ -29,6 +31,26 @@ const ApplyJob = () => {
     catch(err){
       toast.error(err.message)
     }
+  }
+
+  const applyJobs = async(req, res) =>{
+    
+    try{
+      if(!userData){
+      return  toast.error('First Login then apply')
+      }
+
+       if(!userData.resume){
+        navigate('/application')
+        return toast.error('Uploaded Resume for Apply')
+       }
+
+    }
+    catch(err){
+      console.log(`error in applyJobs is ${err}`)
+      toast.error(err.message)
+    }
+
   }
 
   useEffect(() => {
@@ -69,7 +91,7 @@ const ApplyJob = () => {
           </div>
           </div>
           <div className='flex flex-col justify-center text-end text-sm max-md:mx-auto max-md:text-center   '>
-            <button className='bg-blue-600 text-white p-2.5 px-10 rounded'>Apply Now</button>
+            <button onClick={applyJobs} className='bg-blue-600 text-white p-2.5 px-10 rounded'>Apply Now</button>
             <p className='mt-1 text-gray-600'>Posted {moment(jobData.date).fromNow()}</p>
           </div>
 
@@ -80,7 +102,7 @@ const ApplyJob = () => {
         <div className='w-full lg:w-2/3'>
           <h2 className='font-bold mb-4 text-2xl'>Job Description</h2>
           <div dangerouslySetInnerHTML={{__html: jobData.description}}></div>
-          <button className='bg-blue-600 text-white p-2.5 px-10 rounded'>Apply Now</button>
+          <button onClick={applyJobs} className='bg-blue-600 text-white p-2.5 px-10 rounded'>Apply Now</button>
         </div>
 
         {/* Right Section more jobs */}
