@@ -22,6 +22,31 @@ export const ProtectCompany = async(req, res, next) =>{
 
 };
 
+export const ProtectionCompany = async(req, res, next)=>{
+    let token;
+
+    // Check if the token exists in the Authorization header
+    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+      try {
+        token = req.headers.authorization.split(" ")[1]; // Extract token after "Bearer "
+  
+        const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verify token
+        req.company = await Company.findById(decoded.id).select('-password'); // Attach company data to request
+  
+        if (!req.company) {
+          return res.status(401).json({ success: false, message: "Company not found, please login again" });
+        }
+  
+        next(); // Move to next middleware/controller
+      } catch (error) {
+        console.error("Error in ProtectCompany middleware:", error);
+        return res.status(401).json({ success: false, message: "Not authorized, invalid token" });
+      }
+    } else {
+      return res.status(401).json({ success: false, message: "Not authorized, no token" });
+    }
+};
+
 export const authMiddleware = async (req, res, next) => {
     const authHeader = req.header("Authorization");
     // console.log("Authorization Header:", authHeader); // 🛠 Debugging

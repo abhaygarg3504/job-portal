@@ -11,7 +11,7 @@ import {
 } from "../controllers/companyController.js"; 
 
 import upload from "../config/multer.js";
-import { authMiddleware, comapnyDataProtection, ProtectCompany } from "../middlewares/auth.js";
+import { authMiddleware, comapnyDataProtection, ProtectCompany, ProtectionCompany } from "../middlewares/auth.js";
 
 const router = express.Router();
 
@@ -19,9 +19,9 @@ router.post("/register", upload.single('image'), registerCompany);
 router.post("/login", loginCompany);
 router.get("/company", comapnyDataProtection, getCompanyData);
 router.post("/post-job", authMiddleware, postJob);
-router.get("/applicants",ProtectCompany ,getCompanyJobApplicants);
+router.get("/applicants", ProtectionCompany, getCompanyJobApplicants);
 router.get("/list-jobs", comapnyDataProtection,getCompanyPostedJobs);
-router.post("/change-status", ProtectCompany,changeJobApplicationStatus);
-router.post("/change-visiblity", comapnyDataProtection ,changeJobVisibility); 
+router.post("/change-status", ProtectionCompany,changeJobApplicationStatus);
+router.post("/change-visiblity", ProtectionCompany ,changeJobVisibility); 
 
 export default router;

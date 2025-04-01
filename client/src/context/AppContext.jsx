@@ -70,6 +70,34 @@ export const AppContextProvider = (props) => {
             toast.error(err.response?.data?.message || err.message);
         }
     };
+    // function to fetch user Applied aplications data
+    const fetchUserApplicationData = async () => {
+        try {
+            const token = await getToken();
+            const userId = user?.id; // ✅ Extract user ID from Clerk
+    
+            if (!userId) {
+                toast.error("User ID not found");
+                return;
+            }
+    
+            const { data } = await axios.get(
+                `${backendURL}/api/users/applications/${userId}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+    
+            if (data.success) {
+                setUserApplications(data.applications); // ✅ Store applications in state
+            } else {
+                toast.error(data.message);
+                console.error("Error in fetchUserApplicationData:", data.message);
+            }
+        } catch (err) {
+            toast.error("Failed to fetch applications");
+            console.error(`Error in fetchUserApplicationData: ${err.message}`);
+        }
+    };
+    
 
     // function to use fetch user Data
     const fetchUserData = async () => {
@@ -113,6 +141,7 @@ export const AppContextProvider = (props) => {
     useEffect(()=>{
       if(user){
         fetchUserData()
+        fetchUserApplicationData()
       }
     }, [user])
 
@@ -123,11 +152,13 @@ export const AppContextProvider = (props) => {
 
     },[companyToken])
 
+    
+
     const value = {
         setSearchFilter,searchFilter,isSearched,setIsSearched, jobs, setJobs,
          showRecuriterLogin, setShowRecuriterLogin, companyToken, setcompanyToken, companyData,
         setcompanyData, backendURL, userData, setUserData, userApplications, setUserApplications,
-        fetchUserData
+        fetchUserData, fetchUserApplicationData
     }; 
     return (
         <AppContext.Provider value={value}>

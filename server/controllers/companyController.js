@@ -145,9 +145,28 @@ export const postJob = async (req, res) => {
     }
 };
 
-export const getCompanyJobApplicants = async(req, res)=>{
+export const getCompanyJobApplicants = async (req, res) => {
+    try {
+        const companyId = req.company?._id; // Ensure company ID exists
+        if (!companyId) {
+            return res.status(400).json({ success: false, message: "Unauthorized access" });
+        }
 
-}
+        // Fetch job applications
+        const applications = await JobApplication.find({ companyId })
+            .populate('userId', 'name image resume')
+            .populate('jobId', 'title location category level salary') // Corrected field names
+            .exec();
+
+        return res.json({ success: true, applicants: applications });
+
+    } catch (err) {
+        console.error(`Error in getCompanyJobApplicants: ${err}`);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+};
+
+
 
 export const getCompanyPostedJobs = async (req, res) => {
     try {
@@ -172,11 +191,27 @@ export const getCompanyPostedJobs = async (req, res) => {
   };
   
 
-export const changeJobApplicationStatus = async(req, res) => {
-
-
-}
-
+  export const changeJobApplicationStatus = async (req, res) => {
+    try {
+      const { id, status } = req.body;
+  
+      const updatedApplication = await JobApplication.findByIdAndUpdate(
+        id,
+        { status },
+        { new: true } // Returns the updated document
+      );
+  
+      if (!updatedApplication) {
+        return res.status(404).json({ success: false, message: "Application not found" });
+      }
+  
+      res.json({ success: true, message: "Status Updated", application: updatedApplication });
+    } catch (err) {
+      console.error(`Error in changeJobApplicationStatus: ${err}`);
+      res.status(500).json({ success: false, message: "Server error" });
+    }
+  };
+  
 export const changeJobVisibility = async (req, res) => {
     try {
         const { id } = req.body;

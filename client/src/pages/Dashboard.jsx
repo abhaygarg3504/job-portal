@@ -81,7 +81,7 @@ function Dashboard() {
                 </div>
 
                 {/* Main Content Area - Outlet Renders Here */}
-                <div >
+                <div className='flex-1 h-full p-2 sm:p-5' >
                     <Outlet />
                 </div>
 

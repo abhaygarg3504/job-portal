@@ -53,12 +53,12 @@ export const createUserData = async (req, res) => {
 
 export const updateResume = async (req, res) => {
     try {
-        // ✅ Extract user ID from Clerk Auth middleware
-        const userId = req.params.id; 
+        // ✅ Get user ID from request params (NOT body)
+        const userId = req.params.id;
 
         if (!userId) {
-            console.log("can't get userId");
-            return res.status(401).json({ success: false, message: "Unauthorized: User ID not found" });
+            console.log("Can't get user ID");
+            return res.status(400).json({ success: false, message: "User ID is required" });
         }
 
         // ✅ Find the user in MongoDB
@@ -83,7 +83,7 @@ export const updateResume = async (req, res) => {
         return res.json({ 
             success: true, 
             message: "Resume Updated Successfully", 
-            user: userData // ✅ Return updated user data
+            user: userData  // ✅ Return updated user data
         });
     } catch (err) {
         console.error(`Error in updateResume: ${err.message}`);
@@ -92,10 +92,16 @@ export const updateResume = async (req, res) => {
 };
 
 
-
 export const applyForData = async (req, res) => {
     try {
-        const userId = getUserId(req);
+        // const userId = getUserId(req);
+        const userId = req.params.id;
+
+        if (!userId) {
+            console.log("Can't get user ID");
+            return res.status(400).json({ success: false, message: "User ID is required" });
+        }
+
         const { jobId } = req.body;
 
         if (!jobId) return res.status(400).json({ success: false, message: "Job ID is required" });
@@ -126,7 +132,14 @@ export const applyForData = async (req, res) => {
 
 export const getUserJobApplication = async (req, res) => {
     try {
-        const userId = getUserId(req);
+        // const userId = getUserId(req);
+        const userId = req.params.id;
+
+        if (!userId) {
+            console.log("Can't get user ID");
+            return res.status(400).json({ success: false, message: "User ID is required" });
+        }
+
         const applications = await JobApplication.find({ userId })
             .populate("companyId", "name email image")
             .populate("jobId", "title description category location salary")
@@ -141,34 +154,4 @@ export const getUserJobApplication = async (req, res) => {
 
 
 
-
-// export const updateResume = async (req, res) => {
-//     try {
-//         if (!req.user) {
-//             return res.status(401).json({ success: false, message: "Unauthorized: No user found" });
-//         }
-
-//         const userData = await User.findById(req.user._id);
-//         if (!userData) {
-//             return res.status(404).json({ success: false, message: "User Not Found" });
-//         }
-
-//         if (!req.file) {
-//             return res.status(400).json({ success: false, message: "No file uploaded" });
-//         }
-
-//         // Upload resume to Cloudinary
-//         const resumeUpload = await cloudinary.uploader.upload(req.file.path, {
-//             resource_type: "auto",
-//         });
-
-//         userData.resume = resumeUpload.secure_url;
-//         await userData.save();
-
-//         return res.json({ success: true, message: "Resume Updated Successfully", resume: resumeUpload.secure_url });
-//     } catch (err) {
-//         console.error(`Error in updateResume: ${err.message}`);
-//         return res.status(500).json({ success: false, message: "Internal Server Error" });
-//     }
-// };
 
