@@ -91,15 +91,16 @@ const JobListing = () => {
                   <div>
                     <h4 className='font-medium text-lg py-4'>Search by Locations</h4>
                     <ul className="space-y-4 text-gray-600">
-    {JobLocations.map((category, index) => (
-        <li className="flex gap-3 items-center" key={index}>
-            <input className='scale-125' type="checkbox" 
-            onChange={()=>{handleLocationChange(location)}}
-            checked={selectedLocations.includes(location)}
-            />
-            {category}
-        </li>
-              ))}
+                    {JobLocations.map((category, index) => (
+    <li className="flex gap-3 items-center" key={index}>
+        <input className='scale-125' type="checkbox" 
+            onChange={()=>{handleLocationChange(category)}}
+            checked={selectedLocations.includes(category)}
+        />
+        {category}
+    </li>
+))}
+
              </ul>
                 </div>
             </div>
