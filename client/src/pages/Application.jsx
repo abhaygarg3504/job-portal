@@ -26,7 +26,6 @@ const Application = () => {
 
         const formData = new FormData();
         formData.append('resume', resume);
-
         const token = await getToken();
         const userId = user?.id; 
 
@@ -38,7 +37,9 @@ const Application = () => {
         const { data } = await axios.post(
             `${backendURL}/api/users/update-resume/${userId}`, 
             formData,
-            { headers: { Authorization: `Bearer ${token}` } }
+            { headers: { Authorization: `Bearer ${token}`,
+              // 'Content-Type': 'multipart/form-data',
+             } }
         );
 
         if (data.success) {
@@ -54,7 +55,7 @@ const Application = () => {
 
     setIsEdit(false);
     setResume(null);
-};
+  };
 
   useEffect(()=>{
    if(user){

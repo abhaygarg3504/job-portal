@@ -53,15 +53,12 @@ export const createUserData = async (req, res) => {
 
 export const updateResume = async (req, res) => {
     try {
-        // ✅ Get user ID from request params (NOT body)
         const userId = req.params.id;
 
         if (!userId) {
             console.log("Can't get user ID");
             return res.status(400).json({ success: false, message: "User ID is required" });
         }
-
-        // ✅ Find the user in MongoDB
         let userData = await User.findById(userId);
         if (!userData) {
             return res.status(404).json({ success: false, message: "User Not Found" });
@@ -72,18 +69,26 @@ export const updateResume = async (req, res) => {
         }
 
         // ✅ Upload resume to Cloudinary
-        const resumeUpload = await cloudinary.uploader.upload(req.file.path, {
-            resource_type: "auto", // Ensures PDFs are handled correctly
-        });
+        // const resourceType = req.file.mimetype === "application/pdf" ? "raw" : "image";
 
-        // ✅ Update user resume in MongoDB
-        userData.resume = resumeUpload.secure_url;
-        await userData.save();
+const resumeUpload = await cloudinary.uploader.upload(req.file.path, {
+  resource_type: "auto",
+  folder: "resumes",
+});
+        let finalUrl = resumeUpload.secure_url;
+
+// If the uploaded file is a PDF, fix the URL path
+if (req.file.mimetype === "application/pdf") {
+  finalUrl = finalUrl.replace("/image/upload/", "/raw/upload/");
+}
+
+userData.resume = finalUrl;
+await userData.save();
 
         return res.json({ 
             success: true, 
             message: "Resume Updated Successfully", 
-            user: userData  // ✅ Return updated user data
+            user: userData  
         });
     } catch (err) {
         console.error(`Error in updateResume: ${err.message}`);
