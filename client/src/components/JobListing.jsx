@@ -4,7 +4,7 @@ import { assets, JobCategories, JobLocations, jobsData } from '../assets/assets'
 import JobCard from './JobCard';
 
 const JobListing = () => {
-    const { isSearched, searchFilter, setSearchFilter, jobs } = useContext(AppContext);
+    const { isSearched, applyJobs, searchFilter, setSearchFilter, jobs, totalJobs } = useContext(AppContext);
 
     const [showFilter, setShowFilter] = useState(true)
     const [currentpage, setcurrentpage] = useState(1)
@@ -108,7 +108,8 @@ const JobListing = () => {
             {/* Job Listing */}
             <section className='w-full lg:w-3/4 text-gray-800 max-lg:px-4 '>
             <h3 className='font-medium text-3xl py-2' id='job-list'>Latest Jobs</h3>
-            <p className='mb-8'>Get Your Desired Jobs from Top Companies</p>
+            <p className='mb-8'>Get Your Desired Jobs from Top Companies
+            </p>
          <div className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 '>
             {
                 jobsFilter.slice((currentpage-1)*6,currentpage*6).map((job,index)=>(

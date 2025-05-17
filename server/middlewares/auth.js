@@ -49,8 +49,7 @@ export const ProtectionCompany = async(req, res, next)=>{
 
 export const authMiddleware = async (req, res, next) => {
     const authHeader = req.header("Authorization");
-    // console.log("Authorization Header:", authHeader); // 🛠 Debugging
-
+    
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return res.status(401).json({ success: false, message: "No token, authorization denied" });
     }

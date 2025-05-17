@@ -21,6 +21,10 @@ const userSchema = new mongoose.Schema({
     image: {
         type: String,
         required: true
+    },
+    isPro: {
+        type: Boolean,
+        default: false
     }
 });
 

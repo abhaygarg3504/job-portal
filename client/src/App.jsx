@@ -11,6 +11,7 @@ import ManageJobs from './pages/ManageJobs'
 import ViewApplication from './pages/ViewApplicaton'
 import "react-quill/dist/quill.snow.css"; // Import Quill styles
 import { ToastContainer, toast } from 'react-toastify';
+import ForgotPassword from './pages/ForgetPassword'
 
 const App = () => {
   const { showRecuriterLogin, companyToken } = useContext(AppContext)
@@ -21,6 +22,7 @@ const App = () => {
       <ToastContainer/>
       <Routes>
         <Route path='/' element={<Home />} />
+        <Route path='/forgotPassword' element={<ForgotPassword/>}/>
         <Route path='/application' element={<Application />} />
         <Route path='/apply-job/:id' element={<ApplyJob />} />
 

@@ -157,6 +157,39 @@ export const getUserJobApplication = async (req, res) => {
     }
 };
 
+export const getUserApplicationsCount = async (req, res) => {
+  try {
+    const userId = req.params.id;
 
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "User ID is required" });
+    }
+
+    // Find applications by userId and populate job title and company name
+    const applications = await JobApplication.find({ userId })
+      .populate("jobId", "title")
+      .populate("companyId", "name")
+      .exec();
+
+    const totalApplications = applications.length;
+
+    // Map to extract only necessary info
+    const jobsApplied = applications.map(app => ({
+      jobTitle: app.jobId?.title || "N/A",
+      companyName: app.companyId?.name || "N/A",
+      status: app.status
+    }));
+
+    return res.json({ 
+      success: true, 
+      totalApplications, 
+      jobsApplied 
+    });
+
+  } catch (err) {
+    console.error(`Error in getUserApplicationsCount: ${err.message}`);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
 
 

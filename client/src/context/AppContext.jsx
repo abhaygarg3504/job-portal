@@ -26,6 +26,8 @@ export const AppContextProvider = (props) => {
 
     const [userData, setUserData] = useState(null)
     const [userApplications, setUserApplications] = useState([])
+    const [totalJobs, settotalJobs] = useState(0)
+    const [applyJobs, setapplyJobs] = useState(0)
 
     // functtion to fecth jobs
     const fetchJobs = async () => {
@@ -127,10 +129,45 @@ export const AppContextProvider = (props) => {
         }
     };
     
+     const fetchTotalJobs = async () => {
+    try {
+      const res = await axios.get(`${backendURL}/api/jobs/count/total`);
+      settotalJobs(res.data.totalJobs);
+    } catch (err) {
+      console.error("Error fetching total jobs:", err);
+    }
+  };
+  
+  const fetchApplicationCount = async () => {
+  try {
+    const userId = user?.id;
+    if (!userId) {
+      console.warn("User ID missing. Skipping application count fetch.");
+      return;
+    }
+
+    const token = await getToken();
+
+    const { data } = await axios.get(
+      `${backendURL}/api/users/applications/count/${userId}`, 
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+
+    if (data.success) {
+      setapplyJobs(data.totalApplications); // Assuming backend sends totalApplications count
+    } else {
+      console.error("Failed to fetch application count:", data.message);
+    }
+  } catch (error) {
+    console.error("Error fetching application count:", error);
+  }
+};
+
 
     useEffect(()=>{
         fetchJobs()
-
         const storedCompanyToken = localStorage.getItem('companyToken')
         if(storedCompanyToken){
             setcompanyToken(storedCompanyToken)
@@ -142,6 +179,8 @@ export const AppContextProvider = (props) => {
       if(user){
         fetchUserData()
         fetchUserApplicationData()
+        fetchTotalJobs()
+        fetchApplicationCount()
       }
     }, [user])
 
@@ -158,7 +197,7 @@ export const AppContextProvider = (props) => {
         setSearchFilter,searchFilter,isSearched,setIsSearched, jobs, setJobs,
          showRecuriterLogin, setShowRecuriterLogin, companyToken, setcompanyToken, companyData,
         setcompanyData, backendURL, userData, setUserData, userApplications, setUserApplications,
-        fetchUserData, fetchUserApplicationData
+        fetchUserData, fetchUserApplicationData, totalJobs, settotalJobs, applyJobs, setapplyJobs
     }; 
     return (
         <AppContext.Provider value={value}>

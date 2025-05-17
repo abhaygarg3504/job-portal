@@ -15,7 +15,8 @@ const Application = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [resume, setResume] = useState(null);
 
-  const { backendURL, userData, userApplications, fetchUserData,fetchUserApplicationData } = useContext(AppContext);
+  const { backendURL, totalJobs, applyJobs, userData, userApplications, 
+    fetchUserData,fetchUserApplicationData } = useContext(AppContext);
 
   const updateResume = async () => {
     try {
@@ -67,6 +68,81 @@ const Application = () => {
     <>
       <Navbar />
       <div className='container px-4 min-h-[65vh] 2xl:px-20 mx-auto my-10'>
+        
+        {/* i want to add user details that how much job be applied out of how much total applicants
+        there on job-portal website and mention them there are prob members are not
+        if there are pro memebers then there image is get small block with text pro with some stylish
+        takes user from above 
+        
+        i want UI like take rectangle box with normal box and in left side there is circle
+        of image of user which is fetch from above data
+        next side there is user name, user email
+        if isPro is true then image top-right side part is write pro is some stylish backend
+        if isPro false don't write anything remain same 
+         now next part make a make a chart that there is cirlce 
+         inside it there is appyjobs/ total jobs in stylsh way
+        
+        */}
+         <div>
+<div className="bg-white rounded-lg shadow-md p-6 mb-10 flex items-center gap-6">
+  {/* Profile Picture with PRO Badge */}
+  <div className="relative">
+    <img
+      src={userData?.image}
+      alt="Profile"
+      className="w-24 h-24 rounded-full object-cover border-4 border-gray-300"
+    />
+    {userData?.isPro && (
+      <span className="absolute top-0 right-0 bg-yellow-400 text-white text-xs px-2 py-0.5 rounded-full shadow-md font-semibold">
+        PRO
+      </span>
+    )}
+  </div>
+
+  {/* User Info and Stats */}
+  <div className="flex-1">
+    <h2 className="text-2xl font-bold">{userData?.name}</h2>
+    <p className="text-gray-600">{userData?.email}</p>
+
+    {/* Application Progress */}
+    <div className="mt-4 flex items-center gap-4">
+      <div className="relative w-20 h-20">
+        <svg className="transform -rotate-90" viewBox="0 0 36 36">
+          <path
+            className="text-gray-200"
+            strokeWidth="4"
+            stroke="currentColor"
+            fill="none"
+            d="M18 2.0845
+              a 15.9155 15.9155 0 0 1 0 31.831
+              a 15.9155 15.9155 0 0 1 0 -31.831"
+          />
+          <path
+            className="text-blue-500"
+            strokeWidth="4"
+            strokeDasharray={`${(applyJobs.length / totalJobs.length) * 100}, 100`}
+            stroke="currentColor"
+            fill="none"
+            d="M18 2.0845
+              a 15.9155 15.9155 0 0 1 0 31.831
+              a 15.9155 15.9155 0 0 1 0 -31.831"
+          />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-sm font-medium">
+            {applyJobs}/{totalJobs}
+          </span>
+        </div>
+      </div>
+      <p className="text-sm text-gray-500">
+        Jobs Applied
+      </p>
+    </div>
+  </div>
+</div>
+
+         </div>
+        
         <h2 className='text-xl font-semibold'>Your Resume</h2>
 
         <div className='flex gap-2 mb-6 mt-3'>

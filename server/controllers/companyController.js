@@ -1,9 +1,12 @@
-import Company from "../models/Comapny.js";
+import  Company, {validate } from "../models/Comapny.js"; // ✅ Named import
+
 import bcrypt from "bcrypt"
 import { v2 as cloudinary } from "cloudinary"
 import generateToken from "../utils/generateToken.js";
 import Job from "../models/Job.js";
 import JobApplication from "../models/JobApplication.js";
+import Token from "../models/Token.js"; 
+import {sendEmail}  from "../utils/sendEmails.js"
 
 export const registerCompany= async(req, res) => {
  const {name, email, password} = req.body
@@ -45,7 +48,6 @@ export const registerCompany= async(req, res) => {
  }
     
 }
-
 
 export const loginCompany = async (req, res) => {
     const { email, password } = req.body;
@@ -104,8 +106,6 @@ export const getCompanyData = async (req, res) => {
         res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };
-
-
 
 export const postJob = async (req, res) => {
     // console.log("Company from Request:", req.company); // 🛠 Debugging Step
@@ -166,8 +166,6 @@ export const getCompanyJobApplicants = async (req, res) => {
     }
 };
 
-
-
 export const getCompanyPostedJobs = async (req, res) => {
     try {
       const companyId = req.company._id;
@@ -191,26 +189,58 @@ export const getCompanyPostedJobs = async (req, res) => {
   };
   
 
-  export const changeJobApplicationStatus = async (req, res) => {
-    try {
-      const { id, status } = req.body;
-  
-      const updatedApplication = await JobApplication.findByIdAndUpdate(
-        id,
-        { status },
-        { new: true } // Returns the updated document
-      );
-  
-      if (!updatedApplication) {
-        return res.status(404).json({ success: false, message: "Application not found" });
-      }
-  
-      res.json({ success: true, message: "Status Updated", application: updatedApplication });
-    } catch (err) {
-      console.error(`Error in changeJobApplicationStatus: ${err}`);
-      res.status(500).json({ success: false, message: "Server error" });
+export const changeJobApplicationStatus = async (req, res) => {
+  try {
+    const { id, status } = req.body;
+
+    const updatedApplication = await JobApplication.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    )
+      .populate("userId", "email name")       // get name too
+      .populate("companyId", "name")
+      .populate("jobId", "title");
+
+    if (!updatedApplication) {
+      return res.status(404).json({ success: false, message: "Application not found" });
     }
-  };
+
+    // Extract user and job-related data
+    const userEmail = updatedApplication.userId.email;
+    const userName = updatedApplication.userId.name;          // user's name
+    const companyName = updatedApplication.companyId.name;
+    const jobTitle = updatedApplication.jobId.title;
+    const currentStatus = updatedApplication.status;
+
+    // Send email
+    await sendEmail(
+      userEmail,
+      `Application Status Update: ${jobTitle} at ${companyName}`,
+      `<p>Dear ${userName},</p>
+       <p>Your application for <strong>${jobTitle}</strong> at <strong>${companyName}</strong> has been updated to: 
+       <strong>${currentStatus}</strong>.</p>
+       <p>Thank you for applying!</p>`
+    );
+
+    res.json({
+      success: true,
+      message: "Status Updated",
+      application: updatedApplication,
+      userEmail,
+      userName,
+      companyName,
+      jobTitle,
+      currentStatus
+    });
+  } catch (err) {
+    console.error(`Error in changeJobApplicationStatus: ${err}`);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+
   
 export const changeJobVisibility = async (req, res) => {
     try {
@@ -238,4 +268,68 @@ export const changeJobVisibility = async (req, res) => {
         res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };
+
+
+export const setUpOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) return res.status(400).json({ message: "Email is required" });
+
+    const user = await Company.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    await Token.findOneAndDelete({ email }); // remove any existing OTPs
+
+    await Token.create({ email, otp });
+
+    // Use sendEmail here:
+    await sendEmail(email, "Password Reset OTP", `Your OTP is: <strong>${otp}</strong>`);
+
+    res.status(200).json({ message: "OTP sent to your email" });
+  } catch (error) {
+    console.error("Error in setUpOTP:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const verifyOTP = async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+
+        const validToken = await Token.findOne({ email, otp });
+
+        if (!validToken) return res.status(400).json({ message: "Invalid or expired OTP" });
+
+        res.status(200).json({ message: "OTP verified successfully" });
+
+    } catch (error) {
+        console.error("Error in verifyOTP:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const resetPassword = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        const user = await Company.findOne({ email });
+
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        user.password = await bcrypt.hash(password, 10);
+        await user.save();
+
+        await Token.deleteMany({ email }); // clean up OTP
+
+        res.status(200).json({ message: "Password reset successfully" });
+
+    } catch (error) {
+        console.error("Error in resetPassword:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 

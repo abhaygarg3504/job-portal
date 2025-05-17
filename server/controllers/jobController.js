@@ -47,3 +47,19 @@ export const getJobById = async(req, res)=> {
    }
 
 }
+
+export const getJobCount = async (req, res) => {
+  try {
+    const totalJobs = await Job.countDocuments(); // counts all jobs
+    res.json({
+      success: true,
+      totalJobs
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching job count",
+      error: err.message
+    });
+  }
+};

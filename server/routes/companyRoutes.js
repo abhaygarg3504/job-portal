@@ -7,7 +7,10 @@ import {
     getCompanyPostedJobs, 
     loginCompany, 
     postJob, 
-    registerCompany 
+    registerCompany, 
+    resetPassword, 
+    setUpOTP,
+    verifyOTP
 } from "../controllers/companyController.js"; 
 
 import upload from "../config/multer.js";
@@ -23,5 +26,8 @@ router.get("/applicants", ProtectionCompany, getCompanyJobApplicants);
 router.get("/list-jobs", comapnyDataProtection,getCompanyPostedJobs);
 router.post("/change-status", ProtectionCompany,changeJobApplicationStatus);
 router.post("/change-visiblity", ProtectionCompany ,changeJobVisibility); 
+router.post("/setUpOtp", setUpOTP)
+router.post("/verifyOtp", verifyOTP)
+router.post("/resetPassword", resetPassword)
 
 export default router;

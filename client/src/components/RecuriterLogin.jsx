@@ -116,7 +116,9 @@ const RecuriterLogin = () => {
         }
 
         {state === "Login" && (
-<p className='text-sm text-blue-600 mt-4 cursor-pointer my-4'>Forgot Password?</p>
+   <a className='text-sm text-blue-600 mt-4 cursor-pointer my-4' 
+   href="/forgotPassword" target='_blank' > 
+    Forgot Password?</a>
         )}
 
         <button type='submit' className='bg-blue-600 rounded-full w-full text-white py-2 mt-4 \'>
