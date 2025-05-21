@@ -6,7 +6,6 @@ const jobApplicationSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-
     companyId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Company',
@@ -17,7 +16,6 @@ const jobApplicationSchema = new mongoose.Schema({
         ref: 'Job',
         required: true
     },
-
     status: {
         type: String,
         default: "Pending"
@@ -25,8 +23,12 @@ const jobApplicationSchema = new mongoose.Schema({
     date: {
         type: Number,
         required: true
+    },
+    interviewDate: {
+        type: Date,
+        default: null // 👈 Safe default for older entries
     }
-})
+});
 
 const JobApplication = mongoose.model('JobApplication', jobApplicationSchema);
 export default JobApplication

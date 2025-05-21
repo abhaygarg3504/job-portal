@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema({
     resume: {
         type: String,
         default: ""
-    }, 
+    },
     image: {
         type: String,
         required: true
@@ -25,8 +25,13 @@ const userSchema = new mongoose.Schema({
     isPro: {
         type: Boolean,
         default: false
+    },
+    proExpiresAt: {
+        type: Date,
+        default: null
     }
 });
+
 
 const User = mongoose.model('User', userSchema);
 

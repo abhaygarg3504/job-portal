@@ -52,7 +52,7 @@ import userRouter from "./routes/userRoutes.js";
 import connectCloudinary from "./config/cloudinary.js";
 import path from "path";
 import { clerkMiddleware } from "@clerk/express";
-
+import contactRoutes from "./routes/contactRoutes.js";
 const app = express();
 
 const corsConfig = {
@@ -79,6 +79,7 @@ app.set("views", path.join(path.resolve(), "views"));
 app.use("/api/company", companyRouter);
 app.use("/api/jobs", jobRouter);
 app.use("/api/users", userRouter);
+app.use("/api/contacts", contactRoutes);
 app.post("/webhooks", clerkWebhook);
 
 app.get("/api/company/register", (req, res) => {

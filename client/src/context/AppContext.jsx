@@ -53,8 +53,6 @@ export const AppContextProvider = (props) => {
                 return;
             }
     
-            // console.log("Company Token:", companyToken);
-    
             const { data } = await axios.get(backendURL + "/api/company/company", {
                 headers: {
                     Authorization: `Bearer ${companyToken}`
@@ -76,8 +74,8 @@ export const AppContextProvider = (props) => {
     const fetchUserApplicationData = async () => {
         try {
             const token = await getToken();
-            const userId = user?.id; // ✅ Extract user ID from Clerk
-    
+            const userId = user?.id; 
+
             if (!userId) {
                 toast.error("User ID not found");
                 return;
@@ -105,8 +103,8 @@ export const AppContextProvider = (props) => {
     const fetchUserData = async () => {
         try {
             const token = await getToken();
-            const userId = user?.id; // ✅ Get user ID from Clerk
-    
+            const userId = user?.id; 
+            
             if (!userId) {
                 console.error("User ID is missing");
                 toast.error("User ID is required");
@@ -190,8 +188,6 @@ export const AppContextProvider = (props) => {
         }
 
     },[companyToken])
-
-    
 
     const value = {
         setSearchFilter,searchFilter,isSearched,setIsSearched, jobs, setJobs,

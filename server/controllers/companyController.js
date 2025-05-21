@@ -1,5 +1,4 @@
-import  Company, {validate } from "../models/Comapny.js"; // ✅ Named import
-
+import  Company from "../models/Comapny.js"; 
 import bcrypt from "bcrypt"
 import { v2 as cloudinary } from "cloudinary"
 import generateToken from "../utils/generateToken.js";
@@ -7,6 +6,8 @@ import Job from "../models/Job.js";
 import JobApplication from "../models/JobApplication.js";
 import Token from "../models/Token.js"; 
 import {sendEmail}  from "../utils/sendEmails.js"
+import Contact from "../models/Contact.js";
+import mongoose from "mongoose"; 
 
 export const registerCompany= async(req, res) => {
  const {name, email, password} = req.body
@@ -108,17 +109,13 @@ export const getCompanyData = async (req, res) => {
 };
 
 export const postJob = async (req, res) => {
-    // console.log("Company from Request:", req.company); // 🛠 Debugging Step
-
     if (!req.company) {
         return res.status(401).json({ success: false, message: "Not Authorized, Login Again" });
     }
 
     const { title, description, location, salary, level, category } = req.body;
-
-    // ✅ Ensure companyId is correctly assigned
     const companyId = req.company._id ? req.company._id.toString() : null;
-    // console.log("Extracted companyId:", companyId); // 🛠 Debugging Step
+
 
     if (!companyId) {
         return res.status(400).json({ success: false, message: "Company ID is missing" });
@@ -170,10 +167,7 @@ export const getCompanyPostedJobs = async (req, res) => {
     try {
       const companyId = req.company._id;
       
-      // Fetch jobs and convert to plain objects for better performance
       const jobs = await Job.find({ companyId }).lean();
-  
-      // Adding the number of applicants to job data
       const jobsWithApplicants = await Promise.all(
         jobs.map(async (job) => {
           const applicantsCount = await JobApplication.countDocuments({ jobId: job._id });
@@ -188,6 +182,53 @@ export const getCompanyPostedJobs = async (req, res) => {
     }
   };
   
+// export const changeJobApplicationStatus = async (req, res) => {
+//   try {
+//     const { id, status } = req.body;
+
+//     const updatedApplication = await JobApplication.findByIdAndUpdate(
+//       id,
+//       { status },
+//       { new: true }
+//     )
+//       .populate("userId", "email name")
+//       .populate("companyId", "name")
+//       .populate("jobId", "title");
+
+//     if (!updatedApplication) {
+//       return res.status(404).json({ success: false, message: "Application not found" });
+//     }
+
+//     const userEmail = updatedApplication.userId.email;
+//     const userName = updatedApplication.userId.name;
+//     const companyName = updatedApplication.companyId.name;
+//     const jobTitle = updatedApplication.jobId.title;
+//     const currentStatus = updatedApplication.status;
+
+//     await sendEmail(
+//       userEmail,
+//       `Application Status Update: ${jobTitle} at ${companyName}`,
+//       `<p>Dear ${userName},</p>
+//        <p>Your application for <strong>${jobTitle}</strong> at <strong>${companyName}</strong> has been updated to:
+//        <strong>${currentStatus}</strong>.</p>
+//        <p>Thank you for applying!</p>`
+//     );
+
+//     res.json({
+//       success: true,
+//       message: "Status Updated",
+//       application: updatedApplication,
+//       userEmail,
+//       userName,
+//       companyName,
+//       jobTitle,
+//       currentStatus
+//     });
+//   } catch (err) {
+//     console.error(`Error in changeJobApplicationStatus: ${err}`);
+//     res.status(500).json({ success: false, message: "Server error" });
+//   }
+// };
 
 export const changeJobApplicationStatus = async (req, res) => {
   try {
@@ -198,7 +239,7 @@ export const changeJobApplicationStatus = async (req, res) => {
       { status },
       { new: true }
     )
-      .populate("userId", "email name")       // get name too
+      .populate("userId", "email name")
       .populate("companyId", "name")
       .populate("jobId", "title");
 
@@ -206,19 +247,39 @@ export const changeJobApplicationStatus = async (req, res) => {
       return res.status(404).json({ success: false, message: "Application not found" });
     }
 
-    // Extract user and job-related data
     const userEmail = updatedApplication.userId.email;
-    const userName = updatedApplication.userId.name;          // user's name
+    const userName = updatedApplication.userId.name;
     const companyName = updatedApplication.companyId.name;
     const jobTitle = updatedApplication.jobId.title;
     const currentStatus = updatedApplication.status;
+
+    // ✅ Create contact if status is accepted
+    if (currentStatus.toLowerCase() === "accepted") {
+      const existingContact = await Contact.findOne({
+        userId: updatedApplication.userId._id,
+        recruiterId: updatedApplication.companyId._id,
+        jobTitle,
+      });
+
+      if (!existingContact) {
+        const newContact = new Contact({
+          userId: updatedApplication.userId._id,
+          recruiterId: updatedApplication.companyId._id,
+          userName,
+          companyName,
+          jobTitle,
+        });
+
+        await newContact.save();
+      }
+    }
 
     // Send email
     await sendEmail(
       userEmail,
       `Application Status Update: ${jobTitle} at ${companyName}`,
       `<p>Dear ${userName},</p>
-       <p>Your application for <strong>${jobTitle}</strong> at <strong>${companyName}</strong> has been updated to: 
+       <p>Your application for <strong>${jobTitle}</strong> at <strong>${companyName}</strong> has been updated to:
        <strong>${currentStatus}</strong>.</p>
        <p>Thank you for applying!</p>`
     );
@@ -238,10 +299,6 @@ export const changeJobApplicationStatus = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
-
-
-  
 export const changeJobVisibility = async (req, res) => {
     try {
         const { id } = req.body;
@@ -332,4 +389,74 @@ export const resetPassword = async (req, res) => {
     }
 };
 
+export const setInterviewDate = async (req, res) => {
+  try {
+    const { id, interviewDate } = req.body;
+
+    const application = await JobApplication.findByIdAndUpdate(
+      id,
+      { interviewDate: new Date(interviewDate) },
+      { new: true }
+    );
+
+    if (!application) {
+      return res.status(404).json({ success: false, message: "Application not found" });
+    }
+
+    res.json({
+      success: true,
+      message: "Interview date set successfully",
+      application
+    });
+  } catch (err) {
+    console.error("Error in setInterviewDate:", err.message);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+export const getInterviewDetails = async (req, res) => {
+  try {
+    const { userId, companyId } = req.query;
+
+    if (!userId && !companyId) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide userId or companyId.",
+      });
+    }
+
+    const filter = { interviewDate: { $ne: null } };
+
+    if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+      filter.userId = new mongoose.Types.ObjectId(userId);
+    }
+
+    if (companyId && mongoose.Types.ObjectId.isValid(companyId)) {
+      filter.companyId = new mongoose.Types.ObjectId(companyId);
+    }
+
+    const applications = await JobApplication.find(filter)
+      .populate("userId", "name")
+      .populate("companyId", "name")
+      .populate("jobId", "title")
+      .select("interviewDate userId companyId jobId");
+
+    const interviews = applications.map((app) => ({
+      interviewDate: app.interviewDate,
+      userName: app.userId?.name,
+      companyName: app.companyId?.name,
+      jobTitle: app.jobId?.title,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      interviews,
+    });
+
+  } catch (error) {
+    console.error("Error fetching interview details:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 

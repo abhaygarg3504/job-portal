@@ -1,7 +1,9 @@
 import Job from "../models/Job.js";
 import JobApplication from "../models/JobApplication.js";
+import transactionModel from "../models/transactionModel.js";
 import User from "../models/User.js";
 import { v2 as cloudinary } from "cloudinary";
+import Razorpay from "razorpay"
 
 export const getUserId = (req) => {
     const userId = req.query.id;
@@ -192,4 +194,125 @@ export const getUserApplicationsCount = async (req, res) => {
   }
 };
 
+export const razorPayInstance = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
+
+export const paymentRazorPay = async (req, res) => {
+    try {
+      const { userId, planId } = req.body;
+  
+      if (!userId || !planId) {
+        return res.json({ success: false, message: "Missing Details" });
+      }
+  
+      const userData = await User.findById(userId);
+      if (!userData) {
+        return res.json({ success: false, message: "User not found" });
+      }
+  
+      let durationInMonths, plan, amount;
+  
+      switch (planId) {
+        case 'Monthly':
+          plan = 'Monthly';
+          durationInMonths = 1;
+          amount = 3000;
+          break;
+  
+        case 'Quarterly':
+          plan = 'Quarterly';
+          durationInMonths = 3;
+          amount = 8000;
+          break;
+  
+        case 'Yearly':
+          plan = 'Yearly';
+          durationInMonths = 12;
+          amount = 20000;
+          break;
+  
+        default:
+          return res.json({ success: false, message: "Plan Not Found" });
+      }
+  
+      const date = Date.now();
+  
+      const transactionData = {
+        userId,
+        plan,
+        amount,
+        durationInMonths,
+        date,
+      };
+  
+      const newTransaction = await transactionModel.create(transactionData);
+  
+      const options = {
+        amount: amount * 100, // amount in paise
+        currency: process.env.CURRENCY,
+        receipt: newTransaction._id.toString(),
+      };
+  
+      razorPayInstance.orders.create(options, (error, order) => {
+        if (error) {
+          console.log(`Error in Razorpay order: ${error}`);
+          return res.json({ success: false, message: error });
+        }
+        return res.json({ success: true, order });
+      });
+  
+    } catch (err) {
+      console.log(`Error in Razorpay payment: ${err}`);
+      return res.status(500).json({ success: false, message: "Payment Failed", error: err.message });
+    }
+  };
+
+ export const verifyRazorPay = async (req, res) => {
+  try {
+    const { razorpay_order_id } = req.body;
+    const orderInfo = await razorPayInstance.orders.fetch(razorpay_order_id);
+
+    if (!orderInfo || !orderInfo.receipt) {
+      return res.json({ success: false, message: "Invalid Order Info" });
+    }
+
+    const transactionData = await transactionModel.findById(orderInfo.receipt);
+    if (!transactionData) {
+      return res.json({ success: false, message: "Transaction not found" });
+    }
+
+    if (transactionData.payment) {
+      return res.json({ success: false, message: "Payment Already Processed" });
+    }
+
+    const userData = await User.findById(transactionData.userId);
+    if (!userData) {
+      return res.json({ success: false, message: "User not found" });
+    }
+
+    // Calculate proExpiresAt
+    const transactionDate = new Date(transactionData.date);
+    const expiresAt = new Date(transactionDate);
+    expiresAt.setMonth(expiresAt.getMonth() + transactionData.durationInMonths);
+
+    // Update user's pro status
+    await User.findByIdAndUpdate(userData._id, {
+      isPro: true,
+      proExpiresAt: expiresAt,
+    });
+
+    // Mark payment as completed
+    await transactionModel.findByIdAndUpdate(transactionData._id, {
+      payment: true,
+    });
+
+    return res.json({ success: true, message: "Pro Status Updated" });
+
+  } catch (err) {
+    console.error(`Error in verifyRazorPay: ${err}`);
+    return res.status(500).json({ success: false, message: "Server Error", error: err.message });
+  }
+};
 

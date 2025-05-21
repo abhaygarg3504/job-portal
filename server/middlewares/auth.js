@@ -55,10 +55,8 @@ export const authMiddleware = async (req, res, next) => {
     }
 
     const token = authHeader.split(" ")[1];
-    // console.log("Extracted Token:", token); // 🛠 Debugging
 
     try {
-        // ✅ Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         // console.log("Decoded Token:", decoded); // 🛠 Debugging
 
@@ -78,8 +76,6 @@ export const authMiddleware = async (req, res, next) => {
         return res.status(401).json({ success: false, message: "Invalid token" });
     }
 };
-
-
 
 export const comapnyDataProtection = async (req, res, next) => {
     try {
@@ -121,4 +117,24 @@ export const comapnyDataProtection = async (req, res, next) => {
     }
 };
 
+const protectCompany = async (req, res, next) => {
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    try {
+      token = req.headers.authorization.split(" ")[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.company = await Company.findById(decoded.id).select("-password");
+      next();
+    } catch (err) {
+      return res.status(401).json({ success: false, message: "Invalid token" });
+    }
+  } else {
+    return res.status(401).json({ success: false, message: "No token provided" });
+  }
+};
+
+export default protectCompany;
 

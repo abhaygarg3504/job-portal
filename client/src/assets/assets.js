@@ -915,3 +915,25 @@ export const jobsData = [
         category: "Programming",
     }
 ];
+
+export const plans = [
+  {
+    id: 'Monthly',
+    price: 3000,
+    durationInMonths: 1,
+    desc: 'Perfect for short-term individual use.'
+  },
+  {
+    id: 'Quarterly',
+    price: 8000,
+    durationInMonths: 3,
+    desc: 'Ideal for regular users and small teams.'
+  },
+  {
+    id: 'Yearly',
+    price: 20000,
+    durationInMonths: 12,
+    desc: 'Best value for businesses and power users.'
+  },
+];
+

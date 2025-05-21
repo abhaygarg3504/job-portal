@@ -1,94 +1,123 @@
-import React, { useContext, useEffect } from 'react'
-import { assets } from '../assets/assets'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import React, { useContext, useEffect, useState } from 'react';
+import { assets } from '../assets/assets';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
+import { Bell, CalendarDays } from 'lucide-react';
+import InterviewCalendarModal from './interviewCalenderModel';
 
 function Dashboard() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const { companyData, setcompanyToken, setcompanyData } = useContext(AppContext);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
-    const { companyData, setcompanyToken,setcompanyData } = useContext(AppContext);
+  const logout = () => {
+    setcompanyToken(null);
+    localStorage.removeItem('companyToken');
+    setcompanyData(null);
+    navigate('/');
+  };
 
-    // Function to logout a comapny
-    const logout = () => {
-        setcompanyToken(null)
-        localStorage.removeItem('companyToken')
-        setcompanyData(null)
-        navigate('/')
+  useEffect(() => {
+    if (companyData) {
+      navigate('/dashboard/manage-jobs');
     }
+  }, [companyData, navigate]);
 
-    useEffect(()=>{
-      if(companyData){
-        navigate('/dashboard/manage-jobs')
-      }
-    }, [companyData])
+  const location = useLocation();
+  const isRecruiter = location.pathname.includes('/dashboard');
 
-    return (
-        <div className='min-h-screen'>
-        
-            {/* Navbar for recruiter login */}
-            <div className='shadow py-4'>
-                <div className='px-5 flex justify-between items-center'>
-                    <img onClick={() => navigate('/')} className='max-sm:w-32 cursor-pointer' src={assets.logo} alt="" />
-                    {
-                        companyData && (
-                            <div className='flex items-center gap-3'>
-                        <p className='max-sm:hidden'>Welcome, {companyData.name}</p>
-                        <div className='relative group'>
-                            <img className='w-8 border rounded-full' src={companyData.image} alt="" />
-                            <div className='absolute hidden group-hover:block top-0 right-0 z-10 text-black rounded pt-12'>
-                                <ul className='list-none m-0 p-2 bg-white rounded-md border text-sm'>
-                                    <li onClick={ logout} className='py-1 px-2 cursor-pointer pr-10'>Logout</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                        )
-                    }
+  return (
+    <div className='min-h-screen'>
+      {/* Navbar */}
+      <div className='shadow py-4'>
+        <div className='px-5 flex justify-between items-center'>
+          <img
+            onClick={() => navigate('/')}
+            className='max-sm:w-32 cursor-pointer'
+            src={assets.logo}
+            alt='Logo'
+          />
+
+          {companyData && (
+            <div className='flex items-center gap-4'>
+              {/* Chat bell icon */}
+              <a href='/dashboard/chat-system' target='_blank' rel='noopener noreferrer'>
+                <Bell className='cursor-pointer' />
+              </a>
+
+              {/* Calendar icon */}
+              <CalendarDays
+                className='cursor-pointer'
+                onClick={() => {
+                  if (companyData?._id) {
+                    setIsCalendarOpen(true);
+                  }
+                }}
+              />
+
+              <p className='max-sm:hidden'>Welcome, {companyData.name}</p>
+
+              <div className='relative group'>
+                <img className='w-8 border rounded-full' src={companyData.image} alt='Profile' />
+                <div className='absolute hidden group-hover:block top-0 right-0 z-10 text-black rounded pt-12'>
+                  <ul className='list-none m-0 p-2 bg-white rounded-md border text-sm'>
+                    <li onClick={logout} className='py-1 px-2 cursor-pointer pr-10'>
+                      Logout
+                    </li>
+                  </ul>
                 </div>
+              </div>
             </div>
-
-            {/* Sidebar + Content Container */}
-            <div className='flex items-start'>
-                
-                {/* Sidebar */}
-                <div className='inline-block min-h-screen border-r-2'>
-                    <ul className='flex flex-col items-start pt-5 text-gray-800 '>
-                        <NavLink 
-                            className={({ isActive }) => 
-                                `flex items-center p-3 sm:px-6 gap-2 w-full hover:bg-gray-100 ${isActive ? 'bg-blue-100 border-r-4 border-blue-500' : ''}`
-                            } 
-                            to='/dashboard/add-job'>
-                            <img src={assets.add_icon} alt="" />
-                            <p className='max-sm:hidden'>Add Job</p>
-                        </NavLink>
-                        <NavLink 
-                            className={({ isActive }) => 
-                                `flex items-center p-3 sm:px-6 gap-2 w-full hover:bg-gray-100 ${isActive ? 'bg-blue-100 border-r-4 border-blue-500' : ''}`
-                            } 
-                            to='/dashboard/manage-jobs'>
-                            <img src={assets.home_icon} alt="" />
-                            <p className='max-sm:hidden'>Manage Jobs</p>
-                        </NavLink>
-                        <NavLink 
-                            className={({ isActive }) => 
-                                `flex items-center p-3 sm:px-6 gap-2 w-full hover:bg-gray-100 ${isActive ? 'bg-blue-100 border-r-4 border-blue-500' : ''}`
-                            } 
-                            to='/dashboard/view-application'>
-                            <img src={assets.person_tick_icon} alt="" />
-                            <p className='max-sm:hidden'>View Applications</p>
-                        </NavLink>
-                    </ul>
-                </div>
-
-                {/* Main Content Area - Outlet Renders Here */}
-                <div className='flex-1 h-full p-2 sm:p-5' >
-                    <Outlet />
-                </div>
-
-            </div>
-
+          )}
         </div>
-    );
+      </div>
+
+      {/* Sidebar + Outlet */}
+      <div className='flex items-start'>
+        <div className='inline-block min-h-screen border-r-2'>
+          <ul className='flex flex-col items-start pt-5 text-gray-800'>
+            <NavLink to='/dashboard/add-job' className={({ isActive }) =>
+              `flex items-center p-3 sm:px-6 gap-2 w-full hover:bg-gray-100 ${
+                isActive ? 'bg-blue-100 border-r-4 border-blue-500' : ''
+              }`
+            }>
+              <img src={assets.add_icon} alt='' />
+              <p className='max-sm:hidden'>Add Job</p>
+            </NavLink>
+            <NavLink to='/dashboard/manage-jobs' className={({ isActive }) =>
+              `flex items-center p-3 sm:px-6 gap-2 w-full hover:bg-gray-100 ${
+                isActive ? 'bg-blue-100 border-r-4 border-blue-500' : ''
+              }`
+            }>
+              <img src={assets.home_icon} alt='' />
+              <p className='max-sm:hidden'>Manage Jobs</p>
+            </NavLink>
+            <NavLink to='/dashboard/view-application' className={({ isActive }) =>
+              `flex items-center p-3 sm:px-6 gap-2 w-full hover:bg-gray-100 ${
+                isActive ? 'bg-blue-100 border-r-4 border-blue-500' : ''
+              }`
+            }>
+              <img src={assets.person_tick_icon} alt='' />
+              <p className='max-sm:hidden'>View Applications</p>
+            </NavLink>
+          </ul>
+        </div>
+
+        <div className='flex-1 h-full p-2 sm:p-5'>
+          <Outlet />
+        </div>
+      </div>
+
+      {/* Calendar Modal */}
+      {companyData  && (
+        <InterviewCalendarModal
+          isOpen={isCalendarOpen}
+          onClose={() => setIsCalendarOpen(false)}
+          recruiterId={companyData._id} // ✅ Passed as prop
+        />
+      )}
+    </div>
+  );
 }
 
 export default Dashboard;

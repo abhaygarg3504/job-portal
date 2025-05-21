@@ -16,3 +16,31 @@
 ::-webkit-scrollbar{
     display: none;
 }
+
+/* index.css or App.css */
+
+.react-calendar {
+  border: none !important;
+  background-color: transparent;
+}
+
+.react-calendar__tile {
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.react-calendar__tile:enabled:hover,
+.react-calendar__tile:enabled:focus {
+  background-color: #e0f2fe;
+  color: #1e40af;
+}
+
+.react-calendar__tile--now {
+  background: #dbeafe !important;
+  font-weight: bold;
+}
+
+.react-calendar__tile--active {
+  background-color: #3b82f6 !important;
+  color: white !important;
+}

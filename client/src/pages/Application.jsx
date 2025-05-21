@@ -68,24 +68,9 @@ const Application = () => {
     <>
       <Navbar />
       <div className='container px-4 min-h-[65vh] 2xl:px-20 mx-auto my-10'>
-        
-        {/* i want to add user details that how much job be applied out of how much total applicants
-        there on job-portal website and mention them there are prob members are not
-        if there are pro memebers then there image is get small block with text pro with some stylish
-        takes user from above 
-        
-        i want UI like take rectangle box with normal box and in left side there is circle
-        of image of user which is fetch from above data
-        next side there is user name, user email
-        if isPro is true then image top-right side part is write pro is some stylish backend
-        if isPro false don't write anything remain same 
-         now next part make a make a chart that there is cirlce 
-         inside it there is appyjobs/ total jobs in stylsh way
-        
-        */}
          <div>
 <div className="bg-white rounded-lg shadow-md p-6 mb-10 flex items-center gap-6">
-  {/* Profile Picture with PRO Badge */}
+ 
   <div className="relative">
     <img
       src={userData?.image}
@@ -120,7 +105,7 @@ const Application = () => {
           <path
             className="text-blue-500"
             strokeWidth="4"
-            strokeDasharray={`${(applyJobs.length / totalJobs.length) * 100}, 100`}
+            strokeDasharray={`${(applyJobs / totalJobs) * 100}, 100`}
             stroke="currentColor"
             fill="none"
             d="M18 2.0845
@@ -198,6 +183,7 @@ const Application = () => {
               <th className='py-3 px-4 border-b text-left max-sm:hidden'>Location</th>
               <th className='py-3 px-4 border-b text-left max-sm:hidden'>Date</th>
               <th className='py-3 px-4 border-b text-left'>Status</th>
+              <th className='py-3 px-4 border-b text-left'>Interview Date</th>
             </tr>
           </thead>
           <tbody>
@@ -214,7 +200,17 @@ const Application = () => {
                   <span className={`${job.status === 'Accepted' ? 'bg-green-200' : job.status === 'Rejected' ? 'bg-red-200' : 'bg-blue-200'} px-4 py-1.5 rounded`}>
                     {job.status}
                   </span>
+                  
                 </td>
+                <td className='py-2 px-4 border-b'>
+  {job.status === 'Accepted' && job.interviewDate ? (
+    <span className="text-sm text-gray-600">
+      {moment(job.interviewDate).format('ll')}
+    </span>
+  ) : (
+    <span className="text-sm text-gray-400 italic">N/A</span>
+  )}
+</td>
               </tr>
             ))}
           </tbody>

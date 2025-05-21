@@ -12,6 +12,9 @@ import ViewApplication from './pages/ViewApplicaton'
 import "react-quill/dist/quill.snow.css"; // Import Quill styles
 import { ToastContainer, toast } from 'react-toastify';
 import ForgotPassword from './pages/ForgetPassword'
+import Subscribe from './pages/Subscribe'
+import ChatSystem from './pages/ChatSystem' 
+import InterviewCalendarModal from './pages/interviewCalenderModel'
 
 const App = () => {
   const { showRecuriterLogin, companyToken } = useContext(AppContext)
@@ -25,8 +28,10 @@ const App = () => {
         <Route path='/forgotPassword' element={<ForgotPassword/>}/>
         <Route path='/application' element={<Application />} />
         <Route path='/apply-job/:id' element={<ApplyJob />} />
-
-        {/* Dashboard with Nested Routes */}
+        <Route path='/subscribe' element={<Subscribe/>}/>
+         <Route path="/chat-system" element={<ChatSystem />} />
+          <Route path="/dashboard/chat-system" element={<ChatSystem />} />
+                  {/* Dashboard with Nested Routes */}
         <Route path='/dashboard' element={<Dashboard />}>
           {
             companyToken ? <>
