@@ -3,7 +3,7 @@ import { assets } from '../assets/assets';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import { Bell, CalendarDays } from 'lucide-react';
-import InterviewCalendarModal from './interviewCalenderModel';
+import RecriuterCalender from './RecruiterCalender';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -110,10 +110,10 @@ function Dashboard() {
 
       {/* Calendar Modal */}
       {companyData  && (
-        <InterviewCalendarModal
+        <RecriuterCalender
           isOpen={isCalendarOpen}
           onClose={() => setIsCalendarOpen(false)}
-          recruiterId={companyData._id} // ✅ Passed as prop
+          recruiterId={companyData._id} // 
         />
       )}
     </div>
