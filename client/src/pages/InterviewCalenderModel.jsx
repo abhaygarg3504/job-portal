@@ -187,6 +187,8 @@ import { AppContext } from '../context/AppContext';
 //     </div>
 //   );
 // };
+
+
 const InterviewCalendarModal = ({ isOpen, onClose, companyId: propCompanyId }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [interviews, setInterviews] = useState([]);

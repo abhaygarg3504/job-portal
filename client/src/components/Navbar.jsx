@@ -56,6 +56,8 @@ const Navbar = () => {
         }
     }, [isSignedIn, user, backendURL]); // Add missing dependencies
 
+    console.log(user?.id)
+
     return (
         <div className='shadow py-4'>
             <div className='container px-4 2xl:px-20 mx-auto flex justify-between item-center'>
@@ -65,7 +67,7 @@ const Navbar = () => {
      user && (
     <div className='flex items-center gap-3'>
       {/* 📅 Calendar Button */}
-      <button
+      {/* <button
         onClick={() => setIsCalendarOpen(true)}
         className="text-blue-600 hover:text-blue-800"
         title="Interview Calendar"
@@ -74,15 +76,15 @@ const Navbar = () => {
       </button>
 
       {/* 🔔 Notification Bell */}
-      <a href="/chat-system" target="_blank">
+      {/* <a href="/chat-system" target="_blank">
         <Bell />
       </a>
 
       {/* 📅 Interview Calendar Modal */}
-      <InterviewCalendarModal
+     {/* <InterviewCalendarModal
         isOpen={isCalendarOpen}
         onClose={() => setIsCalendarOpen(false)}
-      />
+      />  */}
 
       <div className="relative inline-block text-left">
         <a
@@ -98,6 +100,25 @@ const Navbar = () => {
         Hello, {user.firstName} {user.lastName || ''}
       </p>
       <UserButton />
+      <button
+        onClick={() => setIsCalendarOpen(true)}
+        className="text-blue-600 hover:text-blue-800"
+        title="Interview Calendar"
+      >
+        <CalendarDays size={22} />
+      </button>
+      
+      {/* 📅 Interview Calendar Modal */}
+      <InterviewCalendarModal
+        isOpen={isCalendarOpen}
+        onClose={() => setIsCalendarOpen(false)}
+      />
+
+      {/* 🔔 Notification Bell */}
+      <a href="/chat-system" target="_blank">
+        <Bell />
+      </a>
+
     </div>
   )
 }
