@@ -3,12 +3,13 @@ import axios from "axios";
 import { AppContext } from "../context/AppContext";
 import { useUser, useAuth } from "@clerk/clerk-react";
 import { toast } from "react-toastify";
+import { assets } from "../assets/assets";
+import { useRef } from "react";
 
 const ChatSystem = () => {
   const [selectedContact, setSelectedContact] = useState(null);
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([]);
-        
+  const [messages, setMessages] = useState([]);     
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [sidebarWidth, setSidebarWidth] = useState(30); // in percentage
@@ -18,6 +19,7 @@ const ChatSystem = () => {
   const { backendURL, companyData, isRecruiter, contacts, filteredContacts,
      setFilteredContacts, setContacts, socket
   } = useContext(AppContext);
+  const [unreadCounts, setUnreadCounts] = useState({});
 
   const userId = user?.id;
   const recruiterId = companyData?._id;
@@ -69,6 +71,8 @@ const ChatSystem = () => {
   const handleSelectContact = (contact) => {
     setSelectedContact(contact);
   };
+
+  const msgRef = useRef(null);
 
   const handleBack = () => {
     setSelectedContact(null);
@@ -152,7 +156,6 @@ const handleSendMessage = async () => {
   }
 };
 
-
   console.log(selectedContact)
 
  const fetchMessages = async ({
@@ -178,6 +181,14 @@ const handleSendMessage = async () => {
 
     if (data.success) {
       setMessages(data.messages);
+
+      // 🟢 Mark unread messages as read
+      const unreadMessages = data.messages.filter((msg) => !msg.isRead && msg.receiverId === (isRecruiter ? recruiterId : userId));
+      unreadMessages.forEach((msg) => markMessageAsRead(msg._id));
+
+      // 🟢 Update unreadCounts state
+      const key = `${receiverId}_${receiverModel}_${jobTitle}`;
+      setUnreadCounts((prev) => ({ ...prev, [key]: 0 }));
     } else {
       toast.error("Failed to load messages");
     }
@@ -186,6 +197,48 @@ const handleSendMessage = async () => {
     toast.error("Error fetching messages");
   }
 };
+
+const fetchUnreadCounts = async () => {
+  try {
+    const token = await getToken();
+    const receiverId = isRecruiter ? recruiterId : userId;
+    const receiverModel = isRecruiter ? "Company" : "User";
+
+    const { data } = await axios.get(
+      `${backendURL}/api/messages/unread-count/${receiverId}?receiverModel=${receiverModel}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (data.success) {
+      const counts = {};
+      data.counts.forEach((item) => {
+        const key = `${item.senderId}_${item.senderModel}_${item.jobTitle}`;
+        counts[key] = item.unreadCount;
+      });
+      setUnreadCounts(counts);
+    }
+  } catch (error) {
+    console.error("Error fetching unread counts:", error);
+  }
+};
+
+const getContactKey = (contact) => {
+  const senderId = isRecruiter ? contact?.userId?._id : contact?.recruiterId?._id;
+  const senderModel = isRecruiter ? "User" : "Company";
+  const jobTitle = contact?.jobTitle;
+  return `${senderId}_${senderModel}_${jobTitle}`;
+};
+
+
+useEffect(() => {
+  if (contacts.length > 0) {
+    fetchUnreadCounts();
+  }
+}, [contacts, isRecruiter, recruiterId, userId]);
 
 
 useEffect(() => {
@@ -237,6 +290,27 @@ useEffect(() => {
   return () => socket.off("receiveMessage", handleIncomingMessage);
 }, [socket, selectedContact, isRecruiter, recruiterId, userId]);
 
+const markMessageAsRead = async (messageId) => {
+  try {
+    const token = await getToken();
+    await axios.get(`${backendURL}/api/messages/mark/${messageId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  } catch (error) {
+    console.error("Failed to mark message as read", error);
+  }
+};
+const scrollToBottom = () => {
+  if (msgRef.current) {
+    msgRef.current.scrollIntoView({ behavior: "smooth" });
+  }
+};
+useEffect(() => {
+  scrollToBottom();
+}, [messages]);
+
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -251,6 +325,7 @@ useEffect(() => {
       maxWidth: isMobile ? "100%" : "50%",
     }}
       >
+        <img className='cursor-pointer' src={assets.logo} alt="Logo" />
         <h2 className="text-xl font-bold mb-4">
           {isRecruiter ? "Applicants" : "Companies"}
         </h2>
@@ -269,6 +344,9 @@ useEffect(() => {
           const displayName = isRecruiter
             ? contact?.userId?.name || "Unknown User"
             : contact?.recruiterId?.name || "Unknown Company";
+          
+          const contactKey = getContactKey(contact);
+          const unreadCount = unreadCounts[contactKey] || 0;
 
           const displayJob = contact?.jobTitle || "No job title";
           const image = isRecruiter
@@ -291,6 +369,13 @@ useEffect(() => {
                 <div className="font-semibold">{displayName}</div>
                 <div className="text-sm text-gray-500">{displayJob}</div>
               </div>
+             <div className="ml-4 w-3 h-3 rounded-full">
+                {unreadCount > 0 && (
+        <span className="text-xs bg-blue-500 text-white rounded-full px-2 py-0.5">
+          {unreadCount}
+        </span>
+      )}
+             </div>
               <div
                 className={`ml-2 w-3 h-3 rounded-full ${
                   isOnline ? "bg-green-500" : "bg-gray-400"
@@ -322,7 +407,7 @@ useEffect(() => {
           <>
             {/* Header */}
             <div className="flex items-center border-b p-4">
-              {isMobile && (
+              {isMobile && selectedContact && (
                 <button
                   onClick={handleBack}
                   className="mr-4 px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
@@ -375,9 +460,38 @@ useEffect(() => {
                       />
                     )}
                     <div>{msg.message}</div>
+                     <div className="text-right mt-1 flex items-center justify-end space-x-1">
+      <span className="text-xs text-gray-500">
+        {new Date(msg.createdAt).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </span>
+      
+      {/* Single tick if !msg.isRead, double tick if msg.isRead */}
+      {isMine && (
+        <span className={`text-xs ${msg.isRead ? "text-blue-500" : "text-gray-500"}`}>
+          {msg.isRead ? (
+             <span className="flex space-x-0.5">
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
+        <path d="M4 12l6 6L20 6" />
+      </svg>
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 -ml-2" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
+        <path d="M4 12l6 6L20 6" />
+      </svg>
+    </span>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
+              <path d="M4 12l6 6L20 6" />
+            </svg>
+          )}
+        </span>
+      )}
+    </div>
                   </div>
                 );
               })}
+              <div ref={msgRef}></div>
             </div>
 
             {/* Message Input */}

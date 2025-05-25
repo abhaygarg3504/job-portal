@@ -44,3 +44,35 @@
   background-color: #3b82f6 !important;
   color: white !important;
 }
+.message-bubble {
+  position: relative;
+  padding: 8px 12px;
+  border-radius: 10px;
+  margin: 6px 0;
+  max-width: 70%;
+}
+
+.sent {
+  align-self: flex-end;
+  background-color: #e1ffc7;
+}
+
+.received {
+  align-self: flex-start;
+  background-color: #ffffff;
+}
+
+.message-meta {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 2px;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: gray;
+}
+
+.message-meta img {
+  width: 16px;
+  height: 16px;
+}

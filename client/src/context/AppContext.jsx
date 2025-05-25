@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import {io} from "socket.io-client"
 import { useLocation } from "react-router-dom";
+import { useRef } from "react";
 
 export const AppContext = createContext();
 
@@ -32,7 +33,8 @@ export const AppContextProvider = (props) => {
     const [applyJobs, setapplyJobs] = useState(0)
     const [socket, setSocket] = useState(null);
     const [onlineUsers, setOnlineUsers] = useState([]);
-
+    const socketRef = useRef(null);
+ 
     const location = useLocation();
     const isRecruiter = location.pathname.includes("/dashboard");
     const [contacts, setContacts] = useState([]);
@@ -209,42 +211,50 @@ export const AppContextProvider = (props) => {
   const recruiterId = companyData?._id;
 
   useEffect(() => {
-  if ((!user && !companyToken) || jobTitles.length === 0) return;
-
   const id = isRecruiter ? companyData?._id : user?.id;
   const model = isRecruiter ? "Company" : "User";
 
-  if (!id || !model) return;
+  // If not logged in or no job titles, do not proceed
+  if ((!user && !companyToken) || jobTitles.length === 0 || !id || !model) return;
 
-  const socketConnection = io(backendURL, {
-    query: {
-      id,
-      model,
-      jobTitles: JSON.stringify(jobTitles),
-    },
-    transports: ["websocket"],
-  });
+  // Prevent reconnecting if socket is already active
+  if (!socketRef.current) {
+    const socketConnection = io(backendURL, {
+      query: {
+        id,
+        model,
+        jobTitles: JSON.stringify(jobTitles),
+      },
+      transports: ["websocket"],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
 
-  socketConnection.connect();
-  setSocket(socketConnection);
-  console.log(socketConnection.id)
+    socketConnection.on("connect", () => {
+      console.log("Socket connected:", socketConnection.id);
+      setSocket(socketConnection); // optional, if you use socket elsewhere
+    });
 
-  socketConnection.on("connect", () => {
-    console.log("Socket connected:", socketConnection.id);
-  });
+    socketConnection.on("getOnlineUsers", (users) => {
+      setOnlineUsers(users);
+    });
 
-  socketConnection.on("getOnlineUsers", (users) => {
-    setOnlineUsers(users);
-  });
+    socketConnection.on("disconnect", () => {
+      console.log("Socket disconnected");
+    });
 
-  socketConnection.on("disconnect", () => {
-    console.log("Socket disconnected");
-  });
+    socketRef.current = socketConnection;
+  }
 
   return () => {
-    socketConnection.disconnect();
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
+      setSocket(null); // optional cleanup
+    }
   };
-}, [user, companyData?._id, companyToken, jobTitles]);
+}, [user?.id, companyData?._id, companyToken, isRecruiter, backendURL, jobTitles]);
 
 
   useEffect(() => {
