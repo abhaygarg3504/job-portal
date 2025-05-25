@@ -46,27 +46,68 @@ app.use("/api/messages", messageRoutes);
 
 export const io = new Server(server, {
   cors: {
-    origin: "*", 
-  },
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
 });
 
+// Structure: { "User_abc123": { "socketId1": ["jobTitle1", "jobTitle2"], "socketId2": [...] }, "Company_def456": {...} }
 export const userSocketMap = {};
 
-io.on("connection", (socket) => {
-  const { id, model } = socket.handshake.query;
+const getOnlineUsers = () => {
+  const users = [];
 
-    if (id && model) {
-      userSocketMap[`${model}_${id}`] = socket.id;
-    }
+  Object.entries(userSocketMap).forEach(([model_id, sockets]) => {
+    const [model, id] = model_id.split("_");
+    const allJobTitles = new Set();
 
-    io.emit("getOnlineUsers", Object.keys(userSocketMap));
-
-    socket.on("disconnect", () => {
-      delete userSocketMap[`${model}_${id}`];
-      io.emit("getOnlineUsers", Object.keys(userSocketMap));
+    Object.values(sockets).forEach((titles) => {
+      titles.forEach((title) => allJobTitles.add(title));
     });
 
-})
+    users.push({
+      id,
+      model,
+      jobTitles: Array.from(allJobTitles)
+    });
+  });
+
+  return users;
+};
+
+io.on("connection", (socket) => {
+  const { id, model, jobTitles } = socket.handshake.query;
+
+  if (!id || !model || !jobTitles) {
+    console.warn("Invalid socket connection query params");
+    return;
+  }
+
+  const parsedTitles = JSON.parse(jobTitles); // expecting a stringified array
+  const modelKey = `${model}_${id}`;
+
+  if (!userSocketMap[modelKey]) {
+    userSocketMap[modelKey] = {};
+  }
+
+  userSocketMap[modelKey][socket.id] = parsedTitles;
+
+  console.log(`[CONNECTED] ${modelKey} via socket ${socket.id}`);
+  io.emit("getOnlineUsers", getOnlineUsers());
+
+  socket.on("disconnect", () => {
+    if (userSocketMap[modelKey]) {
+      delete userSocketMap[modelKey][socket.id];
+
+      if (Object.keys(userSocketMap[modelKey]).length === 0) {
+        delete userSocketMap[modelKey];
+      }
+    }
+
+    console.log(`[DISCONNECTED] ${modelKey} from socket ${socket.id}`);
+    io.emit("getOnlineUsers", getOnlineUsers());
+  });
+});
 
 app.post("/webhooks", clerkWebhook);
 

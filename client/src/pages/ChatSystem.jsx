@@ -74,15 +74,30 @@ const ChatSystem = () => {
     setSelectedContact(null);
   };
 
-const sendMessage = async ({ senderId, senderModel, receiverId, receiverModel, message, image }) => {
+const sendMessage = async ({
+  senderId,
+  senderModel,
+  receiverId,
+  receiverModel,
+  jobTitle,
+  message,
+  image,
+}) => {
   try {
     const token = await getToken();
+    
+    const formData = new FormData();
+    formData.append("message", message);
+    if (image) formData.append("image", image);
+    formData.append("jobTitle", jobTitle);
+
     const response = await axios.post(
-      `${backendURL}/api/messages/send/${senderId}?senderId=${senderId}&senderModel=${senderModel}&receiverId=${receiverId}&receiverModel=${receiverModel}`,
-      { message, image },
+      `${backendURL}/api/messages/send/${senderId}?senderId=${senderId}&senderModel=${senderModel}&receiverId=${receiverId}&receiverModel=${receiverModel}&jobTitle=${jobTitle}`,
+      formData,
       {
         headers: {
           Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
         },
       }
     );
@@ -100,43 +115,53 @@ const sendMessage = async ({ senderId, senderModel, receiverId, receiverModel, m
   }
 };
 
-const handleSendMessage = async () => {
-  if (!message.trim() || !selectedContact) return;
+const [file, setFile] = useState(null);
 
+const handleFileUpload = (event) => {
+  const uploadedFile = event.target.files[0];
+  if (uploadedFile) {
+    setFile(uploadedFile);
+  }
+};
+
+const handleSendMessage = async () => {
+  if (!message.trim() && !file) return;
   const senderId = isRecruiter ? recruiterId : userId;
   const senderModel = isRecruiter ? "Company" : "User";
   const receiverId = isRecruiter
     ? selectedContact?.userId?._id
     : selectedContact?.recruiterId?._id;
   const receiverModel = isRecruiter ? "User" : "Company";
+  const jobTitle = selectedContact?.jobTitle;
 
   const newMessage = await sendMessage({
     senderId,
     senderModel,
     receiverId,
     receiverModel,
+    jobTitle,
     message,
-    image: null,
+    image: file,
   });
 
   if (newMessage) {
     socket.emit("sendMessage", newMessage);
     setMessages((prev) => [...prev, newMessage]);
+    setMessage("");
+    setFile(null); // reset file after sending
   }
-
-  setMessage("");
 };
 
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      console.log("File to upload:", file);
-    }
-  };
 
   console.log(selectedContact)
 
- const fetchMessages = async ({ senderId, senderModel, receiverId, receiverModel }) => {
+ const fetchMessages = async ({
+  senderId,
+  senderModel,
+  receiverId,
+  receiverModel,
+  jobTitle,
+}) => {
   try {
     const token = await getToken();
     const { data } = await axios.get(`${backendURL}/api/messages/${senderId}`, {
@@ -147,6 +172,7 @@ const handleSendMessage = async () => {
         role: senderModel,
         withId: receiverId,
         withModel: receiverModel,
+        jobTitle,
       },
     });
 
@@ -171,16 +197,19 @@ useEffect(() => {
     ? selectedContact?.userId?._id
     : selectedContact?.recruiterId?._id;
   const receiverModel = isRecruiter ? "User" : "Company";
+  const jobTitle = selectedContact?.jobTitle;
 
   fetchMessages({
     senderId,
     senderModel,
     receiverId,
     receiverModel,
+    jobTitle,
   });
 }, [selectedContact, isRecruiter, recruiterId, userId]);
 
 console.log(selectedContact)
+
 useEffect(() => {
   if (!socket) return;
 
@@ -190,9 +219,14 @@ useEffect(() => {
       ? selectedContact?.userId?._id
       : selectedContact?.recruiterId?._id;
 
+    const jobTitle = selectedContact?.jobTitle;
+
+    const senderKey = `${newMessage.senderId}_${newMessage.senderModel}_${newMessage.jobTitle}`;
+    const receiverKey = `${receiverId}_${isRecruiter ? "User" : "Company"}_${jobTitle}`;
+    const myKey = `${senderId}_${isRecruiter ? "Company" : "User"}_${jobTitle}`;
+
     const isRelated =
-      (newMessage.senderId === senderId && newMessage.receiverId === receiverId) ||
-      (newMessage.senderId === receiverId && newMessage.receiverId === senderId);
+      senderKey === myKey || senderKey === receiverKey;
 
     if (isRelated) {
       setMessages((prev) => [...prev, newMessage]);
@@ -308,97 +342,77 @@ useEffect(() => {
               />
               <div>
                 <div className="font-semibold text-lg">
-                  {isRecruiter
+                                 {isRecruiter
                     ? selectedContact.userId?.name || "Unknown User"
                     : selectedContact.recruiterId?.name || "Unknown Company"}
                 </div>
-                <marquee className="text-sm text-gray-600">
-                  {selectedContact.jobTitle || "No job title"}
-                </marquee>
+                <div className="text-sm text-gray-500">
+                  {selectedContact?.jobTitle || "No job title"}
+                </div>
               </div>
             </div>
 
             {/* Messages */}
-<div className="flex-grow p-4 overflow-y-auto bg-white flex flex-col gap-2">
-  {messages.length === 0 && (
-    <div className="text-center text-gray-500">No messages yet.</div>
-  )}
+            <div className="flex-1 p-4 overflow-y-auto space-y-2">
+              {messages.map((msg, index) => {
+                const isMine = (isRecruiter && msg.senderModel === "Company") ||
+                               (!isRecruiter && msg.senderModel === "User");
 
-  {messages.map((msg) => {
-    const isSender = isRecruiter
-      ? msg.senderId === recruiterId
-      : msg.senderId === userId;
+                return (
+                  <div
+                    key={index}
+                    className={`max-w-md px-4 py-2 rounded-lg ${
+                      isMine
+                        ? "bg-blue-500 text-white self-end ml-auto"
+                        : "bg-gray-200 text-black self-start mr-auto"
+                    }`}
+                  >
+                    {msg.image && (
+                      <img
+                        src={msg.image}
+                        alt="sent file"
+                        className="mb-2 max-w-full max-h-60 rounded"
+                      />
+                    )}
+                    <div>{msg.message}</div>
+                  </div>
+                );
+              })}
+            </div>
 
-    return (
-      <div
-        key={msg._id}
-        className={`flex ${isSender ? "justify-end" : "justify-start"}`}
-      >
-        <div
-          className={`px-4 py-2 rounded-lg max-w-xs ${
-            isSender ? "bg-blue-500 text-white" : "bg-gray-200 text-black"
-          }`}
-        >
-          {msg.message}
-        </div>
-      </div>
-    );
-  })}
-</div>
-
-{/* Input Area */}
-<div className="border-t p-4 flex gap-2 items-center">
-  <input
-    type="text"
-    value={message}
-    onChange={(e) => setMessage(e.target.value)}
-    onKeyDown={(e) => {
-      if (e.key === "Enter") handleSendMessage();
-    }}
-    placeholder="Type your message..."
-    className="flex-grow border rounded p-2"
-  />
-  <input
-    type="file"
-    accept="image/*"
-    className="hidden"
-    id="file-upload"
-    onChange={handleFileUpload}
-  />
-  <label htmlFor="file-upload" className="cursor-pointer px-2 py-1 rounded bg-gray-300 hover:bg-gray-400">
-    📎
-  </label>
-  <button
-    onClick={handleSendMessage}
-    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-  >
-    Send
-  </button>
-</div>
-
+            {/* Message Input */}
+            <div className="p-4 border-t flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Type a message..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                className="flex-1 p-2 border rounded"
+              />
+              <input
+                type="file"
+                onChange={handleFileUpload}
+                className="hidden"
+                id="file-upload"
+              />
+              <label
+                htmlFor="file-upload"
+                className="px-3 py-2 bg-gray-300 rounded cursor-pointer hover:bg-gray-400"
+              >
+                📎
+              </label>
+              <button
+                onClick={handleSendMessage}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Send
+              </button>
+            </div>
           </>
         ) : (
-          <div className="space-y-2">
-  {messages.map((msg) => {
-    const isOwnMessage = isRecruiter
-      ? msg.senderId === recruiterId
-      : msg.senderId === userId;
-
-    return (
-      <div
-        key={msg._id}
-        className={`max-w-[70%] p-2 rounded-lg text-sm shadow ${
-          isOwnMessage
-            ? "bg-blue-500 text-white ml-auto"
-            : "bg-gray-200 text-gray-800 mr-auto"
-        }`}
-      >
-        {msg.text}
-      </div>
-    );
-  })}
-</div>
-
+          <div className="flex-1 flex items-center justify-center text-gray-500">
+            Select a contact to start chatting.
+          </div>
         )}
       </div>
     </div>

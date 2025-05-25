@@ -3,38 +3,50 @@ import { v2 as cloudinary } from "cloudinary";
 import {io, userSocketMap } from "../server.js";
 
 // For user
-// GET /api/messages?senderId=<USER_ID>&senderModel=User&receiverId=<COMPANY_ID>&receiverModel=Company
+// GET /api/messages?senderId=<USER_ID>&senderModel=User&receiverId=<COMPANY_ID>&receiverModel=Company&jobTitle=JOBTITLE
 // For company side
-// GET /api/messages?senderId=<COMPANY_ID>&senderModel=Company&receiverId=<USER_ID>&receiverModel=User
+// GET /api/messages?senderId=<COMPANY_ID>&senderModel=Company&receiverId=<USER_ID>&receiverModel=User=JOBTITLE
 
 // my motto is to get all messages for selected user
 export const getMessages = async (req, res) => {
   try {
     const { id: senderId } = req.params;
-    const { role: senderModel, withId: receiverId, withModel: receiverModel } = req.query;
+    const {
+      role: senderModel,
+      withId: receiverId,
+      withModel: receiverModel,
+      jobTitle,
+    } = req.query;
 
-    if (!senderId || !senderModel || !receiverId || !receiverModel) {
+    if (!senderId || !senderModel || !receiverId || !receiverModel || !jobTitle) {
       return res.status(400).json({ success: false, message: "Missing required parameters" });
     }
 
     const messages = await Message.find({
+      jobTitle,
       $or: [
         { senderId, senderModel, receiverId, receiverModel },
         { senderId: receiverId, senderModel: receiverModel, receiverId: senderId, receiverModel: senderModel },
       ],
     }).sort({ createdAt: 1 });
 
-    // After marking messages as read in getMessages
-    const senderSocketId = userSocketMap[`${receiverModel}_${receiverId}`];
-      if (senderSocketId) {
-      io.to(senderSocketId).emit("unreadCountUpdate", {
-    from: `${senderModel}_${senderId}`,
-    count: 0
-  });
-   }
+    // ✅ Fix: use correct socket key format
+    const receiverKey = `${receiverModel}_${receiverId}_${jobTitle}`;
+    const senderKey = `${senderModel}_${senderId}_${jobTitle}`;
 
+    const receiverSocketId = userSocketMap[senderKey]; // Note: this is sender's socket to notify them
+
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("unreadCountUpdate", {
+        from: `${receiverModel}_${receiverId}_${jobTitle}`,
+        count: 0
+      });
+    }
+
+    // ✅ Mark as read
     await Message.updateMany(
       {
+        jobTitle,
         receiverId: senderId,
         receiverModel: senderModel,
         senderId: receiverId,
@@ -50,6 +62,8 @@ export const getMessages = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+
 
 // we use message Id
 export const markMessageAsRead = async(req, res)=>{
@@ -73,8 +87,12 @@ export const markMessageAsRead = async(req, res)=>{
 
 export const sendMessage = async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, jobTitle } = req.body;
     const { senderId, senderModel, receiverId, receiverModel } = req.query;
+
+    if (!senderId || !senderModel || !receiverId || !receiverModel || !jobTitle) {
+      return res.status(400).json({ success: false, message: "Missing required fields" });
+    }
 
     let imageUrl = "";
     if (req.file) {
@@ -89,36 +107,35 @@ export const sendMessage = async (req, res) => {
       senderModel,
       receiverId,
       receiverModel,
-      message: message,
+      jobTitle,
+      message: message || "",
       image: imageUrl,
     });
 
-    const receiverKey = `${receiverModel}_${receiverId}`;
+    // ✅ Fix: key includes jobTitle
+    const receiverKey = `${receiverModel}_${receiverId}_${jobTitle}`;
+    const senderKey = `${senderModel}_${senderId}_${jobTitle}`;
     const receiverSocketId = userSocketMap[receiverKey];
 
-  // After saving newMessage and before responding:
-if (receiverSocketId) {
-  // 1. Send new message
-  io.to(receiverSocketId).emit("newMessage", newMessage);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("newMessage", newMessage);
 
-  // 2. Send updated unread count
-  const unreadCount = await Message.countDocuments({
-    receiverId,
-    receiverModel,
-    senderId,
-    senderModel,
-    isRead: false
-  });
+      const unreadCount = await Message.countDocuments({
+        senderId,
+        senderModel,
+        receiverId,
+        receiverModel,
+        jobTitle,
+        isRead: false,
+      });
 
-  io.to(receiverSocketId).emit("unreadCountUpdate", {
-    from: `${senderModel}_${senderId}`,
-    count: unreadCount
-  });
-}
-    return res.status(200).json({
-      success: true,
-      newMessage,
-    });
+      io.to(receiverSocketId).emit("unreadCountUpdate", {
+        from: senderKey, // ✅ Also include jobTitle here
+        count: unreadCount
+      });
+    }
+
+    return res.status(200).json({ success: true, newMessage });
   } catch (error) {
     console.error("Error in sendMessage:", error);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -128,7 +145,7 @@ if (receiverSocketId) {
 // GET /api/messages/unread-count/:receiverId?receiverModel
 export const getUnreadMessageCounts = async (req, res) => {
   try {
-    const { id : receiverId } = req.params;
+    const { id: receiverId } = req.params;
     const { receiverModel } = req.query;
 
     if (!receiverId || !receiverModel) {
@@ -145,7 +162,11 @@ export const getUnreadMessageCounts = async (req, res) => {
       },
       {
         $group: {
-          _id: { senderId: "$senderId", senderModel: "$senderModel" },
+          _id: {
+            senderId: "$senderId",
+            senderModel: "$senderModel",
+            jobTitle: "$jobTitle"
+          },
           unreadCount: { $sum: 1 }
         }
       }
@@ -156,6 +177,7 @@ export const getUnreadMessageCounts = async (req, res) => {
       counts: result.map(r => ({
         senderId: r._id.senderId,
         senderModel: r._id.senderModel,
+        jobTitle: r._id.jobTitle,
         unreadCount: r.unreadCount
       }))
     });
@@ -164,4 +186,5 @@ export const getUnreadMessageCounts = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 

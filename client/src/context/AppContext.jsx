@@ -41,7 +41,7 @@ export const AppContextProvider = (props) => {
     const [unseenMessage, setUnseenMessage] = useState({})
     const [message, setMessage] = useState([])
     const [selectedContact, setSelectedContact] = useState(null);
-     
+    const [jobTitles, setJobTitles] = useState([]);
 
     const fetchJobs = async () => {
         try {
@@ -99,7 +99,14 @@ export const AppContextProvider = (props) => {
             );
     
             if (data.success) {
-                setUserApplications(data.applications); // ✅ Store applications in state
+                setUserApplications(data.applications); 
+                console.log(data.applications)
+               const titles = data.applications
+    .map(app => app.jobId?.title)
+    .filter((title, index, self) => title && self.indexOf(title) === index); // unique
+
+         setJobTitles(titles);  // set as array
+
             } else {
                 toast.error(data.message);
                 console.error("Error in fetchUserApplicationData:", data.message);
@@ -201,8 +208,8 @@ export const AppContextProvider = (props) => {
     const userId = user?.id;
   const recruiterId = companyData?._id;
 
-    useEffect(() => {
-  if (!user && !companyToken) return;
+  useEffect(() => {
+  if ((!user && !companyToken) || jobTitles.length === 0) return;
 
   const id = isRecruiter ? companyData?._id : user?.id;
   const model = isRecruiter ? "Company" : "User";
@@ -210,18 +217,24 @@ export const AppContextProvider = (props) => {
   if (!id || !model) return;
 
   const socketConnection = io(backendURL, {
-    query: { id, model },
-    transports: ['websocket'], // ensure persistent connection
+    query: {
+      id,
+      model,
+      jobTitles: JSON.stringify(jobTitles),
+    },
+    transports: ["websocket"],
   });
-  socketConnection.connect()
+
+  socketConnection.connect();
   setSocket(socketConnection);
+  console.log(socketConnection.id)
 
   socketConnection.on("connect", () => {
     console.log("Socket connected:", socketConnection.id);
   });
 
   socketConnection.on("getOnlineUsers", (users) => {
-    setOnlineUsers(users); 
+    setOnlineUsers(users);
   });
 
   socketConnection.on("disconnect", () => {
@@ -231,7 +244,8 @@ export const AppContextProvider = (props) => {
   return () => {
     socketConnection.disconnect();
   };
-}, [user, companyData?._id, companyToken]);
+}, [user, companyData?._id, companyToken, jobTitles]);
+
 
   useEffect(() => {
       const fetchContacts = async () => {
