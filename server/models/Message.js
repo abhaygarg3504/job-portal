@@ -1,29 +1,43 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema({
-  contactId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Contact',
-    required: true
+  senderId: {
+    type: String, 
+    required: true,
+    refPath: "senderModel",
   },
-  senderRole: {
+  senderModel: {
     type: String,
-    enum: ['user', 'recruiter'],
-    required: true
+    required: true,
+    enum: ["User", "Company"],
   },
+  receiverId: {
+    type: String, 
+    required: true,
+    refPath: "receiverModel",
+  },
+  receiverModel: {
+    type: String,
+    required: true,
+    enum: ["User", "Company"],
+  },
+  jobTitle: {
+  type: String,
+  required: false
+},
   message: {
     type: String,
-    required: true
+    default: "", 
   },
-  timestamp: {
-    type: Date,
-    default: Date.now
+  image: {
+    type: String, 
+    default: "",
   },
   isRead: {
     type: Boolean,
-    default: false
-  }
-});
+    default: false,
+  },
+}, { timestamps: true });
 
-const Message = mongoose.model('Message', messageSchema);
-export default Message;
+const Message = mongoose.model("Message", messageSchema);
+export default Message

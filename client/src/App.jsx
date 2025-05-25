@@ -32,13 +32,14 @@ const App = () => {
          <Route path="/chat-system" element={<ChatSystem />} />
           <Route path="/dashboard/chat-system" element={<ChatSystem />} />
                   {/* Dashboard with Nested Routes */}
+
         <Route path='/dashboard' element={<Dashboard />}>
           {
             companyToken ? <>
             <Route path='add-job' element={<AddJob />} />
           <Route path='manage-jobs' element={<ManageJobs />} />
           <Route path='view-application' element={<ViewApplication />} />
-            </> : null
+           </> : null
           }
         </Route>
         

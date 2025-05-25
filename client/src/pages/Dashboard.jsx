@@ -21,10 +21,7 @@ function Dashboard() {
     if (companyData) {
       navigate('/dashboard/manage-jobs');
     }
-  }, [companyData, navigate]);
-
-  const location = useLocation();
-  const isRecruiter = location.pathname.includes('/dashboard');
+  }, [companyData]);
 
   return (
     <div className='min-h-screen'>
@@ -103,7 +100,7 @@ function Dashboard() {
           </ul>
         </div>
 
-        <div className='flex-1 h-full p-2 sm:p-5'>
+        <div >
           <Outlet />
         </div>
       </div>
@@ -113,7 +110,7 @@ function Dashboard() {
         <RecriuterCalender
           isOpen={isCalendarOpen}
           onClose={() => setIsCalendarOpen(false)}
-          recruiterId={companyData._id} // 
+          recruiterId={companyData._id} 
         />
       )}
     </div>

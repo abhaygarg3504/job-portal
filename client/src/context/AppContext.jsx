@@ -3,6 +3,8 @@ import { jobsData } from "../assets/assets";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useAuth, useUser } from "@clerk/clerk-react";
+import {io} from "socket.io-client"
+import { useLocation } from "react-router-dom";
 
 export const AppContext = createContext();
 
@@ -28,8 +30,19 @@ export const AppContextProvider = (props) => {
     const [userApplications, setUserApplications] = useState([])
     const [totalJobs, settotalJobs] = useState(0)
     const [applyJobs, setapplyJobs] = useState(0)
+    const [socket, setSocket] = useState(null);
+    const [onlineUsers, setOnlineUsers] = useState([]);
 
-    // functtion to fecth jobs
+    const location = useLocation();
+    const isRecruiter = location.pathname.includes("/dashboard");
+    const [contacts, setContacts] = useState([]);
+    const [filteredContacts, setFilteredContacts] = useState([]);
+    const [messages, setMessages] = useState([]);
+    const [unseenMessage, setUnseenMessage] = useState({})
+    const [message, setMessage] = useState([])
+    const [selectedContact, setSelectedContact] = useState(null);
+     
+
     const fetchJobs = async () => {
         try {
             const { data } = await axios.get(`${backendURL}/api/jobs`);
@@ -45,7 +58,6 @@ export const AppContextProvider = (props) => {
         }
     };
     
-
     const fetchCompanyData = async () => {
         try {
             if (!companyToken) {
@@ -98,7 +110,6 @@ export const AppContextProvider = (props) => {
         }
     };
     
-
     // function to use fetch user Data
     const fetchUserData = async () => {
         try {
@@ -127,14 +138,14 @@ export const AppContextProvider = (props) => {
         }
     };
     
-     const fetchTotalJobs = async () => {
+    const fetchTotalJobs = async () => {
     try {
       const res = await axios.get(`${backendURL}/api/jobs/count/total`);
       settotalJobs(res.data.totalJobs);
     } catch (err) {
       console.error("Error fetching total jobs:", err);
     }
-  };
+    };
   
   const fetchApplicationCount = async () => {
   try {
@@ -161,8 +172,7 @@ export const AppContextProvider = (props) => {
   } catch (error) {
     console.error("Error fetching application count:", error);
   }
-};
-
+    };
 
     useEffect(()=>{
         fetchJobs()
@@ -184,16 +194,89 @@ export const AppContextProvider = (props) => {
 
     useEffect(()=>{
         if(companyToken){
-            fetchCompanyData() 
+        fetchCompanyData() 
         }
-
     },[companyToken])
+
+    const userId = user?.id;
+  const recruiterId = companyData?._id;
+
+    useEffect(() => {
+  if (!user && !companyToken) return;
+
+  const id = isRecruiter ? companyData?._id : user?.id;
+  const model = isRecruiter ? "Company" : "User";
+
+  if (!id || !model) return;
+
+  const socketConnection = io(backendURL, {
+    query: { id, model },
+    transports: ['websocket'], // ensure persistent connection
+  });
+  socketConnection.connect()
+  setSocket(socketConnection);
+
+  socketConnection.on("connect", () => {
+    console.log("Socket connected:", socketConnection.id);
+  });
+
+  socketConnection.on("getOnlineUsers", (users) => {
+    setOnlineUsers(users); 
+  });
+
+  socketConnection.on("disconnect", () => {
+    console.log("Socket disconnected");
+  });
+
+  return () => {
+    socketConnection.disconnect();
+  };
+}, [user, companyData?._id, companyToken]);
+
+  useEffect(() => {
+      const fetchContacts = async () => {
+        try {
+          const params = isRecruiter ? { recruiterId } : { userId };
+          const token = await getToken();
+          const { data } = await axios.get(`${backendURL}/api/contacts`, {
+            params,
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+  
+          if (data.success) {
+            const sortedContacts = data.contacts.sort((a, b) => {
+              const aOnline = isRecruiter ? a.isUserOnline : a.isRecruiterOnline;
+              const bOnline = isRecruiter ? b.isUserOnline : b.isRecruiterOnline;
+              return bOnline - aOnline;
+            });
+            setContacts(sortedContacts);
+            setUnseenMessage(data.unseenMessage)
+            setFilteredContacts(sortedContacts);
+          }
+        } catch (err) {
+          console.error("Failed to fetch contacts", err);
+          setContacts([]);
+          setFilteredContacts([]);
+        }
+      };
+  
+      if ((isRecruiter && recruiterId) || (!isRecruiter && userId)) {
+        fetchContacts();
+      }
+    }, [isRecruiter, userId, recruiterId, backendURL]);
+console.log(userId)
+console.log(recruiterId)
+
 
     const value = {
         setSearchFilter,searchFilter,isSearched,setIsSearched, jobs, setJobs,
          showRecuriterLogin, setShowRecuriterLogin, companyToken, setcompanyToken, companyData,
         setcompanyData, backendURL, userData, setUserData, userApplications, setUserApplications,
-        fetchUserData, fetchUserApplicationData, totalJobs, settotalJobs, applyJobs, setapplyJobs
+        fetchUserData, fetchUserApplicationData, totalJobs, settotalJobs, applyJobs, setapplyJobs,
+        isRecruiter, socket, onlineUsers, contacts, filteredContacts,
+        setFilteredContacts,setContacts, setOnlineUsers
     }; 
     return (
         <AppContext.Provider value={value}>
