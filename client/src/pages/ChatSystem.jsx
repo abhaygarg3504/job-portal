@@ -17,12 +17,13 @@ const ChatSystem = () => {
   const { user } = useUser();
   const { getToken } = useAuth();
   const { backendURL, companyData, isRecruiter, contacts, filteredContacts,
-     setFilteredContacts, setContacts, socket
+     setFilteredContacts, setContacts, socket, onlineUsers, setOnlineUsers
   } = useContext(AppContext);
   const [unreadCounts, setUnreadCounts] = useState({});
 
   const userId = user?.id;
   const recruiterId = companyData?._id;
+  
   
   useEffect(() => {
   const handleMouseMove = (e) => {
@@ -197,7 +198,12 @@ const handleSendMessage = async () => {
     toast.error("Error fetching messages");
   }
 };
-
+ const isContactOnline = (contact) => {
+    const uniqueId = isRecruiter
+      ? `User_${contact.userId?._id}`
+      : `Company_${contact.recruiterId?._id}`;
+    return onlineUsers.includes(uniqueId);
+  };
 const fetchUnreadCounts = async () => {
   try {
     const token = await getToken();
@@ -311,6 +317,7 @@ useEffect(() => {
   scrollToBottom();
 }, [messages]);
 
+console.log(onlineUsers)
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -353,10 +360,6 @@ useEffect(() => {
             ? contact?.userId?.image
             : contact?.recruiterId?.image;
 
-          const isOnline = isRecruiter
-            ? contact?.isUserOnline
-            : contact?.isRecruiterOnline;
-
           return (
             <div
               key={contact._id}
@@ -378,9 +381,9 @@ useEffect(() => {
              </div>
               <div
                 className={`ml-2 w-3 h-3 rounded-full ${
-                  isOnline ? "bg-green-500" : "bg-gray-400"
+                  (isContactOnline(contact)) ? "bg-green-500" : "bg-gray-400"
                 }`}
-                title={isOnline ? "Online" : "Offline"}
+                title={(isContactOnline(contact)) ? "Online" : "Offline"}
               />
             </div>
           );
@@ -395,6 +398,7 @@ useEffect(() => {
       style={{ zIndex: 10 }}
     />
   )}
+
 
 
       {/* Chat Area */}
