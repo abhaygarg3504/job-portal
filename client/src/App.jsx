@@ -14,11 +14,11 @@ import { ToastContainer, toast } from 'react-toastify';
 import ForgotPassword from './pages/ForgetPassword'
 import Subscribe from './pages/Subscribe'
 import ChatSystem from './pages/ChatSystem' 
-import InterviewCalendarModal from './pages/interviewCalenderModel'
+import SavedJobsPanel from './pages/SavedJobsPanel'
 
 const App = () => {
-  const { showRecuriterLogin, companyToken } = useContext(AppContext)
-
+  const { showRecuriterLogin, companyToken, isSavedJobsOpen, setIsSavedJobsOpen } = useContext(AppContext)
+ 
   return (
     <div>
       { showRecuriterLogin && <RecuriterLogin />}
@@ -44,6 +44,10 @@ const App = () => {
         </Route>
         
       </Routes>
+      <SavedJobsPanel 
+        isOpen={isSavedJobsOpen}
+        onClose={() => setIsSavedJobsOpen(false)}
+      />
     </div>
   )
 }

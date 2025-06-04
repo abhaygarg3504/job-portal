@@ -29,7 +29,11 @@ const userSchema = new mongoose.Schema({
     proExpiresAt: {
         type: Date,
         default: null
-    }
+    },
+    savedJobs: [{  
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Job"
+    }]
 });
 
 

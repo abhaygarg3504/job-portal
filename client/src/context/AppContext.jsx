@@ -42,8 +42,10 @@ export const AppContextProvider = (props) => {
     const [messages, setMessages] = useState([]);
     const [unseenMessage, setUnseenMessage] = useState({})
     const [message, setMessage] = useState([])
+    const [savedJobs, setSavedJobs] = useState([]);
     const [selectedContact, setSelectedContact] = useState(null);
     const [jobTitles, setJobTitles] = useState([]);
+    const [isSavedJobsOpen, setIsSavedJobsOpen] = useState(false);
 
     const fetchJobs = async () => {
         try {
@@ -183,6 +185,64 @@ export const AppContextProvider = (props) => {
   }
     };
 
+    const fetchSavedJobs = async () => {
+  try {
+    const token = await getToken();
+    const userId = user?.id;
+    if (!userId) return;
+
+    const { data } = await axios.get(`${backendURL}/api/users/saved-jobs/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (data.success) {
+      setSavedJobs(data.savedJobs);
+    }
+  } catch (err) {
+    console.error("Error fetching saved jobs:", err.message);
+  }
+};
+
+// Save a job
+const saveJobForUser = async (jobId) => {
+  try {
+    const token = await getToken();
+    const userId = user?.id;
+    if (!userId) return;
+
+    const { data } = await axios.post(`${backendURL}/api/users/save-job/${userId}`, { jobId }, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (data.success) {
+      toast.success(data.message);
+      fetchSavedJobs(); // refresh
+    }
+  } catch (err) {
+    console.error("Error saving job:", err.message);
+  }
+};
+
+// Unsave a job
+const unsaveJobForUser = async (jobId) => {
+  try {
+    const token = await getToken();
+    const userId = user?.id;
+    if (!userId) return;
+
+    const { data } = await axios.post(`${backendURL}/api/users/unsave-job/${userId}`, { jobId }, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (data.success) {
+      toast.success(data.message);
+      fetchSavedJobs(); // refresh
+    }
+  } catch (err) {
+    console.error("Error unsaving job:", err.message);
+  }
+};
+
     useEffect(()=>{
         fetchJobs()
         const storedCompanyToken = localStorage.getItem('companyToken')
@@ -198,6 +258,7 @@ export const AppContextProvider = (props) => {
         fetchUserApplicationData()
         fetchTotalJobs()
         fetchApplicationCount()
+        fetchSavedJobs();
       }
     }, [user])
 
@@ -300,7 +361,9 @@ console.log(recruiterId)
         setcompanyData, backendURL, userData, setUserData, userApplications, setUserApplications,
         fetchUserData, fetchUserApplicationData, totalJobs, settotalJobs, applyJobs, setapplyJobs,
         isRecruiter, socket, onlineUsers, contacts, filteredContacts,
-        setFilteredContacts,setContacts, setOnlineUsers
+        setFilteredContacts,setContacts, setOnlineUsers,
+        savedJobs, setSavedJobs, fetchSavedJobs, saveJobForUser, unsaveJobForUser,
+        setIsSavedJobsOpen, isSavedJobsOpen
     }; 
     return (
         <AppContext.Provider value={value}>

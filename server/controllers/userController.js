@@ -316,3 +316,64 @@ export const paymentRazorPay = async (req, res) => {
   }
 };
 
+// Save a job
+export const saveJob = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { jobId } = req.body;
+
+    if (!jobId) {
+      return res.status(400).json({ success: false, message: "Job ID is required" });
+    }
+
+    await User.findByIdAndUpdate(userId, { $addToSet: { savedJobs: jobId } });
+
+    return res.json({ success: true, message: "Job saved successfully" });
+  } catch (err) {
+    console.error(`Error in saveJob: ${err.message}`);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+// Unsave a job
+export const unsaveJob = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { jobId } = req.body;
+
+    if (!jobId) {
+      return res.status(400).json({ success: false, message: "Job ID is required" });
+    }
+
+    await User.findByIdAndUpdate(userId, { $pull: { savedJobs: jobId } });
+
+    return res.json({ success: true, message: "Job unsaved successfully" });
+  } catch (err) {
+    console.error(`Error in unsaveJob: ${err.message}`);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+// Get all saved jobs for a user
+export const getSavedJobs = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    const user = await User.findById(userId).populate({
+      path: "savedJobs",
+      populate: { path: "companyId", select: "-password" },
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    return res.json({ success: true, savedJobs: user.savedJobs });
+  } catch (err) {
+    console.error(`Error in getSavedJobs: ${err.message}`);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+
+

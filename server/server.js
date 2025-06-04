@@ -13,6 +13,7 @@ import contactRoutes from "./routes/contactRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import { Server } from "socket.io";
 import http from "http";
+import Contact from "./models/Contact.js";
 const app = express();
 
 const corsConfig = {
@@ -37,7 +38,7 @@ app.get("/", async (req, res) => {
 
 app.set("view engine", "ejs");
 app.set("views", path.join(path.resolve(), "views"));
-
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use("/api/company", companyRouter);
 app.use("/api/jobs", jobRouter);
 app.use("/api/users", userRouter);
@@ -75,7 +76,43 @@ const getOnlineUsers = () => {
   return users;
 };
 
-io.on("connection", (socket) => {
+// io.on("connection", (socket) => {
+//   const { id, model, jobTitles } = socket.handshake.query;
+
+//   if (!id || !model || !jobTitles) {
+//     console.warn("Invalid socket connection query params");
+//     return;
+//   }
+
+//   const parsedTitles = JSON.parse(jobTitles); // expecting a stringified array
+//   const modelKey = `${model}_${id}`;
+
+//   if (!userSocketMap[modelKey]) {
+//     userSocketMap[modelKey] = {};
+//   }
+  
+
+//   userSocketMap[modelKey][socket.id] = parsedTitles;
+
+//   console.log(`[CONNECTED] ${modelKey} via socket ${socket.id}`);
+//   io.emit("getOnlineUsers", getOnlineUsers());
+
+//   socket.on("disconnect", () => {
+//     if (userSocketMap[modelKey]) {
+//       delete userSocketMap[modelKey][socket.id];
+
+//       if (Object.keys(userSocketMap[modelKey]).length === 0) {
+//         delete userSocketMap[modelKey];
+//       }
+//     }
+
+//     console.log(`[DISCONNECTED] ${modelKey} from socket ${socket.id}`);
+//     io.emit("getOnlineUsers", getOnlineUsers());
+//   });
+// });
+
+
+io.on("connection", async (socket) => {
   const { id, model, jobTitles } = socket.handshake.query;
 
   if (!id || !model || !jobTitles) {
@@ -92,15 +129,41 @@ io.on("connection", (socket) => {
 
   userSocketMap[modelKey][socket.id] = parsedTitles;
 
+  // --- Update Contact online status on connect ---
+  if (model === "User") {
+    await Contact.updateMany(
+      { userId: id, jobTitle: { $in: parsedTitles } },
+      { $set: { isUserOnline: true } }
+    );
+  } else if (model === "Company") {
+  await Contact.updateMany(
+    { recruiterId: id, jobTitle: { $in: parsedTitles } },
+    { $set: { isRecruiterOnline: true } }
+  );
+}
+
   console.log(`[CONNECTED] ${modelKey} via socket ${socket.id}`);
   io.emit("getOnlineUsers", getOnlineUsers());
 
-  socket.on("disconnect", () => {
+  socket.on("disconnect", async () => {
     if (userSocketMap[modelKey]) {
       delete userSocketMap[modelKey][socket.id];
 
       if (Object.keys(userSocketMap[modelKey]).length === 0) {
         delete userSocketMap[modelKey];
+
+        // --- Update Contact online status on disconnect ---
+        if (model === "User") {
+          await Contact.updateMany(
+            { userId: id, jobTitle: { $in: parsedTitles } },
+            { $set: { isUserOnline: false } }
+          );
+        } else if (model === "Company") {
+        await Contact.updateMany(
+          { recruiterId: id, jobTitle: { $in: parsedTitles } },
+          { $set: { isRecruiterOnline: false } }
+        );
+      }
       }
     }
 

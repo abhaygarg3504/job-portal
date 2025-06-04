@@ -5,6 +5,7 @@ import { useUser, useAuth } from "@clerk/clerk-react";
 import { toast } from "react-toastify";
 import { assets } from "../assets/assets";
 import { useRef } from "react";
+import { format, isToday, isYesterday } from "date-fns";
 
 const ChatSystem = () => {
   const [selectedContact, setSelectedContact] = useState(null);
@@ -198,12 +199,34 @@ const handleSendMessage = async () => {
     toast.error("Error fetching messages");
   }
 };
- const isContactOnline = (contact) => {
-    const uniqueId = isRecruiter
-      ? `User_${contact.userId?._id}`
-      : `Company_${contact.recruiterId?._id}`;
-    return onlineUsers.includes(uniqueId);
-  };
+const isContactOnline = (contact) => {
+  if (isRecruiter) {
+    // Recruiter sees if user is online
+    return contact.isUserOnline;
+  } else {
+    // User sees if recruiter is online
+    return contact.isRecruiterOnline;
+  }
+};
+const groupMessagesByDate = (messages) => {
+  const groups = {};
+  messages.forEach((msg) => {
+    const date = new Date(msg.createdAt);
+    let label;
+    if (isToday(date)) {
+      label = "Today";
+    } else if (isYesterday(date)) {
+      label = "Yesterday";
+    } else {
+      label = format(date, "dd MMM yyyy");
+    }
+    if (!groups[label]) groups[label] = [];
+    groups[label].push(msg);
+  });
+  // Return as array of { label, messages }
+  return Object.entries(groups).map(([label, msgs]) => ({ label, messages: msgs }));
+};
+
 const fetchUnreadCounts = async () => {
   try {
     const token = await getToken();
@@ -238,7 +261,6 @@ const getContactKey = (contact) => {
   const jobTitle = contact?.jobTitle;
   return `${senderId}_${senderModel}_${jobTitle}`;
 };
-
 
 useEffect(() => {
   if (contacts.length > 0) {
@@ -442,61 +464,67 @@ console.log(onlineUsers)
             </div>
 
             {/* Messages */}
-            <div className="flex-1 p-4 overflow-y-auto space-y-2">
-              {messages.map((msg, index) => {
-                const isMine = (isRecruiter && msg.senderModel === "Company") ||
-                               (!isRecruiter && msg.senderModel === "User");
-
-                return (
-                  <div
-                    key={index}
-                    className={`max-w-md px-4 py-2 rounded-lg ${
-                      isMine
-                        ? "bg-blue-500 text-white self-end ml-auto"
-                        : "bg-gray-200 text-black self-start mr-auto"
-                    }`}
-                  >
-                    {msg.image && (
-                      <img
-                        src={msg.image}
-                        alt="sent file"
-                        className="mb-2 max-w-full max-h-60 rounded"
-                      />
-                    )}
-                    <div>{msg.message}</div>
-                     <div className="text-right mt-1 flex items-center justify-end space-x-1">
-      <span className="text-xs text-gray-500">
-        {new Date(msg.createdAt).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        })}
-      </span>
-      
-      {/* Single tick if !msg.isRead, double tick if msg.isRead */}
-      {isMine && (
-        <span className={`text-xs ${msg.isRead ? "text-blue-500" : "text-gray-500"}`}>
-          {msg.isRead ? (
-             <span className="flex space-x-0.5">
-      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
-        <path d="M4 12l6 6L20 6" />
-      </svg>
-      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 -ml-2" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
-        <path d="M4 12l6 6L20 6" />
-      </svg>
-    </span>
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
-              <path d="M4 12l6 6L20 6" />
-            </svg>
-          )}
+<div className="flex-1 p-4 overflow-y-auto space-y-2">
+  {groupMessagesByDate(messages).map((group, idx) => (
+    <div key={group.label + idx}>
+      {/* Date label */}
+      <div className="flex justify-center my-2">
+        <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs font-semibold">
+          {group.label}
         </span>
-      )}
-    </div>
-                  </div>
-                );
-              })}
-              <div ref={msgRef}></div>
+      </div>
+      {/* Messages for this date */}
+      {group.messages.map((msg, index) => {
+        const isMine = (isRecruiter && msg.senderModel === "Company") ||
+                       (!isRecruiter && msg.senderModel === "User");
+        return (
+          <div
+            key={msg._id || index}
+            className={`max-w-md px-4 py-2 rounded-lg ${
+              isMine
+                ? "bg-blue-500 text-white self-end ml-auto"
+                : "bg-gray-200 text-black self-start mr-auto"
+            }`}
+          >
+            {msg.image && (
+              <img
+                src={msg.image}
+                alt="sent file"
+                className="mb-2 max-w-full max-h-60 rounded"
+              />
+            )}
+            <div>{msg.message}</div>
+            <div className="text-right mt-1 flex items-center justify-end space-x-1">
+              <span className="text-xs text-gray-100">
+                {format(new Date(msg.createdAt), "hh:mm a")}
+              </span>
+              {/* Single tick if !msg.isRead, double tick if msg.isRead */}
+              {isMine && (
+                <span className={`text-xs ${msg.isRead ? "text-blue-200" : "text-gray-200"}`}>
+                  {msg.isRead ? (
+                    <span className="flex space-x-0.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
+                        <path d="M4 12l6 6L20 6" />
+                      </svg>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 -ml-2" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
+                        <path d="M4 12l6 6L20 6" />
+                      </svg>
+                    </span>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
+                      <path d="M4 12l6 6L20 6" />
+                    </svg>
+                  )}
+                </span>
+              )}
             </div>
+          </div>
+        );
+      })}
+    </div>
+  ))}
+  <div ref={msgRef}></div>
+</div>
 
             {/* Message Input */}
             <div className="p-4 border-t flex items-center gap-2">

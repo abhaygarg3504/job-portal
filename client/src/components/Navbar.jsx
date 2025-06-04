@@ -4,13 +4,13 @@ import { useClerk, UserButton, useUser } from '@clerk/clerk-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import InterviewCalendarModal from '../pages/interviewCalenderModel';
-import { Bell, CalendarDays } from 'lucide-react';
+import { Bell, CalendarDays, Bookmark } from 'lucide-react';
 
 const Navbar = () => {
     const { openSignIn } = useClerk(); 
     const { user, isSignedIn } = useUser(); 
     const navigate = useNavigate();
-    const { setShowRecuriterLogin, backendURL } = useContext(AppContext);
+    const { setShowRecuriterLogin, backendURL, setIsSavedJobsOpen, isSavedJobsOpen } = useContext(AppContext);
     const [isUserStored, setIsUserStored] = useState(false); 
      const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
@@ -96,7 +96,13 @@ const Navbar = () => {
           Subscription
         </a>
       </div>
-
+       <button 
+                className="text-blue-600 hover:text-blue-800"
+                onClick={() => setIsSavedJobsOpen(!isSavedJobsOpen)}
+                title="Saved Jobs"
+              >
+                <Bookmark size={22} />
+              </button>
                             <Link to='/application'>Applied Jobs</Link>
                             <p className='max-sm:hidden'>Hello, {user.firstName} {user.lastName || ''}</p>
                             <UserButton />
