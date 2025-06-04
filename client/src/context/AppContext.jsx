@@ -223,6 +223,8 @@ const saveJobForUser = async (jobId) => {
   }
 };
 
+// console.log(getToken)
+
 // Unsave a job
 const unsaveJobForUser = async (jobId) => {
   try {
@@ -353,6 +355,8 @@ const unsaveJobForUser = async (jobId) => {
     }, [isRecruiter, userId, recruiterId, backendURL]);
 console.log(userId)
 console.log(recruiterId)
+
+// console.log(companyToken)
 
 
     const value = {

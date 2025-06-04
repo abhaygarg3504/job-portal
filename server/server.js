@@ -14,6 +14,7 @@ import messageRoutes from "./routes/messageRoutes.js";
 import { Server } from "socket.io";
 import http from "http";
 import Contact from "./models/Contact.js";
+import { connectToDatabase } from "./config/postgresConnect.js";
 const app = express();
 
 const corsConfig = {
@@ -44,6 +45,8 @@ app.use("/api/jobs", jobRouter);
 app.use("/api/users", userRouter);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/messages", messageRoutes);
+
+await connectToDatabase()
 
 export const io = new Server(server, {
   cors: {

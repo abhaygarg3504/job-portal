@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// prisma/schema.prisma
+
+model Blog {
+  id         String    @id @default(cuid())
+  title      String
+  content    String
+  image      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  userId     String?  // Optional user author
+  companyId  String?  // Optional company author
+
+  comments   Comment[]
+
+  @@index([userId])
+  @@index([companyId])
+}
+
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+
+  userId    String   // From MongoDB
+  blogId    String
+  blog      Blog     @relation(fields: [blogId], references: [id])
+
+  rating    Int?     // Optional if you want ratings on comments
+}

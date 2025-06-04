@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import { scheduleSubscriptionCheck } from "../utils/subscriptionRemainder.js";
+
 dotenv.config();
 const connectDB = async () => {
     try {
@@ -14,3 +14,5 @@ const connectDB = async () => {
 };
 
 export default connectDB;
+
+

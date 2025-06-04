@@ -1,6 +1,7 @@
 import express from 'express';
-import { applyForData, createUserData ,getSavedJobs,getUserApplicationsCount,getUserData, getUserJobApplication, paymentRazorPay, saveJob, unsaveJob, updateResume, verifyRazorPay } from '../controllers/userController.js';
+import { addComment, applyForData, createUserData ,deleteComment,getAllBlogs,getSavedJobs,getUserApplicationsCount,getUserData, getUserJobApplication, paymentRazorPay, saveJob, unsaveJob, updateComment, updateResume, verifyRazorPay } from '../controllers/userController.js';
 import upload from '../config/multer.js';
+import { getBlogComments } from '../controllers/companyController.js';
 
 const router = express.Router();
 router.post('/user', createUserData);
@@ -14,5 +15,10 @@ router.post('/verify-razor', verifyRazorPay)
 router.post("/save-job/:id", saveJob);
 router.post("/unsave-job/:id", unsaveJob);
 router.get("/saved-jobs/:id", getSavedJobs);
+router.get("/blogs/:blogId/comments", getBlogComments);
+router.post("/blogs/:blogId/comments", addComment);
+router.put("/comments/:commentId", updateComment);
+router.delete("/comments/:commentId", deleteComment);
+router.get("/getAllBlogs", getAllBlogs)
 
 export default router;

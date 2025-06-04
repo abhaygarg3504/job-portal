@@ -2,6 +2,8 @@ import express from "express";
 import { 
     changeJobApplicationStatus, 
     changeJobVisibility, 
+    createBlog, 
+    deleteBlog, 
     getCompanyData, 
     getCompanyJobApplicants, 
     getCompanyPostedJobs, 
@@ -11,6 +13,7 @@ import {
     resetPassword, 
     setInterviewDate, 
     setUpOTP,
+    updateBlog,
     verifyOTP
 } from "../controllers/companyController.js"; 
 
@@ -28,6 +31,11 @@ router.get("/list-jobs", comapnyDataProtection,getCompanyPostedJobs);
 router.post("/change-status", ProtectionCompany,changeJobApplicationStatus);
 router.post("/change-visiblity", ProtectionCompany ,changeJobVisibility);
 router.post("/set-interview-date",ProtectionCompany, setInterviewDate);
+router.post("/blogs", ProtectionCompany, createBlog);
+router.put("/blogs/:id", ProtectionCompany, updateBlog);
+router.delete("/blogs/:id", ProtectionCompany, deleteBlog);
+
+// Anyone can see comments
 router.post("/setUpOtp", setUpOTP)
 router.post("/verifyOtp", verifyOTP)
 router.post("/resetPassword", resetPassword)

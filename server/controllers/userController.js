@@ -4,6 +4,9 @@ import transactionModel from "../models/transactionModel.js";
 import User from "../models/User.js";
 import { v2 as cloudinary } from "cloudinary";
 import Razorpay from "razorpay"
+import { PrismaClient } from "@prisma/client";
+import Company from "../models/Comapny.js";
+const prisma = new PrismaClient();
 
 export const getUserId = (req) => {
     const userId = req.query.id;
@@ -375,5 +378,117 @@ export const getSavedJobs = async (req, res) => {
   }
 };
 
+export const addComment = async (req, res) => {
+  const userId = req.user?._id?.toString(); // MongoDB ObjectId as string
+  const { blogId } = req.params;
+  const { content, rating } = req.body;
 
+  if (!userId) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
 
+  try {
+    // Check if blog exists
+    const blog = await prisma.blog.findUnique({ where: { id: blogId } });
+    if (!blog) {
+      return res.status(404).json({ success: false, message: "Blog not found" });
+    }
+
+    const newComment = await prisma.comment.create({
+      data: {
+        content,
+        rating: rating || null,
+        userId,
+        blogId,
+      },
+    });
+
+    res.status(201).json({ success: true, comment: newComment });
+  } catch (error) {
+    console.error("Error adding comment:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+// ✅ Update a comment (only if the user created it)
+export const updateComment = async (req, res) => {
+  const userId = req.user?._id;
+  const { commentId } = req.params;
+  const { content, rating } = req.body;
+
+  if (!userId) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
+
+  try {
+    const comment = await prisma.comment.findUnique({ where: { id: commentId } });
+
+    if (!comment || comment.userId !== userId) {
+      return res.status(403).json({ success: false, message: "Forbidden" });
+    }
+
+    const updatedComment = await prisma.comment.update({
+      where: { id: commentId },
+      data: {
+        content,
+        rating: rating ?? comment.rating,
+      },
+    });
+
+    res.json({ success: true, comment: updatedComment });
+  } catch (error) {
+    console.error("Error updating comment:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+// ✅ Delete a comment (only if the user created it)
+export const deleteComment = async (req, res) => {
+  const userId = req.user?._id;
+  const { commentId } = req.params;
+
+  if (!userId) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
+
+  try {
+    const comment = await prisma.comment.findUnique({ where: { id: commentId } });
+
+    if (!comment || comment.userId !== userId) {
+      return res.status(403).json({ success: false, message: "Forbidden" });
+    }
+
+    await prisma.comment.delete({ where: { id: commentId } });
+
+    res.json({ success: true, message: "Comment deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting comment:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+// Get all blogs with company details (from MongoDB)
+export const getAllBlogs = async (req, res) => {
+  try {
+    const blogs = await prisma.blog.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Fetch companies in batch from MongoDB
+    const companyIds = blogs.map(b => b.companyId).filter(Boolean);
+    const companies = await Company.find({ _id: { $in: companyIds } });
+
+    const enrichedBlogs = blogs.map(blog => {
+      const company = companies.find(c => c._id.toString() === blog.companyId);
+      return {
+        ...blog,
+        author: company ? { type: "company", ...company.toObject() } : null,
+      };
+    });
+
+    res.json({ success: true, blogs: enrichedBlogs });
+  } catch (err) {
+    console.error("Error fetching blogs:", err);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};

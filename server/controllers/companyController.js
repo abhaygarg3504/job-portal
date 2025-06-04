@@ -8,6 +8,8 @@ import Token from "../models/Token.js";
 import {sendEmail}  from "../utils/sendEmails.js"
 import Contact from "../models/Contact.js";
 import mongoose from "mongoose"; 
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
 
 export const registerCompany= async(req, res) => {
  const {name, email, password} = req.body
@@ -457,6 +459,94 @@ export const getInterviewDetails = async (req, res) => {
   } catch (error) {
     console.error("Error fetching interview details:", error);
     return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const createBlog = async (req, res) => {
+  const { title, content, image } = req.body;
+  const companyId = req.company?._id?.toString();
+
+  if (!companyId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+  try {
+    const newBlog = await prisma.blog.create({
+      data: {
+        title,
+        content,
+        image,
+        companyId,
+        userId: null, // explicitly set to avoid Prisma error
+      },
+    });
+
+    res.status(201).json({ success: true, blog: newBlog });
+  } catch (error) {
+    console.error("Error creating blog:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+
+// Company updates a blog (PostgreSQL)
+export const updateBlog = async (req, res) => {
+  const { id } = req.params;
+  const { title, content, image } = req.body;
+  const companyId = req.company?._id?.toString();
+
+  try {
+    const blog = await prisma.blog.findUnique({ where: { id } });
+
+    if (!blog || blog.companyId !== companyId) {
+      return res.status(403).json({ success: false, message: "Forbidden" });
+    }
+
+    const updatedBlog = await prisma.blog.update({
+      where: { id },
+      data: { title, content, image },
+    });
+
+    res.json({ success: true, blog: updatedBlog });
+  } catch (error) {
+    console.error("Error updating blog:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+export const deleteBlog = async (req, res) => {
+  const { id } = req.params;
+  const companyId = req.company?._id?.toString();
+
+  try {
+    const blog = await prisma.blog.findUnique({ where: { id } });
+
+    if (!blog || blog.companyId !== companyId) {
+      return res.status(403).json({ success: false, message: "Forbidden" });
+    }
+
+    await prisma.comment.deleteMany({ where: { blogId: id } });
+    await prisma.blog.delete({ where: { id } });
+
+    res.json({ success: true, message: "Blog deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting blog:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+
+export const getBlogComments = async (req, res) => {
+  const { blogId } = req.params;
+
+  try {
+    const comments = await prisma.comment.findMany({
+      where: { blogId },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json({ success: true, comments });
+  } catch (error) {
+    console.error("Error fetching comments:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
