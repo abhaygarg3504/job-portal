@@ -17,35 +17,25 @@ const BlogForm = ({ blog, onSuccess, onCancel }) => {
   const [content, setContent] = useState(blog?.content || "");
   const [image, setImage] = useState(blog?.image || "");
 
+  console.log(`user token is`, token)
+  console.log(`company token is `, companyToken)
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      let url = "";
-      let headers = {};
+      const url = blog
+        ? `${backendURL}/api/users/blogs/${blog.id}`
+        : `${backendURL}/api/users/blogs`;
 
+      const authToken = isRecruiter ? companyToken : token;
+      if (!authToken) {
+        toast.error("Missing token");
+        return;
+      }
+
+      const headers = { Authorization: `Bearer ${authToken}` };
       const payload = { title, content, image };
-
-      // Recruiter flow
-      if (isRecruiter) {
-        if (!companyToken) {
-          toast.error("Company token is missing");
-          return;
-        }
-
-        url = `${backendURL}/api/company/blogs${blog ? `/${blog.id}` : ""}`;
-        headers = { Authorization: `Bearer ${companyToken}` };
-      }
-      // User flow
-      else {
-        if (!token) {
-          toast.error("User token is missing");
-          return;
-        }
-
-        url = `${backendURL}/api/users/blogs${blog ? `/${blog.id}` : ""}`;
-        headers = { Authorization: `Bearer ${token}` };
-      }
 
       if (blog) {
         await axios.put(url, payload, { headers });
@@ -55,10 +45,10 @@ const BlogForm = ({ blog, onSuccess, onCancel }) => {
         toast.success("Blog posted successfully");
       }
 
-      onSuccess(); // trigger refresh or dialog close
+      onSuccess();
     } catch (err) {
-      console.error("Error submitting blog:", err.message);
-      toast.error(err.response?.data?.message || "Failed to submit blog");
+      console.error("Error submitting blog:", err.response?.data || err.message);
+      toast.error(err.response?.data?.message || "Error posting blog");
     }
   };
 
@@ -67,43 +57,18 @@ const BlogForm = ({ blog, onSuccess, onCancel }) => {
       <DialogTitle>{blog ? "Edit Blog" : "Write Blog"}</DialogTitle>
       <DialogContent>
         <form onSubmit={handleSubmit}>
-          <TextField
-            label="Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            fullWidth
-            required
-            sx={{ my: 1 }}
-          />
-          <TextField
-            label="Content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            fullWidth
-            multiline
-            minRows={4}
-            required
-            sx={{ my: 1 }}
-          />
-          <TextField
-            label="Image URL"
-            value={image}
-            onChange={(e) => setImage(e.target.value)}
-            fullWidth
-            sx={{ my: 1 }}
-          />
+          <TextField label="Title" value={title} onChange={(e) => setTitle(e.target.value)} fullWidth required sx={{ my: 1 }} />
+          <TextField label="Content" value={content} onChange={(e) => setContent(e.target.value)} fullWidth multiline minRows={4} required sx={{ my: 1 }} />
+          <TextField label="Image URL" value={image} onChange={(e) => setImage(e.target.value)} fullWidth sx={{ my: 1 }} />
           <Box mt={2} display="flex" justifyContent="flex-end">
-            <Button onClick={onCancel} sx={{ mr: 2 }}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="contained">
-              {blog ? "Update" : "Post"}
-            </Button>
+            <Button onClick={onCancel} sx={{ mr: 2 }}>Cancel</Button>
+            <Button type="submit" variant="contained">{blog ? "Update" : "Post"}</Button>
           </Box>
         </form>
       </DialogContent>
     </Dialog>
   );
 };
+
 
 export default BlogForm;

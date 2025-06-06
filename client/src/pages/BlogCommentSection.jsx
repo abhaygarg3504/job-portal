@@ -1,44 +1,72 @@
-// CommentSection.js
 import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
-import { Box, Typography, TextField, Button, Rating, List, ListItem, ListItemText, IconButton } from "@mui/material";
+import {
+  Box, Typography, TextField, Button,
+  Rating, List, ListItem, ListItemText, IconButton
+} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import { AppContext } from "../context/AppContext";
 
-const CommentSection = ({ blogId }) => {
-  const { isRecruiter, backendURL } = useContext(AppContext);
+const BlogCommentSection = ({ blogId }) => {
+  const {
+    isRecruiter, backendURL, token, companyToken,
+    userId, companyId 
+  } = useContext(AppContext);
+
   const [comments, setComments] = useState([]);
   const [content, setContent] = useState("");
   const [rating, setRating] = useState(0);
   const [editing, setEditing] = useState(null);
 
+  const authToken = isRecruiter ? companyToken : token;
+  const loggedInId = isRecruiter ? companyId : userId;
+
   const fetchComments = async () => {
-   if(!isRecruiter) {
-    const res = await axios.get(`${backendURL}/api/users/blogs/${blogId}/comments`);
-  } else{
-     const res = await axios.get(`${backendURL}/api/company/blogs/${blogId}/comments`);
-  }
-    setComments(res.data.comments || []);
+    try {
+      const url = isRecruiter
+        ? `${backendURL}/api/company/blogs/${blogId}/comments`
+        : `${backendURL}/api/users/blogs/${blogId}/comments`;
+      const res = await axios.get(url);
+      setComments(res.data.comments || []);
+    } catch (err) {
+      console.error("Error fetching comments:", err);
+    }
   };
 
   useEffect(() => { fetchComments(); }, [blogId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editing) {
-      await axios.put(`${backendURL}//api/users/comments/${editing.id}`, { content, rating }, {
-        headers: { Authorization: `Bearer ${user.token}` }
-      });
-      setEditing(null);
-    } else {
-      await axios.post(`${backendURL}/api/users/blogs/${blogId}/comments`, { content, rating }, {
-        headers: { Authorization: `Bearer ${user.token}` }
-      });
+
+    if (!authToken) return;
+
+    try {
+      if (editing) {
+        const url = isRecruiter
+          ? `${backendURL}/api/company/comments/${editing.id}`
+          : `${backendURL}/api/users/comments/${editing.id}`;
+
+        await axios.put(url, { content, rating }, {
+          headers: { Authorization: `Bearer ${authToken}` }
+        });
+        setEditing(null);
+      } else {
+        const url = isRecruiter
+          ? `${backendURL}/api/company/blogs/${blogId}/comments`
+          : `${backendURL}/api/users/blogs/${blogId}/comments`;
+
+        await axios.post(url, { content, rating }, {
+          headers: { Authorization: `Bearer ${authToken}` }
+        });
+      }
+
+      setContent("");
+      setRating(0);
+      fetchComments();
+    } catch (err) {
+      console.error("Error submitting comment:", err);
     }
-    setContent("");
-    setRating(0);
-    fetchComments();
   };
 
   const handleEdit = (comment) => {
@@ -48,21 +76,31 @@ const CommentSection = ({ blogId }) => {
   };
 
   const handleDelete = async (id) => {
-    await axios.delete(`${backendURL}/api/users/comments/${id}`, {
-      headers: { Authorization: `Bearer ${user.token}` }
-    });
-    fetchComments();
+    if (!authToken) return;
+    const url = isRecruiter
+      ? `${backendURL}/api/company/comments/${id}`
+      : `${backendURL}/api/users/comments/${id}`;
+
+    try {
+      await axios.delete(url, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      fetchComments();
+    } catch (err) {
+      console.error("Error deleting comment:", err);
+    }
   };
 
   return (
     <Box>
       <Typography variant="h6" sx={{ mt: 2 }}>Comments</Typography>
-      {user && (
+
+      {authToken && (
         <form onSubmit={handleSubmit}>
           <TextField
             label="Write a comment"
             value={content}
-            onChange={e => setContent(e.target.value)}
+            onChange={(e) => setContent(e.target.value)}
             fullWidth
             required
             sx={{ my: 1 }}
@@ -76,37 +114,48 @@ const CommentSection = ({ blogId }) => {
             {editing ? "Update Comment" : "Post Comment"}
           </Button>
           {editing && (
-            <Button onClick={() => { setEditing(null); setContent(""); setRating(0); }} sx={{ ml: 2 }}>
+            <Button onClick={() => {
+              setEditing(null);
+              setContent("");
+              setRating(0);
+            }} sx={{ ml: 2 }}>
               Cancel
             </Button>
           )}
         </form>
       )}
+
       <List>
-        {comments.map(c => (
-          <ListItem key={c.id} alignItems="flex-start"
-            secondaryAction={
-              user && c.userId === user._id && (
-                <>
-                  <IconButton onClick={() => handleEdit(c)}><EditIcon /></IconButton>
-                  <IconButton onClick={() => handleDelete(c.id)}><DeleteIcon /></IconButton>
-                </>
-              )
-            }
-          >
-            <ListItemText
-              primary={c.content}
-              secondary={
-                <>
-                  Rating: {c.rating || "N/A"} | {new Date(c.createdAt).toLocaleString()}
-                </>
+        {comments.map(c => {
+          const isMyComment = isRecruiter
+            ? c.companyId === companyId
+            : c.userId === userId;
+
+          return (
+            <ListItem key={c.id} alignItems="flex-start"
+              secondaryAction={
+                isMyComment && (
+                  <>
+                    <IconButton onClick={() => handleEdit(c)}><EditIcon /></IconButton>
+                    <IconButton onClick={() => handleDelete(c.id)}><DeleteIcon /></IconButton>
+                  </>
+                )
               }
-            />
-          </ListItem>
-        ))}
+            >
+              <ListItemText
+                primary={c.content}
+                secondary={
+                  <>
+                    Rating: {c.rating || "N/A"} | {new Date(c.createdAt).toLocaleString()}
+                  </>
+                }
+              />
+            </ListItem>
+          );
+        })}
       </List>
     </Box>
   );
 };
 
-export default CommentSection;
+export default BlogCommentSection;

@@ -15,7 +15,7 @@
   "dependencies": {
     "@clerk/clerk-js": "^5.67.1",
     "@clerk/clerk-sdk-node": "^5.1.6",
-    "@clerk/express": "^1.4.19",
+    "@clerk/express": "^1.6.0",
     "@prisma/client": "^6.9.0",
     "@sendgrid/mail": "^8.1.5",
     "bcrypt": "^5.1.1",

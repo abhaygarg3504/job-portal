@@ -101,7 +101,7 @@ function Dashboard() {
                 isActive ? 'bg-blue-100 border-r-4 border-blue-500' : ''
               }`
             }>
-              <img src={assets.person_tick_icon} alt='' />
+              <img src={assets.blog_icon} className='w-7 h-7' alt='' />
               <p className='max-sm:hidden'>Blogs</p>
             </NavLink>
           </ul>

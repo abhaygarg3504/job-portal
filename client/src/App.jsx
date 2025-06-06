@@ -32,7 +32,6 @@ const App = () => {
         <Route path='/subscribe' element={<Subscribe/>}/>
          <Route path="/chat-system" element={<ChatSystem />} />
          <Route path="/blogs" element={<BlogPage />} />
-           <Route path="/dashboard/blogs" element={<BlogPage />} />
           <Route path="/dashboard/chat-system" element={<ChatSystem />} />
 
         <Route path='/dashboard' element={<Dashboard />}>
@@ -41,6 +40,8 @@ const App = () => {
             <Route path='add-job' element={<AddJob />} />
           <Route path='manage-jobs' element={<ManageJobs />} />
           <Route path='view-application' element={<ViewApplication />} />
+            <Route path="blogs" element={<BlogPage />} />
+              {/* <Route path="/chat-system" element={<ChatSystem />} /> */}
            </> : null
           }
         </Route>

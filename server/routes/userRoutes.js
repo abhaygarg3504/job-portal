@@ -3,6 +3,8 @@ import { addComment, applyForData, createUserBlog, createUserData ,deleteComment
 import upload from '../config/multer.js';
 import { getBlogComments } from '../controllers/companyController.js';
 
+import { requireAuth } from '@clerk/express';
+
 const router = express.Router();
 router.post('/user', createUserData);
 router.get('/user/:id', getUserData);
@@ -16,13 +18,12 @@ router.post("/save-job/:id", saveJob);
 router.post("/unsave-job/:id", unsaveJob);
 router.get("/saved-jobs/:id", getSavedJobs);
 router.get("/blogs/:blogId/comments", getBlogComments);
-router.post("/blogs/:blogId/comments", addComment);
-router.put("/comments/:commentId", updateComment);
-router.delete("/comments/:commentId", deleteComment);
+router.post("/blogs/:blogId/comments", requireAuth(), addComment);
+router.put("/comments/:commentId", requireAuth(),updateComment);
+router.delete("/comments/:commentId", requireAuth(), deleteComment);
+router.post("/blogs", requireAuth(), createUserBlog);
+router.put("/blogs/:id", requireAuth(), updateUserBlog);
+router.delete("/blogs/:id", requireAuth(), deleteUserBlog);
 router.get("/getAllBlogs", getAllBlogs)
-router.post("/blogs", createUserBlog);
-router.put("/blogs/:id",  updateUserBlog);
-router.delete("/blogs/:id", deleteUserBlog);
-
 
 export default router;

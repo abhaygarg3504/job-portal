@@ -3,18 +3,18 @@ import { AppContext } from "../context/AppContext";
 import BlogList from "./BlogList";
 import BlogForm from "./BlogForm";
 import BlogDetails from "./BlogDetails";
+import Navbar from "../components/Navbar";
 
 const BlogPage = () => {
   const { isRecruiter, companyToken, token } = useContext(AppContext);
   const [showForm, setShowForm] = useState(false);
   const [selectedBlog, setSelectedBlog] = useState(null);
   const [refresh, setRefresh] = useState(false);
-
-  // To trigger BlogList refresh after create/update/delete
   const handleRefresh = () => setRefresh((r) => !r);
 
   return (
     <div className="container mx-auto py-6">
+      {!isRecruiter ? <Navbar/> : <></>}
       {!selectedBlog && (
         <>
           <div className="flex justify-between items-center mb-4">

@@ -1,5 +1,63 @@
 import jwt from "jsonwebtoken"
 import Company from "../models/Comapny.js"
+import User from "../models/User.js";
+// middlewares/verifyClerkUser.js
+import { verifyToken } from "@clerk/clerk-sdk-node"; // or '@clerk/backend' if you're using the newer version
+
+// export const verifyClerkUser = async (req, res, next) => {
+//   try {
+//     const authHeader = req.headers.authorization;
+//     if (!authHeader || !authHeader.startsWith("Bearer ")) {
+//       return res.status(401).json({ success: false, message: "Authorization header missing" });
+//     }
+
+//     const token = authHeader.split(" ")[1];
+
+//     const payload = await verifyToken(token); // Verifies JWT from Clerk
+//     req.user = {
+//       _id: payload.sub, // Clerk's unique user ID
+//       email: payload.email,
+//       name: payload.name,
+//       image: payload.image_url,
+//     };
+
+//     next();
+//   } catch (err) {
+//     console.error("Clerk user verification failed:", err.message);
+//     res.status(401).json({ success: false, message: "Unauthorized" });
+//   }
+// };
+
+// export const requireAuth = async (req, res, next) => {
+//   try {
+//     const authHeader = req.headers.authorization;
+//     if (!authHeader || !authHeader.startsWith("Bearer ")) {
+//       return res.status(401).json({ success: false, message: "No token provided" });
+//     }
+//     const token = authHeader.split(" ")[1];
+
+//     // Verify Clerk JWT
+//     const payload = await verifyToken(token);
+
+//     // Find user in MongoDB using Clerk's user ID (sub)
+//     let user = await User.findById(payload.sub);
+//     if (!user) {
+//       // Optionally, create the user in your DB if not found
+//       user = await User.create({
+//         _id: payload.sub, // Clerk's user ID as MongoDB _id
+//         email: payload.email,
+//         name: payload.name,
+//         image: payload.image_url,
+//       });
+//     }
+
+//     req.user = user;
+//     next();
+//   } catch (err) {
+//     console.error("Clerk user verification failed:", err.message);
+//     return res.status(401).json({ success: false, message: "Unauthorized" });
+//   }
+// };
 
 export const ProtectCompany = async(req, res, next) =>{ 
 

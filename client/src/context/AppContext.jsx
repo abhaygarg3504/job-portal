@@ -46,6 +46,17 @@ export const AppContextProvider = (props) => {
     const [selectedContact, setSelectedContact] = useState(null);
     const [jobTitles, setJobTitles] = useState([]);
     const [isSavedJobsOpen, setIsSavedJobsOpen] = useState(false);
+    const [token, setToken] = useState(null);
+
+useEffect(() => {
+  const fetchToken = async () => {
+    const fetchedToken = await getToken();
+    setToken(fetchedToken);
+  };
+
+  fetchToken();
+}, [getToken]);
+
 
     const fetchJobs = async () => {
         try {
@@ -87,7 +98,6 @@ export const AppContextProvider = (props) => {
         }
     };
 
-    const token = getToken();
 
     // function to fetch user Applied aplications data
     const fetchUserApplicationData = async () => {
@@ -368,7 +378,9 @@ console.log(recruiterId)
         isRecruiter, socket, onlineUsers, contacts, filteredContacts,
         setFilteredContacts,setContacts, setOnlineUsers,
         savedJobs, setSavedJobs, fetchSavedJobs, saveJobForUser, unsaveJobForUser,
-        setIsSavedJobsOpen, isSavedJobsOpen, token
+        setIsSavedJobsOpen, isSavedJobsOpen, token, 
+        userId: userData?._id,       
+  companyId: companyData?._id , userData
     }; 
     return (
         <AppContext.Provider value={value}>

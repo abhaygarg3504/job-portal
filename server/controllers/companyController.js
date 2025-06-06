@@ -485,8 +485,6 @@ export const createBlog = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
-
-
 // Company updates a blog (PostgreSQL)
 export const updateBlog = async (req, res) => {
   const { id } = req.params;

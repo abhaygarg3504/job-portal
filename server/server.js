@@ -8,7 +8,7 @@ import jobRouter from "./routes/jobRoutes.js";
 import userRouter from "./routes/userRoutes.js";
 import connectCloudinary from "./config/cloudinary.js";
 import path from "path";
-import { clerkMiddleware } from "@clerk/express";
+import { clerkMiddleware, requireAuth } from "@clerk/express";
 import contactRoutes from "./routes/contactRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import { Server } from "socket.io";
@@ -79,42 +79,6 @@ const getOnlineUsers = () => {
   return users;
 };
 
-// io.on("connection", (socket) => {
-//   const { id, model, jobTitles } = socket.handshake.query;
-
-//   if (!id || !model || !jobTitles) {
-//     console.warn("Invalid socket connection query params");
-//     return;
-//   }
-
-//   const parsedTitles = JSON.parse(jobTitles); // expecting a stringified array
-//   const modelKey = `${model}_${id}`;
-
-//   if (!userSocketMap[modelKey]) {
-//     userSocketMap[modelKey] = {};
-//   }
-  
-
-//   userSocketMap[modelKey][socket.id] = parsedTitles;
-
-//   console.log(`[CONNECTED] ${modelKey} via socket ${socket.id}`);
-//   io.emit("getOnlineUsers", getOnlineUsers());
-
-//   socket.on("disconnect", () => {
-//     if (userSocketMap[modelKey]) {
-//       delete userSocketMap[modelKey][socket.id];
-
-//       if (Object.keys(userSocketMap[modelKey]).length === 0) {
-//         delete userSocketMap[modelKey];
-//       }
-//     }
-
-//     console.log(`[DISCONNECTED] ${modelKey} from socket ${socket.id}`);
-//     io.emit("getOnlineUsers", getOnlineUsers());
-//   });
-// });
-
-
 io.on("connection", async (socket) => {
   const { id, model, jobTitles } = socket.handshake.query;
 
@@ -123,7 +87,7 @@ io.on("connection", async (socket) => {
     return;
   }
 
-  const parsedTitles = JSON.parse(jobTitles); // expecting a stringified array
+  const parsedTitles = JSON.parse(jobTitles); 
   const modelKey = `${model}_${id}`;
 
   if (!userSocketMap[modelKey]) {
@@ -132,7 +96,6 @@ io.on("connection", async (socket) => {
 
   userSocketMap[modelKey][socket.id] = parsedTitles;
 
-  // --- Update Contact online status on connect ---
   if (model === "User") {
     await Contact.updateMany(
       { userId: id, jobTitle: { $in: parsedTitles } },
@@ -155,8 +118,7 @@ io.on("connection", async (socket) => {
       if (Object.keys(userSocketMap[modelKey]).length === 0) {
         delete userSocketMap[modelKey];
 
-        // --- Update Contact online status on disconnect ---
-        if (model === "User") {
+       if (model === "User") {
           await Contact.updateMany(
             { userId: id, jobTitle: { $in: parsedTitles } },
             { $set: { isUserOnline: false } }

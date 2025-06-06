@@ -379,25 +379,24 @@ export const getSavedJobs = async (req, res) => {
 };
 
 export const createUserBlog = async (req, res) => {
-  const { title, content, image } = req.body;
-  const userId = req.user?._id?.toString();
+  const userId = req.auth.userId; // Clerk sets this
 
   if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
 
   try {
     const newBlog = await prisma.blog.create({
       data: {
-        title,
-        content,
-        image,
+        title: req.body.title,
+        content: req.body.content,
+        image: req.body.image,
         userId,
-        companyId: null, // to avoid conflict
+        companyId: null,
       },
     });
 
     res.status(201).json({ success: true, blog: newBlog });
-  } catch (error) {
-    console.error("Error creating user blog:", error);
+  } catch (err) {
+    console.error("Error creating user blog:", err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
@@ -405,7 +404,7 @@ export const createUserBlog = async (req, res) => {
 export const updateUserBlog = async (req, res) => {
   const { id } = req.params;
   const { title, content, image } = req.body;
-  const userId = req.user?._id?.toString();
+  const userId = req.auth.userId;
 
   if (!userId) {
     return res.status(401).json({ success: false, message: "Unauthorized" });
@@ -436,7 +435,7 @@ export const updateUserBlog = async (req, res) => {
 
 export const deleteUserBlog = async (req, res) => {
   const { id } = req.params;
-  const userId = req.user?._id?.toString();
+  const userId = req.auth.userId;
 
   if (!userId) {
     return res.status(401).json({ success: false, message: "Unauthorized" });
@@ -461,9 +460,8 @@ export const deleteUserBlog = async (req, res) => {
   }
 };
 
-
 export const addComment = async (req, res) => {
-  const userId = req.user?._id?.toString(); // MongoDB ObjectId as string
+  const userId = req.auth.userId; 
   const { blogId } = req.params;
   const { content, rating } = req.body;
 
@@ -472,7 +470,6 @@ export const addComment = async (req, res) => {
   }
 
   try {
-    // Check if blog exists
     const blog = await prisma.blog.findUnique({ where: { id: blogId } });
     if (!blog) {
       return res.status(404).json({ success: false, message: "Blog not found" });
@@ -495,9 +492,8 @@ export const addComment = async (req, res) => {
   }
 };
 
-// ✅ Update a comment (only if the user created it)
 export const updateComment = async (req, res) => {
-  const userId = req.user?._id;
+  const userId = req.auth.userId;
   const { commentId } = req.params;
   const { content, rating } = req.body;
 
@@ -527,9 +523,8 @@ export const updateComment = async (req, res) => {
   }
 };
 
-// ✅ Delete a comment (only if the user created it)
 export const deleteComment = async (req, res) => {
-  const userId = req.user?._id;
+  const userId = req.auth.userId;
   const { commentId } = req.params;
 
   if (!userId) {
@@ -552,14 +547,12 @@ export const deleteComment = async (req, res) => {
   }
 };
 
-// Get all blogs with company details (from MongoDB)
 export const getAllBlogs = async (req, res) => {
   try {
     const blogs = await prisma.blog.findMany({
       orderBy: { createdAt: "desc" },
     });
 
-    // Fetch companies in batch from MongoDB
     const companyIds = blogs.map(b => b.companyId).filter(Boolean);
     const companies = await Company.find({ _id: { $in: companyIds } });
 

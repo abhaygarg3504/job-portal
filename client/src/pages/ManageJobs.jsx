@@ -32,10 +32,9 @@ const ManageJobs = () => {
     }
   }, [companyToken]);
 
-  // Function to change job visibility
   const changeJobVisibility = async (id, currentVisibility) => {
     try {
-      const newVisibility = !currentVisibility; // Toggle visibility
+      const newVisibility = !currentVisibility; 
       const { data } = await axios.post(
         `${backendURL}/api/company/change-visibility`,
         { id, visible: newVisibility },
