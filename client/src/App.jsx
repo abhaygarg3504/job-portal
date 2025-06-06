@@ -15,6 +15,7 @@ import ForgotPassword from './pages/ForgetPassword'
 import Subscribe from './pages/Subscribe'
 import ChatSystem from './pages/ChatSystem' 
 import SavedJobsPanel from './pages/SavedJobsPanel'
+import BlogPage from './pages/BlogPage'
 
 const App = () => {
   const { showRecuriterLogin, companyToken, isSavedJobsOpen, setIsSavedJobsOpen } = useContext(AppContext)
@@ -30,8 +31,9 @@ const App = () => {
         <Route path='/apply-job/:id' element={<ApplyJob />} />
         <Route path='/subscribe' element={<Subscribe/>}/>
          <Route path="/chat-system" element={<ChatSystem />} />
+         <Route path="/blogs" element={<BlogPage />} />
+           <Route path="/dashboard/blogs" element={<BlogPage />} />
           <Route path="/dashboard/chat-system" element={<ChatSystem />} />
-                  {/* Dashboard with Nested Routes */}
 
         <Route path='/dashboard' element={<Dashboard />}>
           {

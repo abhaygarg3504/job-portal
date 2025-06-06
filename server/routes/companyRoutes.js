@@ -1,9 +1,12 @@
 import express from "express";
 import { 
+    addCompanyComment,
     changeJobApplicationStatus, 
     changeJobVisibility, 
     createBlog, 
     deleteBlog, 
+    deleteCompanyComment, 
+    getBlogComments, 
     getCompanyData, 
     getCompanyJobApplicants, 
     getCompanyPostedJobs, 
@@ -14,11 +17,13 @@ import {
     setInterviewDate, 
     setUpOTP,
     updateBlog,
+    updateCompanyComment,
     verifyOTP
 } from "../controllers/companyController.js"; 
 
 import upload from "../config/multer.js";
 import protectCompany, { authMiddleware, comapnyDataProtection, ProtectCompany, ProtectionCompany } from "../middlewares/auth.js";
+import { getAllBlogs } from "../controllers/userController.js";
 
 const router = express.Router();
 
@@ -34,10 +39,15 @@ router.post("/set-interview-date",ProtectionCompany, setInterviewDate);
 router.post("/blogs", ProtectionCompany, createBlog);
 router.put("/blogs/:id", ProtectionCompany, updateBlog);
 router.delete("/blogs/:id", ProtectionCompany, deleteBlog);
-
+router.get("/getAllBlogs", getAllBlogs)
 // Anyone can see comments
+router.post("/blogs/:blogId/comments", ProtectionCompany, addCompanyComment);
+router.put("/comments/:commentId", ProtectionCompany, updateCompanyComment);
+router.delete("/comments/:commentId", ProtectionCompany, deleteCompanyComment);
+router.get("/blogs/:blogId/comments", getBlogComments);
 router.post("/setUpOtp", setUpOTP)
 router.post("/verifyOtp", verifyOTP)
 router.post("/resetPassword", resetPassword)
+
 
 export default router;

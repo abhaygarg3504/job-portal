@@ -550,3 +550,91 @@ export const getBlogComments = async (req, res) => {
   }
 };
 
+export const addCompanyComment = async (req, res) => {
+  const companyId = req.company?._id?.toString(); // MongoDB ObjectId as string
+  const { blogId } = req.params;
+  const { content, rating } = req.body;
+
+  if (!companyId) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
+
+  try {
+    // Check if blog exists
+    const blog = await prisma.blog.findUnique({ where: { id: blogId } });
+    if (!blog) {
+      return res.status(404).json({ success: false, message: "Blog not found" });
+    }
+
+    const newComment = await prisma.comment.create({
+      data: {
+        content,
+        rating: rating || null,
+        blogId,
+        companyId,
+        userId: null, // explicitly set
+      },
+    });
+
+    res.status(201).json({ success: true, comment: newComment });
+  } catch (error) {
+    console.error("Error adding company comment:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+export const updateCompanyComment = async (req, res) => {
+  const companyId = req.company?._id?.toString();
+  const { commentId } = req.params;
+  const { content, rating } = req.body;
+
+  if (!companyId) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
+
+  try {
+    const comment = await prisma.comment.findUnique({ where: { id: commentId } });
+
+    if (!comment || comment.companyId !== companyId) {
+      return res.status(403).json({ success: false, message: "Forbidden" });
+    }
+
+    const updatedComment = await prisma.comment.update({
+      where: { id: commentId },
+      data: {
+        content,
+        rating: rating ?? comment.rating,
+      },
+    });
+
+    res.json({ success: true, comment: updatedComment });
+  } catch (error) {
+    console.error("Error updating company comment:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+export const deleteCompanyComment = async (req, res) => {
+  const companyId = req.company?._id?.toString();
+  const { commentId } = req.params;
+
+  if (!companyId) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
+
+  try {
+    const comment = await prisma.comment.findUnique({ where: { id: commentId } });
+
+    if (!comment || comment.companyId !== companyId) {
+      return res.status(403).json({ success: false, message: "Forbidden" });
+    }
+
+    await prisma.comment.delete({ where: { id: commentId } });
+
+    res.json({ success: true, message: "Comment deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting company comment:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+

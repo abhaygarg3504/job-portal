@@ -86,6 +86,9 @@ export const AppContextProvider = (props) => {
             toast.error(err.response?.data?.message || err.message);
         }
     };
+
+    const token = getToken();
+
     // function to fetch user Applied aplications data
     const fetchUserApplicationData = async () => {
         try {
@@ -319,6 +322,8 @@ const unsaveJobForUser = async (jobId) => {
   };
 }, [user?.id, companyData?._id, companyToken, isRecruiter, backendURL, jobTitles]);
 
+console.log(userData)
+
 
   useEffect(() => {
       const fetchContacts = async () => {
@@ -355,10 +360,6 @@ const unsaveJobForUser = async (jobId) => {
     }, [isRecruiter, userId, recruiterId, backendURL]);
 console.log(userId)
 console.log(recruiterId)
-
-// console.log(companyToken)
-
-
     const value = {
         setSearchFilter,searchFilter,isSearched,setIsSearched, jobs, setJobs,
          showRecuriterLogin, setShowRecuriterLogin, companyToken, setcompanyToken, companyData,
@@ -367,7 +368,7 @@ console.log(recruiterId)
         isRecruiter, socket, onlineUsers, contacts, filteredContacts,
         setFilteredContacts,setContacts, setOnlineUsers,
         savedJobs, setSavedJobs, fetchSavedJobs, saveJobForUser, unsaveJobForUser,
-        setIsSavedJobsOpen, isSavedJobsOpen
+        setIsSavedJobsOpen, isSavedJobsOpen, token
     }; 
     return (
         <AppContext.Provider value={value}>

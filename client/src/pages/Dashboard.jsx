@@ -51,7 +51,6 @@ function Dashboard() {
                   }
                 }}
               />
-
               <p className='max-sm:hidden'>Welcome, {companyData.name}</p>
 
               <div className='relative group'>
@@ -96,6 +95,14 @@ function Dashboard() {
             }>
               <img src={assets.person_tick_icon} alt='' />
               <p className='max-sm:hidden'>View Applications</p>
+            </NavLink>
+             <NavLink to='/dashboard/blogs' className={({ isActive }) =>
+              `flex items-center p-3 sm:px-6 gap-2 w-full hover:bg-gray-100 ${
+                isActive ? 'bg-blue-100 border-r-4 border-blue-500' : ''
+              }`
+            }>
+              <img src={assets.person_tick_icon} alt='' />
+              <p className='max-sm:hidden'>Blogs</p>
             </NavLink>
           </ul>
         </div>

@@ -12,11 +12,8 @@ const Navbar = () => {
     const navigate = useNavigate();
     const { setShowRecuriterLogin, backendURL, setIsSavedJobsOpen, isSavedJobsOpen } = useContext(AppContext);
     const [isUserStored, setIsUserStored] = useState(false); 
-     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-
-    const isRecruiter = location.pathname.includes("/dashboard");
-
-    
+    const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+    const isRecruiter = location.pathname.includes("/dashboard");   
     const sendUserDataToBackend = async () => {
         if (!user || isUserStored) return;
     
@@ -28,7 +25,7 @@ const Navbar = () => {
             resume: '',
         };
     
-        console.log("🔄 Sending user data to backend...", userData);
+        // console.log("🔄 Sending user data to backend...", userData);
     
         try {
             const response = await fetch(`${backendURL}/api/users/user`, { 
@@ -41,7 +38,7 @@ const Navbar = () => {
     
             const data = await response.json();
             if (response.ok) {
-                console.log("✅ User stored successfully:", data);
+                // console.log("✅ User stored successfully:", data);
                 setIsUserStored(true);
             } else {
                 console.error("❌ Error storing user:", data.message);
@@ -77,7 +74,7 @@ const Navbar = () => {
       </button>
 
       {/* 🔔 Notification Bell */}
-      <a href="/chat-system" target="_blank">
+      <a href="/chat-system" target="">
         <Bell />
       </a>
 
@@ -90,10 +87,19 @@ const Navbar = () => {
       <div className="relative inline-block text-left">
         <a
           href="/subscribe"
-          target="_blank"
+          target=""
           className="bg-blue-600 text-white p-2.5 px-10 rounded-lg"
         >
           Subscription
+        </a>
+      </div>
+       <div className="relative inline-block text-left">
+        <a
+          href="/blogs"
+          target=""
+          className="bg-blue-600 text-white p-2.5 px-10 rounded-lg"
+        >
+          Blogs
         </a>
       </div>
        <button 

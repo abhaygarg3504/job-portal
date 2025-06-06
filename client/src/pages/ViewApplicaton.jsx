@@ -3,7 +3,6 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-
 import { assets } from '../assets/assets';
 import { AppContext } from '../context/AppContext';
 
@@ -11,24 +10,6 @@ const ViewApplication = () => {
   const { backendURL, companyToken } = useContext(AppContext);
   const [applicants, setApplicants] = useState([]);
   const [interviewDates, setInterviewDates] = useState({}); 
-
-  // const fetchCompanyJobApplicants = async () => {
-
-  //   try {
-  //     const { data } = await axios.get(`${backendURL}/api/company/applicants`, {
-  //       headers: { Authorization: `Bearer ${companyToken}` },
-  //     });
-
-  //     if (data.success) {
-  //       setApplicants(data.applicants.reverse());
-  //       toast.success(data.message);
-  //     } else {
-  //       toast.error(data.message);
-  //     }
-  //   } catch (err) {
-  //     toast.error(err.response?.data?.message || err.message);
-  //   }
-  // };
 
   const fetchCompanyJobApplicants = async () => {
   try {
@@ -40,7 +21,6 @@ const ViewApplication = () => {
       const reversedApplicants = data.applicants.reverse();
       setApplicants(reversedApplicants);
 
-      // 🧠 Initialize interview dates from backend
       const dates = {};
       reversedApplicants.forEach(app => {
         if (app.interviewDate) {

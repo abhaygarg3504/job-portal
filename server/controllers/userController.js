@@ -378,6 +378,90 @@ export const getSavedJobs = async (req, res) => {
   }
 };
 
+export const createUserBlog = async (req, res) => {
+  const { title, content, image } = req.body;
+  const userId = req.user?._id?.toString();
+
+  if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+  try {
+    const newBlog = await prisma.blog.create({
+      data: {
+        title,
+        content,
+        image,
+        userId,
+        companyId: null, // to avoid conflict
+      },
+    });
+
+    res.status(201).json({ success: true, blog: newBlog });
+  } catch (error) {
+    console.error("Error creating user blog:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+export const updateUserBlog = async (req, res) => {
+  const { id } = req.params;
+  const { title, content, image } = req.body;
+  const userId = req.user?._id?.toString();
+
+  if (!userId) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
+
+  try {
+    const blog = await prisma.blog.findUnique({ where: { id } });
+
+    if (!blog || blog.userId !== userId) {
+      return res.status(403).json({ success: false, message: "Forbidden: You can only update your own blog" });
+    }
+
+    const updatedBlog = await prisma.blog.update({
+      where: { id },
+      data: {
+        title,
+        content,
+        image,
+      },
+    });
+
+    res.json({ success: true, blog: updatedBlog });
+  } catch (error) {
+    console.error("Error updating user blog:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+export const deleteUserBlog = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user?._id?.toString();
+
+  if (!userId) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
+
+  try {
+    const blog = await prisma.blog.findUnique({ where: { id } });
+
+    if (!blog || blog.userId !== userId) {
+      return res.status(403).json({ success: false, message: "Forbidden: You can only delete your own blog" });
+    }
+
+    // Delete associated comments first (optional for cascade handling)
+    await prisma.comment.deleteMany({ where: { blogId: id } });
+
+    await prisma.blog.delete({ where: { id } });
+
+    res.json({ success: true, message: "Blog deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting user blog:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+
 export const addComment = async (req, res) => {
   const userId = req.user?._id?.toString(); // MongoDB ObjectId as string
   const { blogId } = req.params;
@@ -399,6 +483,7 @@ export const addComment = async (req, res) => {
         content,
         rating: rating || null,
         userId,
+        companyId: null,
         blogId,
       },
     });

@@ -2,7 +2,6 @@
 
 @import "tailwindcss";
 
-
 /* *{
     font-family: Outfit;
 } */
@@ -18,7 +17,7 @@
 }
 
 /* index.css or App.css */
-
+/* 
 .react-calendar {
   border: none !important;
   background-color: transparent;
@@ -43,7 +42,35 @@
 .react-calendar__tile--active {
   background-color: #3b82f6 !important;
   color: white !important;
+} */
+ /* index.css */
+.react-calendar {
+  border: none !important;
+  background-color: transparent;
 }
+
+.react-calendar__tile {
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.react-calendar__tile:enabled:hover,
+.react-calendar__tile:enabled:focus {
+  background-color: #e0f2fe; /* Tailwind's blue-100 */
+  color: #1e40af;            /* Tailwind's blue-900 */
+}
+
+.react-calendar__tile--now {
+  background: #dbeafe !important; /* Tailwind's blue-100 */
+  font-weight: bold;
+}
+
+.react-calendar__tile--active {
+  background-color: #3b82f6 !important; /* Tailwind's blue-500 */
+  color: white !important;
+}
+
+
 .message-bubble {
   position: relative;
   padding: 8px 12px;

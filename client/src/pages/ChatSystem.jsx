@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { assets } from "../assets/assets";
 import { useRef } from "react";
 import { format, isToday, isYesterday } from "date-fns";
+import Navbar from "../components/Navbar";
 
 const ChatSystem = () => {
   const [selectedContact, setSelectedContact] = useState(null);
@@ -342,7 +343,10 @@ useEffect(() => {
 console.log(onlineUsers)
 
   return (
+    <div>
+      <Navbar/>
     <div className="flex h-screen overflow-hidden">
+      
       {/* Sidebar */}
       <div
         className={`w-full md:w-[30%] bg-gray-100 border-r overflow-y-auto p-4 ${
@@ -354,7 +358,6 @@ console.log(onlineUsers)
       maxWidth: isMobile ? "100%" : "50%",
     }}
       >
-        <img className='cursor-pointer' src={assets.logo} alt="Logo" />
         <h2 className="text-xl font-bold mb-4">
           {isRecruiter ? "Applicants" : "Companies"}
         </h2>
@@ -561,6 +564,7 @@ console.log(onlineUsers)
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 };

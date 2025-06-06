@@ -38,9 +38,13 @@ model Comment {
   content   String
   createdAt DateTime @default(now())
 
-  userId    String   // From MongoDB
+  userId    String?  // Optional: either user or company
+  companyId String?  // Optional: either user or company
   blogId    String
   blog      Blog     @relation(fields: [blogId], references: [id])
 
   rating    Int?     // Optional if you want ratings on comments
+
+  @@index([userId])
+  @@index([companyId])
 }

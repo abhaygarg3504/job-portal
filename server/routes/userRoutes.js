@@ -1,5 +1,5 @@
 import express from 'express';
-import { addComment, applyForData, createUserData ,deleteComment,getAllBlogs,getSavedJobs,getUserApplicationsCount,getUserData, getUserJobApplication, paymentRazorPay, saveJob, unsaveJob, updateComment, updateResume, verifyRazorPay } from '../controllers/userController.js';
+import { addComment, applyForData, createUserBlog, createUserData ,deleteComment,deleteUserBlog,getAllBlogs,getSavedJobs,getUserApplicationsCount,getUserData, getUserJobApplication, paymentRazorPay, saveJob, unsaveJob, updateComment, updateResume, updateUserBlog, verifyRazorPay } from '../controllers/userController.js';
 import upload from '../config/multer.js';
 import { getBlogComments } from '../controllers/companyController.js';
 
@@ -20,5 +20,9 @@ router.post("/blogs/:blogId/comments", addComment);
 router.put("/comments/:commentId", updateComment);
 router.delete("/comments/:commentId", deleteComment);
 router.get("/getAllBlogs", getAllBlogs)
+router.post("/blogs", createUserBlog);
+router.put("/blogs/:id",  updateUserBlog);
+router.delete("/blogs/:id", deleteUserBlog);
+
 
 export default router;
