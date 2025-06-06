@@ -17,17 +17,6 @@ const BlogPage = () => {
       {!isRecruiter ? <Navbar/> : <></>}
       {!selectedBlog && (
         <>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-3xl font-semibold">Latest Blogs</h2>
-            {isRecruiter && (
-              <button
-                className="bg-blue-600 text-white px-4 py-2 rounded"
-                onClick={() => setShowForm(true)}
-              >
-                Write Blog
-              </button>
-            )}
-          </div>
           {showForm ? (
             <BlogForm
               isRecruiter={isRecruiter}

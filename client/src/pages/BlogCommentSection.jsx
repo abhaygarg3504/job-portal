@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import {
   Box, Typography, TextField, Button,
-  Rating, List, ListItem, ListItemText, IconButton
+  Rating, List, ListItem, ListItemText, IconButton, Avatar
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
@@ -11,7 +11,7 @@ import { AppContext } from "../context/AppContext";
 const BlogCommentSection = ({ blogId }) => {
   const {
     isRecruiter, backendURL, token, companyToken,
-    userId, companyId 
+    userId, companyId
   } = useContext(AppContext);
 
   const [comments, setComments] = useState([]);
@@ -38,31 +38,21 @@ const BlogCommentSection = ({ blogId }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!authToken) return;
 
     try {
-      if (editing) {
-        const url = isRecruiter
-          ? `${backendURL}/api/company/comments/${editing.id}`
-          : `${backendURL}/api/users/comments/${editing.id}`;
+      const url = editing
+        ? `${backendURL}/api/${isRecruiter ? "company" : "users"}/comments/${editing.id}`
+        : `${backendURL}/api/${isRecruiter ? "company" : "users"}/blogs/${blogId}/comments`;
 
-        await axios.put(url, { content, rating }, {
-          headers: { Authorization: `Bearer ${authToken}` }
-        });
-        setEditing(null);
-      } else {
-        const url = isRecruiter
-          ? `${backendURL}/api/company/blogs/${blogId}/comments`
-          : `${backendURL}/api/users/blogs/${blogId}/comments`;
-
-        await axios.post(url, { content, rating }, {
-          headers: { Authorization: `Bearer ${authToken}` }
-        });
-      }
+      const method = editing ? axios.put : axios.post;
+      await method(url, { content, rating }, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
 
       setContent("");
       setRating(0);
+      setEditing(null);
       fetchComments();
     } catch (err) {
       console.error("Error submitting comment:", err);
@@ -77,9 +67,7 @@ const BlogCommentSection = ({ blogId }) => {
 
   const handleDelete = async (id) => {
     if (!authToken) return;
-    const url = isRecruiter
-      ? `${backendURL}/api/company/comments/${id}`
-      : `${backendURL}/api/users/comments/${id}`;
+    const url = `${backendURL}/api/${isRecruiter ? "company" : "users"}/comments/${id}`;
 
     try {
       await axios.delete(url, {
@@ -131,6 +119,9 @@ const BlogCommentSection = ({ blogId }) => {
             ? c.companyId === companyId
             : c.userId === userId;
 
+          const authorName = c.author?.name || "Unknown";
+          const authorImage = c.author?.image || "https://via.placeholder.com/40";
+
           return (
             <ListItem key={c.id} alignItems="flex-start"
               secondaryAction={
@@ -142,11 +133,14 @@ const BlogCommentSection = ({ blogId }) => {
                 )
               }
             >
+              <Avatar alt={authorName} src={authorImage} sx={{ mr: 2 }} />
               <ListItemText
                 primary={c.content}
                 secondary={
                   <>
-                    Rating: {c.rating || "N/A"} | {new Date(c.createdAt).toLocaleString()}
+                    <Typography component="span" fontWeight="bold">{authorName}</Typography>{" | "}
+                    Rating: {c.rating || "N/A"}{" | "}
+                    {new Date(c.createdAt).toLocaleString()}
                   </>
                 }
               />

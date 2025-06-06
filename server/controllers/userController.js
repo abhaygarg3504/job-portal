@@ -554,13 +554,25 @@ export const getAllBlogs = async (req, res) => {
     });
 
     const companyIds = blogs.map(b => b.companyId).filter(Boolean);
+    const userIds = blogs.map(b => b.userId).filter(Boolean);
+    
     const companies = await Company.find({ _id: { $in: companyIds } });
+    const users = await User.find({ _id: { $in: userIds } });
 
     const enrichedBlogs = blogs.map(blog => {
       const company = companies.find(c => c._id.toString() === blog.companyId);
+      const user = users.find(u => u._id.toString() === blog.userId);
+
+      let author = null;
+      if (company) {
+        author = { type: "company", ...company.toObject() };
+      } else if (user) {
+        author = { type: "user", ...user.toObject() };
+      }
+
       return {
         ...blog,
-        author: company ? { type: "company", ...company.toObject() } : null,
+        author,
       };
     });
 

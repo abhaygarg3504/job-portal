@@ -9,6 +9,7 @@ import {sendEmail}  from "../utils/sendEmails.js"
 import Contact from "../models/Contact.js";
 import mongoose from "mongoose"; 
 import { PrismaClient } from '@prisma/client';
+import User from "../models/User.js";
 const prisma = new PrismaClient();
 
 export const registerCompany= async(req, res) => {
@@ -532,6 +533,22 @@ export const deleteBlog = async (req, res) => {
 };
 
 
+// export const getBlogComments = async (req, res) => {
+//   const { blogId } = req.params;
+
+//   try {
+//     const comments = await prisma.comment.findMany({
+//       where: { blogId },
+//       orderBy: { createdAt: "desc" },
+//     });
+
+//     res.json({ success: true, comments });
+//   } catch (error) {
+//     console.error("Error fetching comments:", error);
+//     res.status(500).json({ success: false, message: "Internal Server Error" });
+//   }
+// };
+
 export const getBlogComments = async (req, res) => {
   const { blogId } = req.params;
 
@@ -541,12 +558,37 @@ export const getBlogComments = async (req, res) => {
       orderBy: { createdAt: "desc" },
     });
 
-    res.json({ success: true, comments });
+    const companyIds = comments.map(c => c.companyId).filter(Boolean);
+    const userIds = comments.map(c => c.userId).filter(Boolean);
+
+    // Fetch company and user documents
+    const companies = await Company.find({ _id: { $in: companyIds } });
+    const users = await User.find({ _id: { $in: userIds } });
+
+    const enrichedComments = comments.map(comment => {
+      const company = companies.find(c => c._id.toString() === comment.companyId);
+      const user = users.find(u => u._id.toString() === comment.userId);
+
+      let author = null;
+      if (company) {
+        author = { type: "company", ...company.toObject() };
+      } else if (user) {
+        author = { type: "user", ...user.toObject() };
+      }
+
+      return {
+        ...comment,
+        author,
+      };
+    });
+
+    res.json({ success: true, comments: enrichedComments });
   } catch (error) {
     console.error("Error fetching comments:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
 
 export const addCompanyComment = async (req, res) => {
   const companyId = req.company?._id?.toString(); // MongoDB ObjectId as string
