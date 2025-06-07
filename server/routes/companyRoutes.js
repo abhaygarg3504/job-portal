@@ -34,13 +34,12 @@ router.post("/post-job", authMiddleware, postJob);
 router.get("/applicants", ProtectionCompany, getCompanyJobApplicants);
 router.get("/list-jobs", comapnyDataProtection,getCompanyPostedJobs);
 router.post("/change-status", ProtectionCompany,changeJobApplicationStatus);
-router.post("/change-visiblity", ProtectionCompany ,changeJobVisibility);
+router.post("/change-visibility", ProtectionCompany ,changeJobVisibility);
 router.post("/set-interview-date",ProtectionCompany, setInterviewDate);
 router.post("/blogs", ProtectionCompany, createBlog);
 router.put("/blogs/:id", ProtectionCompany, updateBlog);
 router.delete("/blogs/:id", ProtectionCompany, deleteBlog);
 router.get("/getAllBlogs", getAllBlogs)
-// Anyone can see comments
 router.post("/blogs/:blogId/comments", ProtectionCompany, addCompanyComment);
 router.put("/comments/:commentId", ProtectionCompany, updateCompanyComment);
 router.delete("/comments/:commentId", ProtectionCompany, deleteCompanyComment);

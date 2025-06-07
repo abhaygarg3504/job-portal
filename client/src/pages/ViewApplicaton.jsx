@@ -89,93 +89,102 @@ const ViewApplication = () => {
     }
   }, [companyToken]);
 
-  return applicants.length === 0 ? (
-    <div className="text-center mt-10">No applicants available</div>
-  ) : (
-    <div className="container mx-auto p-3">
-      <table className="w-full max-w-5xl bg-white border border-gray-200 table-fixed max-sm:text-sm">
-        <thead>
-          <tr className="border-b">
-            <th className="w-1/12 px-2 py-2">#</th>
-            <th className="w-2/12 px-2 py-2">Username</th>
-            <th className="w-2/12 px-2 py-2 max-sm:hidden">Job Title</th>
-            <th className="w-2/12 px-2 py-2 max-sm:hidden">Location</th>
-            <th className="w-2/12 px-2 py-2">Resume</th>
-            <th className="w-3/12 px-2 py-2">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {applicants
-            .filter((item) => item.jobId && item.userId)
-            .map((person, index) => (
-              <tr key={index} className="text-gray-700">
-                <td className="py-2 px-2 border-b text-center">{index + 1}</td>
-                <td className="py-2 px-2 border-b text-center flex items-center justify-center">
+ return applicants.length === 0 ? (
+  <div className="text-center mt-10">No applicants available</div>
+) : (
+  <div className="container mx-auto px-2 sm:px-4 overflow-x-auto">
+    <table className="min-w-full bg-white border border-gray-200 text-sm sm:text-base">
+      <thead>
+        <tr className="border-b bg-gray-50">
+          <th className="px-2 py-3 text-left hidden sm:table-cell">#</th>
+          <th className="px-2 py-3 text-left">Username</th>
+          <th className="px-2 py-3 text-left hidden sm:table-cell">Job Title</th>
+          <th className="px-2 py-3 text-left hidden sm:table-cell">Location</th>
+          <th className="px-2 py-3 text-left">Resume</th>
+          <th className="px-2 py-3 text-left">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {applicants
+          .filter((item) => item.jobId && item.userId)
+          .map((person, index) => (
+            <tr key={index} className="border-b hover:bg-gray-50">
+              <td className="px-2 py-2 text-center hidden sm:table-cell">{index + 1}</td>
+              <td className="px-2 py-2">
+                <div className="flex items-center gap-2 max-w-[180px]">
                   <img
-                    className="w-10 h-10 rounded-full mr-3 max-sm:hidden"
+                    className="w-10 h-10 object-cover rounded-full"
                     src={person.userId?.image || assets.defaultProfile}
                     alt="Profile"
                   />
-                  <span>{person.userId?.name || 'N/A'}</span>
-                </td>
-                <td className="py-2 px-2 border-b max-sm:hidden">{person.jobId?.title || 'N/A'}</td>
-                <td className="py-2 px-2 border-b max-sm:hidden">{person.jobId?.location || 'N/A'}</td>
-                <td className="py-2 px-2 border-b text-center">
-                  {person.userId?.resume ? (
-                    <a
-                      href={person.userId.resume}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-blue-50 text-blue-400 px-3 py-1 rounded inline-flex gap-2 items-center"
-                    >
-                      Resume <img src={assets.resume_download_icon} alt="Download" />
-                    </a>
-                  ) : (
-                    'No Resume'
-                  )}
-                </td>
-                <td className="py-2 px-2 border-b">
-                  {person.status === "Pending" ? (
-                    <div className="relative inline-block text-left group">
-                      <button className="text-gray-500 action-button">...</button>
-                      <div className="absolute hidden group-hover:block z-10 bg-white border rounded shadow-lg w-32">
-                        <button
-                          onClick={() => changeJobApplicationStatus(person._id, "Accepted")}
-                          className="block w-full text-left px-4 py-2 text-blue-500 hover:bg-gray-100"
-                        >
-                          Accept
-                        </button>
-                        <button
-                          onClick={() => changeJobApplicationStatus(person._id, "Rejected")}
-                          className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
-                        >
-                          Reject
-                        </button>
-                      </div>
+                  <span className="truncate">{person.userId?.name || 'N/A'}</span>
+                </div>
+              </td>
+              <td className="px-2 py-2 hidden sm:table-cell truncate">{person.jobId?.title || 'N/A'}</td>
+              <td className="px-2 py-2 hidden sm:table-cell truncate">{person.jobId?.location || 'N/A'}</td>
+              <td className="px-2 py-2 text-center">
+                {person.userId?.resume ? (
+                  <a
+                    href={person.userId.resume}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-2 py-1 bg-blue-50 text-blue-500 rounded hover:underline"
+                  >
+                    Resume
+                    <img
+                      src={assets.resume_download_icon}
+                      alt="Download"
+                      className="w-4 h-4"
+                    />
+                  </a>
+                ) : (
+                  <span className="text-gray-400">No Resume</span>
+                )}
+              </td>
+              <td className="px-2 py-2">
+                {person.status === "Pending" ? (
+                  <div className="relative inline-block group">
+                    <button className="text-gray-500 font-bold">...</button>
+                    <div className="absolute hidden group-hover:block z-10 bg-white border rounded shadow-lg w-32">
+                      <button
+                        onClick={() => changeJobApplicationStatus(person._id, "Accepted")}
+                        className="block w-full text-left px-4 py-2 text-green-600 hover:bg-gray-100"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => changeJobApplicationStatus(person._id, "Rejected")}
+                        className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
+                      >
+                        Reject
+                      </button>
                     </div>
-                  ) : person.status === "Accepted" ? (
-                    <div className="flex flex-col gap-1">
-                      <span className="text-green-600 font-semibold">Accepted</span>
-                      <label className="text-sm text-gray-600">Set Interview Date:</label>
-                      <DatePicker
-                        selected={interviewDates[person._id] || null}
-                        onChange={(date) => handleInterviewDateChange(date, person._id)}
-                        className="border p-1 rounded w-full"
-                        placeholderText="Select a date"
-                        minDate={new Date()}
-                        dateFormat="yyyy-MM-dd"
-                      />
-                    </div>
-                  ) : (
-                    <span className="text-red-500">{person.status}</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-        </tbody>
-      </table>
-    </div>
-  );
+                  </div>
+                ) : person.status === "Accepted" ? (
+                  <div className="flex flex-col gap-1 max-w-[180px]">
+                    <span className="text-green-600 font-semibold">Accepted</span>
+                    <label className="text-xs text-gray-600">Set Interview Date:</label>
+                    <DatePicker
+                      selected={interviewDates[person._id] || null}
+                      onChange={(date) => handleInterviewDateChange(date, person._id)}
+                      className="border p-1 rounded w-full text-sm"
+                      placeholderText="Select a date"
+                      minDate={new Date()}
+                      dateFormat="yyyy-MM-dd"
+                    />
+                  </div>
+                ) : (
+                  <span className="text-red-500">{person.status}</span>
+                )}
+              </td>
+            </tr>
+          ))}
+      </tbody>
+    </table>
+  </div>
+);
+
+
 };
 
 export default ViewApplication;

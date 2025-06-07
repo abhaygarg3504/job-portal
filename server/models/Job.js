@@ -27,13 +27,13 @@ const jobSchema = new mongoose.Schema({
     },
     date: {
         type: Date,
-        default: Date.now  // ✅ Fixed default value
+        default: Date.now  
     },
     visible: {
         type: Boolean,
         default: true 
     },
-    companyId: {  // ✅ Ensure this matches the controller
+    companyId: {  
         type: mongoose.Schema.Types.ObjectId,
         ref: "Company",
         required: true

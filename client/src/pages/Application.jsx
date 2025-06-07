@@ -39,7 +39,6 @@ const Application = () => {
             `${backendURL}/api/users/update-resume/${userId}`, 
             formData,
             { headers: { Authorization: `Bearer ${token}`,
-              // 'Content-Type': 'multipart/form-data',
              } }
         );
 
@@ -187,7 +186,7 @@ const Application = () => {
             </tr>
           </thead>
           <tbody>
-            {userApplications.map((job, index) => (
+            {userApplications.reverse().map((job, index) => (
               <tr key={index}>
                 <td className='py-2 px-2 flex items-center gap-2 border-b'>
                   <img className='w-8 h-8' src={job.companyId.image} alt={job.company} />

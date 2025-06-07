@@ -44,10 +44,7 @@ const ManageJobs = () => {
       if (data.success) {
         toast.success(data.message);
         setJobs((prevJobs) =>
-          prevJobs.map((job) =>
-            job._id === id ? { ...job, visible: newVisibility } : job
-          )
-        );
+          prevJobs.map((job) => job._id === id ? { ...job, visible: newVisibility } : job));
       } else {
         toast.error(data.message);
       }

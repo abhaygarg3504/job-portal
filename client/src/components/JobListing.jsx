@@ -25,20 +25,19 @@ const JobListing = () => {
         )
     }
 
-    useEffect(() => {
-        const matchCategory = job => selectedCategories.length === 0 || selectedCategories.includes(job.category);
-        const matchLocation = job => selectedLocations.length === 0 || selectedLocations.includes(job.location);
-        const matchTitle = job => searchFilter.title === "" || job.title.toLowerCase().includes(searchFilter.title.toLowerCase());
-        const matchSearchLocation = job => searchFilter.location === "" || job.location.toLowerCase().includes(searchFilter.location.toLowerCase());
+   useEffect(() => {
+  const matchCategory = job => selectedCategories.length === 0 || selectedCategories.includes(job.category);
+  const matchLocation = job => selectedLocations.length === 0 || selectedLocations.includes(job.location);
+  const matchTitle = job => searchFilter.title === "" || job.title.toLowerCase().includes(searchFilter.title.toLowerCase());
+  const matchSearchLocation = job => searchFilter.location === "" || job.location.toLowerCase().includes(searchFilter.location.toLowerCase());
+  let newFilteredJobs = jobs.filter(
+    job => matchCategory(job) && matchLocation(job) && matchTitle(job) && matchSearchLocation(job));
+  newFilteredJobs = newFilteredJobs.reverse();
 
-        const newFilteredJobs = jobs.filter(
-            job =>
-            matchCategory(job) && matchLocation(job) && matchTitle(job) && matchSearchLocation(job)
-        ).reverse();
+  setJobsFilter(newFilteredJobs);
+  setcurrentpage(1);
+}, [jobs, selectedCategories, selectedLocations, searchFilter]);
 
-        setJobsFilter(newFilteredJobs);
-        setcurrentpage(1);
-    }, [jobs, selectedCategories, selectedLocations, searchFilter]);
 
     return (
         <div className='container 2xl:px-20 mx-auto flex flex-col lg:flex-row py-8 max-lg:space-y-8'>

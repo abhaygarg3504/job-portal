@@ -10,23 +10,18 @@ import { useRef } from "react";
 export const AppContext = createContext();
 
 export const AppContextProvider = (props) => {
-
     const backendURL = import.meta.env.VITE_BACKEND_URL
-
     const {user} = useUser()
     const {getToken} = useAuth()
-
     const [searchFilter, setSearchFilter] = useState({
         title: '',
         location: ''
     });
-
     const [isSearched, setIsSearched] = useState(false);
     const [jobs, setJobs] = useState([])
     const [showRecuriterLogin, setShowRecuriterLogin] = useState(false)
     const [companyToken, setcompanyToken] = useState(null)
     const [companyData, setcompanyData] = useState(null)
-
     const [userData, setUserData] = useState(null)
     const [userApplications, setUserApplications] = useState([])
     const [totalJobs, settotalJobs] = useState(0)
@@ -34,26 +29,20 @@ export const AppContextProvider = (props) => {
     const [socket, setSocket] = useState(null);
     const [onlineUsers, setOnlineUsers] = useState([]);
     const socketRef = useRef(null);
- 
     const location = useLocation();
     const isRecruiter = location.pathname.includes("/dashboard");
     const [contacts, setContacts] = useState([]);
     const [filteredContacts, setFilteredContacts] = useState([]);
-    const [messages, setMessages] = useState([]);
     const [unseenMessage, setUnseenMessage] = useState({})
-    const [message, setMessage] = useState([])
     const [savedJobs, setSavedJobs] = useState([]);
-    const [selectedContact, setSelectedContact] = useState(null);
-    const [jobTitles, setJobTitles] = useState([]);
+     const [jobTitles, setJobTitles] = useState([]);
     const [isSavedJobsOpen, setIsSavedJobsOpen] = useState(false);
     const [token, setToken] = useState(null);
-
 useEffect(() => {
   const fetchToken = async () => {
     const fetchedToken = await getToken();
     setToken(fetchedToken);
   };
-
   fetchToken();
 }, [getToken]);
 
@@ -72,7 +61,6 @@ useEffect(() => {
             toast.error(err.response?.data?.message || err.message);
         }
     };
-    
     const fetchCompanyData = async () => {
         try {
             if (!companyToken) {
@@ -85,7 +73,6 @@ useEffect(() => {
                     Authorization: `Bearer ${companyToken}`
                 }
             });
-    
             if (data.success) {
                 setcompanyData(data.company);
                 console.log(data);
@@ -97,9 +84,6 @@ useEffect(() => {
             toast.error(err.response?.data?.message || err.message);
         }
     };
-
-
-    // function to fetch user Applied aplications data
     const fetchUserApplicationData = async () => {
         try {
             const token = await getToken();
@@ -120,9 +104,9 @@ useEffect(() => {
                 console.log(data.applications)
                const titles = data.applications
     .map(app => app.jobId?.title)
-    .filter((title, index, self) => title && self.indexOf(title) === index); // unique
+    .filter((title, index, self) => title && self.indexOf(title) === index); 
 
-         setJobTitles(titles);  // set as array
+         setJobTitles(titles);  
 
             } else {
                 toast.error(data.message);
@@ -133,8 +117,6 @@ useEffect(() => {
             console.error(`Error in fetchUserApplicationData: ${err.message}`);
         }
     };
-    
-    // function to use fetch user Data
     const fetchUserData = async () => {
         try {
             const token = await getToken();
@@ -161,7 +143,6 @@ useEffect(() => {
             toast.error(err.message);
         }
     };
-    
     const fetchTotalJobs = async () => {
     try {
       const res = await axios.get(`${backendURL}/api/jobs/count/total`);
@@ -171,7 +152,7 @@ useEffect(() => {
     }
     };
   
-  const fetchApplicationCount = async () => {
+    const fetchApplicationCount = async () => {
   try {
     const userId = user?.id;
     if (!userId) {
@@ -214,9 +195,8 @@ useEffect(() => {
   } catch (err) {
     console.error("Error fetching saved jobs:", err.message);
   }
-};
+    };
 
-// Save a job
 const saveJobForUser = async (jobId) => {
   try {
     const token = await getToken();
@@ -235,10 +215,6 @@ const saveJobForUser = async (jobId) => {
     console.error("Error saving job:", err.message);
   }
 };
-
-// console.log(getToken)
-
-// Unsave a job
 const unsaveJobForUser = async (jobId) => {
   try {
     const token = await getToken();

@@ -185,58 +185,9 @@ export const getCompanyPostedJobs = async (req, res) => {
     }
   };
   
-// export const changeJobApplicationStatus = async (req, res) => {
-//   try {
-//     const { id, status } = req.body;
-
-//     const updatedApplication = await JobApplication.findByIdAndUpdate(
-//       id,
-//       { status },
-//       { new: true }
-//     )
-//       .populate("userId", "email name")
-//       .populate("companyId", "name")
-//       .populate("jobId", "title");
-
-//     if (!updatedApplication) {
-//       return res.status(404).json({ success: false, message: "Application not found" });
-//     }
-
-//     const userEmail = updatedApplication.userId.email;
-//     const userName = updatedApplication.userId.name;
-//     const companyName = updatedApplication.companyId.name;
-//     const jobTitle = updatedApplication.jobId.title;
-//     const currentStatus = updatedApplication.status;
-
-//     await sendEmail(
-//       userEmail,
-//       `Application Status Update: ${jobTitle} at ${companyName}`,
-//       `<p>Dear ${userName},</p>
-//        <p>Your application for <strong>${jobTitle}</strong> at <strong>${companyName}</strong> has been updated to:
-//        <strong>${currentStatus}</strong>.</p>
-//        <p>Thank you for applying!</p>`
-//     );
-
-//     res.json({
-//       success: true,
-//       message: "Status Updated",
-//       application: updatedApplication,
-//       userEmail,
-//       userName,
-//       companyName,
-//       jobTitle,
-//       currentStatus
-//     });
-//   } catch (err) {
-//     console.error(`Error in changeJobApplicationStatus: ${err}`);
-//     res.status(500).json({ success: false, message: "Server error" });
-//   }
-// };
-
 export const changeJobApplicationStatus = async (req, res) => {
   try {
     const { id, status } = req.body;
-
     const updatedApplication = await JobApplication.findByIdAndUpdate(
       id,
       { status },
@@ -303,32 +254,28 @@ export const changeJobApplicationStatus = async (req, res) => {
   }
 };
 export const changeJobVisibility = async (req, res) => {
-    try {
-        const { id } = req.body;
-        const companyId = req.company._id;
+  try {
+    const { id, visible } = req.body;
+    const companyId = req.company._id;
 
-        // ✅ Check if job exists
-        const job = await Job.findById(id);
-        if (!job) {
-            return res.status(404).json({ success: false, message: "Job not found" });
-        }
-
-        // ✅ Ensure only the owner company can change visibility
-        if (companyId.toString() !== job.companyId.toString()) {
-            return res.status(403).json({ success: false, message: "Not authorized to update this job" });
-        }
-
-        // ✅ Toggle visibility
-        job.visible = !job.visible; 
-        await job.save();
-
-        res.json({ success: true, job });
-    } catch (err) {
-        console.error(`Error in visibility toggle: ${err.message}`);
-        res.status(500).json({ success: false, message: "Internal Server Error" });
+    const job = await Job.findById(id);
+    if (!job) {
+      return res.status(404).json({ success: false, message: "Job not found" });
     }
-};
 
+    if (companyId.toString() !== job.companyId.toString()) {
+      return res.status(403).json({ success: false, message: "Not authorized to update this job" });
+    }
+
+    job.visible = visible; // set from request
+    await job.save();
+
+    res.json({ success: true, job, message: `Job visibility changed to ${visible}` });
+  } catch (err) {
+    console.error(`Error in visibility toggle: ${err.message}`);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
 
 export const setUpOTP = async (req, res) => {
   try {
@@ -486,7 +433,6 @@ export const createBlog = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
-// Company updates a blog (PostgreSQL)
 export const updateBlog = async (req, res) => {
   const { id } = req.params;
   const { title, content, image } = req.body;
@@ -532,23 +478,6 @@ export const deleteBlog = async (req, res) => {
   }
 };
 
-
-// export const getBlogComments = async (req, res) => {
-//   const { blogId } = req.params;
-
-//   try {
-//     const comments = await prisma.comment.findMany({
-//       where: { blogId },
-//       orderBy: { createdAt: "desc" },
-//     });
-
-//     res.json({ success: true, comments });
-//   } catch (error) {
-//     console.error("Error fetching comments:", error);
-//     res.status(500).json({ success: false, message: "Internal Server Error" });
-//   }
-// };
-
 export const getBlogComments = async (req, res) => {
   const { blogId } = req.params;
 
@@ -589,9 +518,8 @@ export const getBlogComments = async (req, res) => {
   }
 };
 
-
 export const addCompanyComment = async (req, res) => {
-  const companyId = req.company?._id?.toString(); // MongoDB ObjectId as string
+  const companyId = req.company?._id?.toString(); 
   const { blogId } = req.params;
   const { content, rating } = req.body;
 
@@ -612,7 +540,7 @@ export const addCompanyComment = async (req, res) => {
         rating: rating || null,
         blogId,
         companyId,
-        userId: null, // explicitly set
+        userId: null, 
       },
     });
 
@@ -677,4 +605,3 @@ export const deleteCompanyComment = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
-
