@@ -460,9 +460,9 @@ console.log(onlineUsers)
                     ? selectedContact.userId?.name || "Unknown User"
                     : selectedContact.recruiterId?.name || "Unknown Company"}
                 </div>
-                <div className="text-sm text-gray-500">
+                <marquee className="text-sm text-gray-500">
                   {selectedContact?.jobTitle || "No job title"}
-                </div>
+                </marquee>
               </div>
             </div>
 

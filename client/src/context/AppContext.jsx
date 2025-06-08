@@ -346,6 +346,7 @@ console.log(userData)
     }, [isRecruiter, userId, recruiterId, backendURL]);
 console.log(userId)
 console.log(recruiterId)
+console.log(companyData)
     const value = {
         setSearchFilter,searchFilter,isSearched,setIsSearched, jobs, setJobs,
          showRecuriterLogin, setShowRecuriterLogin, companyToken, setcompanyToken, companyData,

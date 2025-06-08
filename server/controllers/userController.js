@@ -4,12 +4,13 @@ import transactionModel from "../models/transactionModel.js";
 import User from "../models/User.js";
 import Razorpay from "razorpay"
 import { PrismaClient } from "@prisma/client";
-import Company from "../models/Comapny.js";
 const prisma = new PrismaClient();
+import Company from "../models/Comapny.js";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs/promises";
 import path from "path";
 import connectCloudinary from "../config/cloudinary.js";
+import { logUserActivity } from "../middlewares/activityTrack.js";
 export const getUserId = (req) => {
     const userId = req.query.id;
     if (!userId) throw new Error("User ID not found in request query");
@@ -57,9 +58,9 @@ export const createUserData = async (req, res) => {
         return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };
+
 export const updateResume = async (req, res) => {
     try {
-        // ✅ Get user ID from request params (NOT body)
         const userId = req.params.id;
 
         if (!userId) {
@@ -77,28 +78,27 @@ export const updateResume = async (req, res) => {
             return res.status(400).json({ success: false, message: "No file uploaded" });
         }
 
-        // ✅ Upload resume to Cloudinary
         const resumeUpload = await cloudinary.uploader.upload(req.file.path, {
-            resource_type: "auto", // Ensures PDFs are handled correctly
+            resource_type: "auto", 
             type: 'upload',
             access_mode: 'public'
         });
 
-        // ✅ Update user resume in MongoDB
         userData.resume = resumeUpload.secure_url;
         await userData.save();
+        await logUserActivity(userId, "update_resume");
+
 
         return res.json({ 
             success: true, 
             message: "Resume Updated Successfully", 
-            user: userData  // ✅ Return updated user data
+            user: userData  
         });
     } catch (err) {
         console.error(`Error in updateResume: ${err.message}`);
         return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };
-
 
 // export const updateResume = async (req, res) => {
 //     try {
@@ -295,6 +295,7 @@ export const applyForData = async (req, res) => {
             jobId,
             date: new Date()
         });
+        await logUserActivity(userId, "apply_job");
 
         return res.json({ success: true, message: "Applied Successfully" });
     } catch (err) {
@@ -505,6 +506,7 @@ export const saveJob = async (req, res) => {
 export const unsaveJob = async (req, res) => {
   try {
     const userId = req.params.id;
+    
     const { jobId } = req.body;
 
     if (!jobId) {
@@ -542,8 +544,8 @@ export const getSavedJobs = async (req, res) => {
 };
 
 export const createUserBlog = async (req, res) => {
-  const userId = req.auth.userId; // Clerk sets this
-
+  const userId = req.auth.userId; 
+  
   if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
 
   try {
@@ -556,6 +558,8 @@ export const createUserBlog = async (req, res) => {
         companyId: null,
       },
     });
+    await logUserActivity(userId, "create_blog");
+
 
     res.status(201).json({ success: true, blog: newBlog });
   } catch (err) {
@@ -589,6 +593,8 @@ export const updateUserBlog = async (req, res) => {
       },
     });
 
+    await logUserActivity(userId, "update_blog");
+
     res.json({ success: true, blog: updatedBlog });
   } catch (error) {
     console.error("Error updating user blog:", error);
@@ -615,6 +621,7 @@ export const deleteUserBlog = async (req, res) => {
     await prisma.comment.deleteMany({ where: { blogId: id } });
 
     await prisma.blog.delete({ where: { id } });
+    await logUserActivity(userId, "delete_blog");
 
     res.json({ success: true, message: "Blog deleted successfully" });
   } catch (error) {

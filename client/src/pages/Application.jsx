@@ -6,14 +6,20 @@ import Footer from '../components/Footer';
 import { AppContext } from '../context/AppContext';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import axios from 'axios';
+import CalendarHeatmap from 'react-calendar-heatmap';
+import 'react-calendar-heatmap/dist/styles.css';
+import { Tooltip } from 'react-tooltip';
+
 import { toast } from 'react-toastify';
 
 const Application = () => {
   const { user } = useUser();
   const { getToken } = useAuth();
-
   const [isEdit, setIsEdit] = useState(false);
   const [resume, setResume] = useState(null);
+  const [activityData, setActivityData] = useState([]);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
 
   const { backendURL, totalJobs, applyJobs, userData, userApplications, 
     fetchUserData,fetchUserApplicationData } = useContext(AppContext);
@@ -56,10 +62,32 @@ const Application = () => {
     setIsEdit(false);
     setResume(null);
   };
+  
+  const fetchActivityGraph = async () => {
+  try {
+    const { data } = await axios.get(`${backendURL}/api/users/activity-graph/${user?.id}`);
+    if (data.success) {
+      // Convert backend object to array format required by CalendarHeatmap
+      const transformed = Object.entries(data.graph).map(([date, count]) => ({
+        date,
+        count
+      }));
+      setActivityData(transformed);
+    }
+  } catch (err) {
+    console.error("Error fetching activity graph:", err);
+  }
+};
+
+const availableYears = [...new Set(userApplications.map(job =>
+  new Date(job.date).getFullYear()
+))].sort((a, b) => b - a); // descending
+
 
   useEffect(()=>{
    if(user){
-    fetchUserApplicationData()
+    fetchUserApplicationData(),
+    fetchActivityGraph()
    }
   },[user])
 
@@ -68,7 +96,7 @@ const Application = () => {
       <Navbar />
       <div className='container px-4 min-h-[65vh] 2xl:px-20 mx-auto my-10'>
          <div>
-<div className="bg-white rounded-lg shadow-md p-6 mb-10 flex items-center gap-6">
+    <div className="bg-white rounded-lg shadow-md p-6 mb-10 flex items-center gap-6">
  
   <div className="relative">
     <img
@@ -172,18 +200,47 @@ const Application = () => {
             </div>
           )}
         </div>
-        {userData?.resume && (
-  <div className="w-full h-[500px] mt-6">
-    <iframe 
-      src={userData.resume} 
-      width="100%" 
-      height="100%" 
-      frameBorder="0"
-      title="User Resume"
-    ></iframe>
-  </div>
-)}
+     <div className='flex justify-between mr-10'>
+        <h2 className="text-xl font-semibold my-6">Application Activity</h2>
 
+<div className="mb-4">
+  <label htmlFor="year-select" className="font-medium mr-2">Select Year:</label>
+  <select
+    id="year-select"
+    className="border px-3 py-1 rounded"
+    value={selectedYear}
+    onChange={(e) => setSelectedYear(Number(e.target.value))}
+  >
+    {availableYears.map((year) => (
+      <option key={year} value={year}>{year}</option>
+    ))}
+  </select>
+</div>
+     </div>
+
+<div className="bg-white p-4 rounded-lg shadow-md overflow-x-auto">
+  <CalendarHeatmap
+    startDate={new Date(`${selectedYear}-01-01`)}
+    endDate={new Date(`${selectedYear}-12-31`)}
+    values={userApplications
+      .filter(job => new Date(job.date).getFullYear() === selectedYear)
+      .map(job => ({
+        date: moment(job.date).format("YYYY-MM-DD"),
+        count: 1,
+      }))
+    }
+    classForValue={value => {
+      if (!value) return 'color-empty';
+      return `color-github-${Math.min(value.count, 4)}`;
+    }}
+    tooltipDataAttrs={value => ({
+      'data-tooltip-id': 'heatmap-tooltip',
+      'data-tooltip-html': value.date ? `${value.date}<br/>${value.count} application(s)` : 'No data',
+    })}
+    showWeekdayLabels={true}
+  />
+  <Tooltip id="heatmap-tooltip" />
+</div>
 
         <h2 className='text-xl font-semibold mb-4'>Jobs Applied</h2>
 

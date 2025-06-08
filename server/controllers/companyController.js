@@ -10,6 +10,7 @@ import Contact from "../models/Contact.js";
 import mongoose from "mongoose"; 
 import { PrismaClient } from '@prisma/client';
 import User from "../models/User.js";
+import { logCompanyActivity } from "../middlewares/activityTrack.js";
 const prisma = new PrismaClient();
 
 export const registerCompany= async(req, res) => {
@@ -119,7 +120,6 @@ export const postJob = async (req, res) => {
     const { title, description, location, salary, level, category } = req.body;
     const companyId = req.company._id ? req.company._id.toString() : null;
 
-
     if (!companyId) {
         return res.status(400).json({ success: false, message: "Company ID is missing" });
     }
@@ -134,10 +134,8 @@ export const postJob = async (req, res) => {
             level,
             category
         });
-
-        // console.log("New Job Data Before Saving:", newJob); // 🛠 Debugging Step
-
         await newJob.save();
+        await logCompanyActivity(companyId, "post_job");
         res.json({ success: true, newJob });
     } catch (err) {
         console.log(`Error in postJob: ${err}`);
@@ -206,6 +204,7 @@ export const changeJobApplicationStatus = async (req, res) => {
     const companyName = updatedApplication.companyId.name;
     const jobTitle = updatedApplication.jobId.title;
     const currentStatus = updatedApplication.status;
+    const companyId = updatedApplication.companyId
 
     // ✅ Create contact if status is accepted
     if (currentStatus.toLowerCase() === "accepted") {
@@ -225,6 +224,7 @@ export const changeJobApplicationStatus = async (req, res) => {
         });
 
         await newContact.save();
+
       }
     }
 
@@ -237,6 +237,8 @@ export const changeJobApplicationStatus = async (req, res) => {
        <strong>${currentStatus}</strong>.</p>
        <p>Thank you for applying!</p>`
     );
+    await logCompanyActivity(companyId, "change_jobapplication_status");
+
 
     res.json({
       success: true,
@@ -253,6 +255,7 @@ export const changeJobApplicationStatus = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 export const changeJobVisibility = async (req, res) => {
   try {
     const { id, visible } = req.body;
@@ -269,6 +272,7 @@ export const changeJobVisibility = async (req, res) => {
 
     job.visible = visible; // set from request
     await job.save();
+    await logCompanyActivity(companyId, "change_visiblity");
 
     res.json({ success: true, job, message: `Job visibility changed to ${visible}` });
   } catch (err) {
@@ -352,6 +356,7 @@ export const setInterviewDate = async (req, res) => {
     if (!application) {
       return res.status(404).json({ success: false, message: "Application not found" });
     }
+     await logCompanyActivity(companyId, "set_interview_date");
 
     res.json({
       success: true,
@@ -427,6 +432,7 @@ export const createBlog = async (req, res) => {
       },
     });
 
+     await logCompanyActivity(companyId, "create_blog");
     res.status(201).json({ success: true, blog: newBlog });
   } catch (error) {
     console.error("Error creating blog:", error);
@@ -449,6 +455,7 @@ export const updateBlog = async (req, res) => {
       where: { id },
       data: { title, content, image },
     });
+     await logCompanyActivity(companyId, "update_blog");
 
     res.json({ success: true, blog: updatedBlog });
   } catch (error) {
@@ -470,6 +477,7 @@ export const deleteBlog = async (req, res) => {
 
     await prisma.comment.deleteMany({ where: { blogId: id } });
     await prisma.blog.delete({ where: { id } });
+    await logCompanyActivity(companyId, "delete_blog");
 
     res.json({ success: true, message: "Blog deleted successfully" });
   } catch (error) {

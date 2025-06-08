@@ -16,6 +16,7 @@ import Subscribe from './pages/Subscribe'
 import ChatSystem from './pages/ChatSystem' 
 import SavedJobsPanel from './pages/SavedJobsPanel'
 import BlogPage from './pages/BlogPage'
+import CompanyProfile from './pages/CompanyProfile'
 
 const App = () => {
   const { showRecuriterLogin, companyToken, isSavedJobsOpen, setIsSavedJobsOpen } = useContext(AppContext)
@@ -41,6 +42,7 @@ const App = () => {
           <Route path='manage-jobs' element={<ManageJobs />} />
           <Route path='view-application' element={<ViewApplication />} />
             <Route path="blogs" element={<BlogPage />} />
+            <Route path='profile' element={<CompanyProfile/>}/>
               {/* <Route path="/chat-system" element={<ChatSystem />} /> */}
            </> : null
           }

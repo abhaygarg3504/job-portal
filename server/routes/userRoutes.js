@@ -4,6 +4,7 @@ import {upload} from '../config/multeri.js';
 import { getBlogComments } from '../controllers/companyController.js';
 
 import { requireAuth } from '@clerk/express';
+import { getUserActivityGraph } from '../controllers/activityController.js';
 
 const router = express.Router();
 router.post('/user', createUserData);
@@ -25,5 +26,7 @@ router.post("/blogs", requireAuth(), createUserBlog);
 router.put("/blogs/:id", requireAuth(), updateUserBlog);
 router.delete("/blogs/:id", requireAuth(), deleteUserBlog);
 router.get("/getAllBlogs", getAllBlogs)
+router.get("/activity-graph/:id", getUserActivityGraph);
+
 
 export default router;

@@ -48,3 +48,16 @@ model Comment {
   @@index([userId])
   @@index([companyId])
 }
+
+model Activity {
+  id         String   @id @default(cuid())
+  type       String
+  date       DateTime @default(now())
+  userId     String? // MongoDB user ID stored as string
+  companyId  String? // MongoDB company ID stored as string
+
+  @@index([userId])
+  @@index([companyId])
+  @@index([date])
+}
+

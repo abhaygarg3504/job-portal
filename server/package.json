@@ -20,6 +20,7 @@
     "@sendgrid/mail": "^8.1.5",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
+    "chart.js": "^4.4.9",
     "cloudinary": "^2.6.1",
     "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
@@ -38,6 +39,7 @@
     "prisma": "^6.9.0",
     "raw-body": "^3.0.0",
     "razorpay": "^2.9.6",
+    "react-chartjs-2": "^5.3.0",
     "socket.io": "^4.8.1",
     "svix": "^1.65.0"
   }
