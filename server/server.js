@@ -22,7 +22,7 @@ const corsConfig = {
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],
 };
-
+app.use("/uploads", express.static("uploads"));
 app.use(cors(corsConfig));
 app.options("*", cors(corsConfig)); // fixed empty string to "*"
 app.use(express.json());

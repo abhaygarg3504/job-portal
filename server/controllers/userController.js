@@ -2,12 +2,14 @@ import Job from "../models/Job.js";
 import JobApplication from "../models/JobApplication.js";
 import transactionModel from "../models/transactionModel.js";
 import User from "../models/User.js";
-import { v2 as cloudinary } from "cloudinary";
 import Razorpay from "razorpay"
 import { PrismaClient } from "@prisma/client";
 import Company from "../models/Comapny.js";
 const prisma = new PrismaClient();
-
+import { v2 as cloudinary } from "cloudinary";
+import fs from "fs/promises";
+import path from "path";
+import connectCloudinary from "../config/cloudinary.js";
 export const getUserId = (req) => {
     const userId = req.query.id;
     if (!userId) throw new Error("User ID not found in request query");
@@ -55,15 +57,17 @@ export const createUserData = async (req, res) => {
         return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };
-
 export const updateResume = async (req, res) => {
     try {
+        // ✅ Get user ID from request params (NOT body)
         const userId = req.params.id;
 
         if (!userId) {
             console.log("Can't get user ID");
             return res.status(400).json({ success: false, message: "User ID is required" });
         }
+
+        // ✅ Find the user in MongoDB
         let userData = await User.findById(userId);
         if (!userData) {
             return res.status(404).json({ success: false, message: "User Not Found" });
@@ -74,26 +78,20 @@ export const updateResume = async (req, res) => {
         }
 
         // ✅ Upload resume to Cloudinary
-        // const resourceType = req.file.mimetype === "application/pdf" ? "raw" : "image";
+        const resumeUpload = await cloudinary.uploader.upload(req.file.path, {
+            resource_type: "auto", // Ensures PDFs are handled correctly
+            type: 'upload',
+            access_mode: 'public'
+        });
 
-const resumeUpload = await cloudinary.uploader.upload(req.file.path, {
-  resource_type: "auto",
-  folder: "resumes",
-});
-        let finalUrl = resumeUpload.secure_url;
-
-// If the uploaded file is a PDF, fix the URL path
-if (req.file.mimetype === "application/pdf") {
-  finalUrl = finalUrl.replace("/image/upload/", "/raw/upload/");
-}
-
-userData.resume = finalUrl;
-await userData.save();
+        // ✅ Update user resume in MongoDB
+        userData.resume = resumeUpload.secure_url;
+        await userData.save();
 
         return res.json({ 
             success: true, 
             message: "Resume Updated Successfully", 
-            user: userData  
+            user: userData  // ✅ Return updated user data
         });
     } catch (err) {
         console.error(`Error in updateResume: ${err.message}`);
@@ -101,6 +99,171 @@ await userData.save();
     }
 };
 
+
+// export const updateResume = async (req, res) => {
+//     try {
+//         const userId = req.params.id;
+
+//         if (!userId) {
+//             console.log("Can't get user ID");
+//             return res.status(400).json({ success: false, message: "User ID is required" });
+//         }
+//         let userData = await User.findById(userId);
+//         if (!userData) {
+//             return res.status(404).json({ success: false, message: "User Not Found" });
+//         }
+
+//         if (!req.file) {
+//             return res.status(400).json({ success: false, message: "No file uploaded" });
+//         }
+
+//         // ✅ Upload resume to Cloudinary
+//         // const resourceType = req.file.mimetype === "application/pdf" ? "raw" : "image";
+
+// const resumeUpload = await connectCloudinary.uploader.upload(req.file.path, {
+//   resource_type: "raw",
+//   folder: "resumes",
+// });
+//         let finalUrl = resumeUpload.secure_url;
+
+// // If the uploaded file is a PDF, fix the URL path
+// if (req.file.mimetype === "application/pdf") {
+//   finalUrl = finalUrl.replace("/image/upload/", "/raw/upload/");
+// }
+
+// userData.resume = finalUrl;
+// await userData.save();
+
+//         return res.json({ 
+//             success: true, 
+//             message: "Resume Updated Successfully", 
+//             user: userData  
+//         });
+//     } catch (err) {
+//         console.error(`Error in updateResume: ${err.message}`);
+//         return res.status(500).json({ success: false, message: "Internal Server Error" });
+//     }
+// };
+
+// export const updateResume = async (req, res) => {
+//   try {
+//     const userId = req.params.id;
+
+//     if (!userId) {
+//       return res.status(400).json({ success: false, message: "User ID is required" });
+//     }
+
+//     const userData = await User.findById(userId);
+//     if (!userData) {
+//       return res.status(404).json({ success: false, message: "User Not Found" });
+//     }
+
+//     if (!req.file) {
+//       return res.status(400).json({ success: false, message: "No file uploaded" });
+//     }
+
+//     const fileExt = path.extname(req.file.originalname); // like .pdf
+//     const publicId = `resume_${userId}${fileExt}`;
+
+//     const resumeUpload = await connectCloudinary.uploader.upload(req.file.path, {
+//       resource_type: "auto",
+//       folder: "resumes",
+//       public_id: publicId,
+//       use_filename: true,
+//       unique_filename: false,
+//     });
+
+//     const viewUrl = resumeUpload.secure_url.replace("/upload/", "/upload/fl_inline/");
+
+//     userData.resume = viewUrl;
+//     await userData.save();
+
+//     return res.json({
+//       success: true,
+//       message: "Resume Updated Successfully",
+//       user: userData,
+//     });
+//   } catch (err) {
+//     console.error(`Error in updateResume: ${err.message}`);
+//     return res.status(500).json({ success: false, message: "Internal Server Error" });
+//   }
+// };
+
+// export const updateResume = async (req, res) => {
+//   try {
+//     const userId = req.params.id;
+
+//     if (!req.file) {
+//       return res.status(400).json({ success: false, message: "No file uploaded" });
+//     }
+
+//     const uploadFromBuffer = (fileBuffer) => {
+//       return new Promise((resolve, reject) => {
+//         const stream = cloudinary.uploader.upload_stream(
+//           {
+//             resource_type: "raw", // ensure it's raw
+//             folder: "resumes",
+//             format: "pdf",
+//           },
+//           (error, result) => {
+//             if (error) return reject(error);
+//             resolve(result);
+//           }
+//         );
+//         stream.end(fileBuffer);
+//       });
+//     };
+
+//     const result = await uploadFromBuffer(req.file.buffer);
+
+//     // Use the secure_url returned by Cloudinary (it is correct even for raw PDFs)
+//     const resumeUrl = result.secure_url;
+
+//     await User.findByIdAndUpdate(userId, { resume: resumeUrl });
+
+//     return res.json({ success: true, message: "Resume updated", resume: resumeUrl });
+//   } catch (err) {
+//     console.error("Resume upload error:", err);
+//     return res.status(500).json({ success: false, message: "Internal Server Error" });
+//   }
+// };
+
+// export const updateResume = async (req, res) => {
+//   try {
+//     const userId = req.params.id;
+
+//     if (!req.file || !req.file.path) {
+//       return res.status(400).json({ success: false, message: "No file uploaded" });
+//     }
+
+//     const filePath = req.file.path;
+
+//     // Upload to Cloudinary as raw
+//     const result = await cloudinary.uploader.upload(filePath, {
+//       resource_type: "raw",
+//       folder: "resumes",
+//     });
+
+//     // Delete local file after upload
+//     await fs.unlink(filePath);
+
+//     // Make the URL inline-viewable
+//     const resumeUrl = result.secure_url;
+
+//     // Save resume URL in the DB
+//     await User.findByIdAndUpdate(userId, { resume: resumeUrl });
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Resume uploaded successfully",
+//       resume: resumeUrl,
+//     });
+
+//   } catch (err) {
+//     console.error("Resume upload error:", err);
+//     return res.status(500).json({ success: false, message: "Internal Server Error" });
+//   }
+// };
 
 export const applyForData = async (req, res) => {
     try {

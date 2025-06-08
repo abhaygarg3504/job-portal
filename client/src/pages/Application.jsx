@@ -162,6 +162,7 @@ const Application = () => {
               >
                 Resume
               </a>
+              
               <button
                 onClick={() => setIsEdit(true)}
                 className='text-gray-500 border border-gray-300 rounded-lg px-4 py-2'
@@ -171,6 +172,18 @@ const Application = () => {
             </div>
           )}
         </div>
+        {userData?.resume && (
+  <div className="w-full h-[500px] mt-6">
+    <iframe 
+      src={userData.resume} 
+      width="100%" 
+      height="100%" 
+      frameBorder="0"
+      title="User Resume"
+    ></iframe>
+  </div>
+)}
+
 
         <h2 className='text-xl font-semibold mb-4'>Jobs Applied</h2>
 
