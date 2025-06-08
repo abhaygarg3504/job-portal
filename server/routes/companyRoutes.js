@@ -25,6 +25,7 @@ import upload from "../config/multer.js";
 import protectCompany, { authMiddleware, comapnyDataProtection, ProtectCompany, ProtectionCompany } from "../middlewares/auth.js";
 import { getAllBlogs } from "../controllers/userController.js";
 import { getCompanyActivityGraph } from "../controllers/activityController.js";
+import { getCompanyAnalytics } from "../controllers/companyAnalyticsController.js";
 
 const router = express.Router();
 
@@ -49,5 +50,6 @@ router.post("/setUpOtp", setUpOTP)
 router.post("/verifyOtp", verifyOTP)
 router.post("/resetPassword", resetPassword)
 router.get("/activity-graph/:id", getCompanyActivityGraph);
+router.get('/analytics/:companyId', getCompanyAnalytics);
 
 export default router;

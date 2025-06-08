@@ -272,7 +272,7 @@ export const changeJobVisibility = async (req, res) => {
 
     job.visible = visible; // set from request
     await job.save();
-    await logCompanyActivity(companyId, "change_visiblity");
+    await logCompanyActivity(id, "change_visiblity");
 
     res.json({ success: true, job, message: `Job visibility changed to ${visible}` });
   } catch (err) {
@@ -356,7 +356,7 @@ export const setInterviewDate = async (req, res) => {
     if (!application) {
       return res.status(404).json({ success: false, message: "Application not found" });
     }
-     await logCompanyActivity(companyId, "set_interview_date");
+     await logCompanyActivity(id, "set_interview_date");
 
     res.json({
       success: true,
@@ -368,7 +368,6 @@ export const setInterviewDate = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
 
 export const getInterviewDetails = async (req, res) => {
   try {

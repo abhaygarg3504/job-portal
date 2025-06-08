@@ -4,6 +4,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import { Bell, CalendarDays } from 'lucide-react';
 import RecriuterCalender from './RecruiterCalender';
+import Footer from '../components/Footer';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -77,7 +78,7 @@ function Dashboard() {
                 isActive ? 'bg-blue-100 border-r-4 border-blue-500' : ''
               }`
             }>
-              <img src={assets.home_icon} alt='' />
+              <img src={assets.profile_icon} className='h-8 w-8' alt='' />
               <p className='max-sm:hidden'>Profile</p>
             </NavLink>
             <NavLink to='/dashboard/add-job' className={({ isActive }) =>
@@ -128,6 +129,7 @@ function Dashboard() {
           recruiterId={companyData._id} 
         />
       )}
+      <Footer/>
     </div>
   );
 }

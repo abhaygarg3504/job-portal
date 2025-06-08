@@ -5,6 +5,7 @@ import { getBlogComments } from '../controllers/companyController.js';
 
 import { requireAuth } from '@clerk/express';
 import { getUserActivityGraph } from '../controllers/activityController.js';
+import { userAnalytics } from '../controllers/userAnalyticsController.js';
 
 const router = express.Router();
 router.post('/user', createUserData);
@@ -27,6 +28,6 @@ router.put("/blogs/:id", requireAuth(), updateUserBlog);
 router.delete("/blogs/:id", requireAuth(), deleteUserBlog);
 router.get("/getAllBlogs", getAllBlogs)
 router.get("/activity-graph/:id", getUserActivityGraph);
-
+router.get("/analytics/:userId", userAnalytics);
 
 export default router;

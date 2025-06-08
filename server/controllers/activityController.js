@@ -25,7 +25,7 @@ export const getActivityGraphByRole = async (id, role) => {
 export const getUserActivityGraph = async (req, res) => {
   try {
     const userId = req.params.id;
-    const graph = await getActivityGraphByRole(userId, "users");
+    const graph = await getActivityGraphByRole(userId, "user");
     res.json({ success: true, graph });
   } catch (err) {
     console.error("User Activity Error:", err.message);

@@ -6,6 +6,7 @@ import "react-calendar-heatmap/dist/styles.css";
 import moment from "moment";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
+import CompanyAnalytics from "./CompanyAnalytics";
 
 const CompanyProfile = () => {
   const { companyData, backendURL } = useContext(AppContext);
@@ -65,7 +66,7 @@ const CompanyProfile = () => {
         </div>
 
         <div className="flex justify-between mr-10">
-          <h2 className="text-xl font-semibold my-6">Application Activity</h2>
+          <h2 className="text-xl font-semibold my-6">Company Activity</h2>
           <div className="mb-4">
             <label htmlFor="year-select" className="font-medium mr-2">
               Select Year:
@@ -117,6 +118,7 @@ const CompanyProfile = () => {
 </div>
 
       </div>
+      <CompanyAnalytics/>
     </div>
   );
 };

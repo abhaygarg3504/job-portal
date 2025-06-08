@@ -11,6 +11,7 @@ import 'react-calendar-heatmap/dist/styles.css';
 import { Tooltip } from 'react-tooltip';
 
 import { toast } from 'react-toastify';
+import UserAnalytics from './UserAnalytics';
 
 const Application = () => {
   const { user } = useUser();
@@ -19,7 +20,6 @@ const Application = () => {
   const [resume, setResume] = useState(null);
   const [activityData, setActivityData] = useState([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-
 
   const { backendURL, totalJobs, applyJobs, userData, userApplications, 
     fetchUserData,fetchUserApplicationData } = useContext(AppContext);
@@ -284,6 +284,8 @@ const availableYears = [...new Set(userApplications.map(job =>
             ))}
           </tbody>
         </table>
+
+        <UserAnalytics/>
       </div>
       <Footer />
     </>

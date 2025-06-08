@@ -34,6 +34,7 @@ import samsung_logo from './samsung_logo.png'
 import adobe_logo from './adobe_logo.png'
 import amazon_logo from './amazon_logo.png'
 import blog_icon from "./blog_icon.svg"
+import profile_icon from "./profile-user-account-svgrepo-com.svg"
 
 export const assets = {
     logo,
@@ -71,7 +72,8 @@ export const assets = {
     samsung_logo,
     adobe_logo,
     amazon_logo,
-    blog_icon
+    blog_icon, 
+    profile_icon
 }
 
 export const JobCategories = [
