@@ -523,14 +523,19 @@ export const getBlogComments = async (req, res) => {
       if (company) {
         author = { type: "company", ...company.toObject() };
       } else if (user) {
-        author = { type: "user", ...user.toObject() };
+        author = { type: "user", ...user.toObject() }; 
       }
+
 
       return {
         ...comment,
         author,
       };
     });
+
+    if (res.locals.cacheKey) {
+    await redis.set(res.locals.cacheKey, JSON.stringify(enrichedComments), 'EX', 300);
+  }
 
     res.json({ success: true, comments: enrichedComments });
   } catch (error) {
@@ -595,7 +600,7 @@ export const updateCompanyComment = async (req, res) => {
         rating: rating ?? comment.rating,
       },
     });
-
+    await redis.del(`comments:blog:${comment.blogId}`);
     res.json({ success: true, comment: updatedComment });
   } catch (error) {
     console.error("Error updating company comment:", error);
@@ -619,7 +624,7 @@ export const deleteCompanyComment = async (req, res) => {
     }
 
     await prisma.comment.delete({ where: { id: commentId } });
-
+    await redis.del(`comments:blog:${comment.blogId}`);
     res.json({ success: true, message: "Comment deleted successfully" });
   } catch (error) {
     console.error("Error deleting company comment:", error);

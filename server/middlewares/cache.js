@@ -86,4 +86,20 @@ export const cacheBlogById = async (req, res, next) => {
   next();
 };
 
+// server/middlewares/cache.js
 
+export const cacheCommentsByBlogId = async (req, res, next) => {
+  const blogId = req.params.blogId || req.params.id; // adjust as per your route
+  const cacheKey = `comments:blog:${blogId}`;
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return res.json({ success: true, comments: JSON.parse(cached), cached: true });
+    }
+    res.locals.cacheKey = cacheKey;
+    next();
+  } catch (err) {
+    console.error('Redis error (comments cache):', err);
+    next();
+  }
+};

@@ -696,6 +696,10 @@ export const updateComment = async (req, res) => {
       },
     });
 
+    // Invalidate comments cache for the blog
+    await redis.del(`comments:blog:${comment.blogId}`);
+
+
     res.json({ success: true, comment: updatedComment });
   } catch (error) {
     console.error("Error updating comment:", error);
@@ -719,6 +723,8 @@ export const deleteComment = async (req, res) => {
     }
 
     await prisma.comment.delete({ where: { id: commentId } });
+    // Invalidate comments cache for the blog
+    await redis.del(`comments:blog:${comment.blogId}`);
 
     res.json({ success: true, message: "Comment deleted successfully" });
   } catch (error) {

@@ -26,27 +26,28 @@ import protectCompany, { authMiddleware, comapnyDataProtection, ProtectCompany, 
 import { getAllBlogs } from "../controllers/userController.js";
 import { getCompanyActivityGraph } from "../controllers/activityController.js";
 import { getCompanyAnalytics } from "../controllers/companyAnalyticsController.js";
-import { cacheBlogById, cacheBlogs, cacheCompanyProfile } from "../middlewares/cache.js";
+import { cacheBlogById, cacheBlogs, cacheCommentsByBlogId, cacheCompanyProfile } from "../middlewares/cache.js";
+import { blogLimiter, loginLimiter } from "../middlewares/rateLimiter.js";
 
 const router = express.Router();
 
 router.post("/register", upload.single('image'), registerCompany);
-router.post("/login", cacheCompanyProfile, loginCompany);
+router.post("/login", loginLimiter, cacheCompanyProfile, loginCompany);
 router.get("/company", cacheCompanyProfile, comapnyDataProtection, getCompanyData);
 router.post("/post-job", authMiddleware, postJob);
 router.get("/applicants", ProtectionCompany, getCompanyJobApplicants);
 router.get("/list-jobs", comapnyDataProtection,getCompanyPostedJobs);
 router.post("/change-status", ProtectionCompany,changeJobApplicationStatus);
 router.post("/change-visibility", ProtectionCompany ,changeJobVisibility);
-router.post("/blogs", ProtectionCompany, createBlog)
+router.post("/blogs", blogLimiter, ProtectionCompany, createBlog)
 router.post("/set-interview-date",ProtectionCompany, setInterviewDate);
 router.put("/blogs/:id", cacheBlogById, ProtectionCompany, updateBlog);
 router.delete("/blogs/:id", cacheBlogById, ProtectionCompany, deleteBlog);
 router.get("/getAllBlogs", cacheBlogs, getAllBlogs)
 router.post("/blogs/:blogId/comments", ProtectionCompany, addCompanyComment);
-router.put("/comments/:commentId", ProtectionCompany, updateCompanyComment);
-router.delete("/comments/:commentId", ProtectionCompany, deleteCompanyComment);
-router.get("/blogs/:blogId/comments", getBlogComments);
+router.put("/comments/:commentId", cacheCommentsByBlogId, ProtectionCompany, updateCompanyComment);
+router.delete("/comments/:commentId", cacheCommentsByBlogId, ProtectionCompany, deleteCompanyComment);
+router.get("/blogs/:blogId/comments", cacheCommentsByBlogId, getBlogComments);
 router.post("/setUpOtp", setUpOTP)
 router.post("/verifyOtp", verifyOTP)
 router.post("/resetPassword", resetPassword)
