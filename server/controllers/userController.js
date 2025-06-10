@@ -11,6 +11,7 @@ import fs from "fs/promises";
 import path from "path";
 import connectCloudinary from "../config/cloudinary.js";
 import { logUserActivity } from "../middlewares/activityTrack.js";
+import redis from "../config/redis.js";
 export const getUserId = (req) => {
     const userId = req.query.id;
     if (!userId) throw new Error("User ID not found in request query");
@@ -29,6 +30,9 @@ export const getUserData = async (req, res) => {
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" });
         }
+        if (res.locals.cacheKey) {
+      await redis.set(res.locals.cacheKey, JSON.stringify(user), 'EX', 300);
+     }
 
         return res.json({ success: true, user });
     } catch (err) {
@@ -594,7 +598,11 @@ export const updateUserBlog = async (req, res) => {
     });
 
     await logUserActivity(userId, "update_blog");
-
+    // After updating the blog in DB:
+if (res.locals.cacheKey) {
+  await redis.set(res.locals.cacheKey, JSON.stringify(updatedBlog), 'EX', 300); // update blog:<id>
+}
+await redis.del('blogs:all');
     res.json({ success: true, blog: updatedBlog });
   } catch (error) {
     console.error("Error updating user blog:", error);
@@ -622,7 +630,9 @@ export const deleteUserBlog = async (req, res) => {
 
     await prisma.blog.delete({ where: { id } });
     await logUserActivity(userId, "delete_blog");
-
+    await redis.del('blogs:all');      
+    await redis.del(`blog:${id}`); 
+    
     res.json({ success: true, message: "Blog deleted successfully" });
   } catch (error) {
     console.error("Error deleting user blog:", error);
@@ -728,17 +738,22 @@ export const getAllBlogs = async (req, res) => {
     
     const companies = await Company.find({ _id: { $in: companyIds } });
     const users = await User.find({ _id: { $in: userIds } });
+    if (res.locals.cacheKey) {
+  await redis.set(res.locals.cacheKey, JSON.stringify(blogs), 'EX', 300);
+}
 
     const enrichedBlogs = blogs.map(blog => {
       const company = companies.find(c => c._id.toString() === blog.companyId);
       const user = users.find(u => u._id.toString() === blog.userId);
 
       let author = null;
+      
       if (company) {
         author = { type: "company", ...company.toObject() };
       } else if (user) {
         author = { type: "user", ...user.toObject() };
       }
+      
 
       return {
         ...blog,

@@ -6,10 +6,11 @@ import { getBlogComments } from '../controllers/companyController.js';
 import { requireAuth } from '@clerk/express';
 import { getUserActivityGraph } from '../controllers/activityController.js';
 import { userAnalytics } from '../controllers/userAnalyticsController.js';
+import { cacheBlogById, cacheBlogs, cacheUserProfile } from '../middlewares/cache.js';
 
 const router = express.Router();
 router.post('/user', createUserData);
-router.get('/user/:id', getUserData);
+router.get('/user/:id', cacheUserProfile, getUserData);
 router.post('/apply/:id', applyForData);
 router.get('/applications/:id', getUserJobApplication);
 router.post('/update-resume/:id', upload.single('resume'), updateResume);
@@ -24,9 +25,9 @@ router.post("/blogs/:blogId/comments", requireAuth(), addComment);
 router.put("/comments/:commentId", requireAuth(),updateComment);
 router.delete("/comments/:commentId", requireAuth(), deleteComment);
 router.post("/blogs", requireAuth(), createUserBlog);
-router.put("/blogs/:id", requireAuth(), updateUserBlog);
-router.delete("/blogs/:id", requireAuth(), deleteUserBlog);
-router.get("/getAllBlogs", getAllBlogs)
+router.put("/blogs/:id", cacheBlogById, requireAuth(), updateUserBlog);
+router.delete("/blogs/:id", cacheBlogById, requireAuth(), deleteUserBlog);
+router.get("/getAllBlogs", cacheBlogs, getAllBlogs)
 router.get("/activity-graph/:id", getUserActivityGraph);
 router.get("/analytics/:userId", userAnalytics);
 

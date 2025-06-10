@@ -27,8 +27,10 @@
     "dotenv": "^16.5.0",
     "ejs": "^3.1.10",
     "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
     "fs": "^0.0.1-security",
     "fs-extra": "^11.3.0",
+    "ioredis": "^5.6.1",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.14.3",
@@ -37,9 +39,11 @@
     "nodemailer": "^7.0.3",
     "nodemon": "^3.1.10",
     "prisma": "^6.9.0",
+    "rate-limit-redis": "^4.2.1",
     "raw-body": "^3.0.0",
     "razorpay": "^2.9.6",
     "react-chartjs-2": "^5.3.0",
+    "redis": "^5.5.6",
     "socket.io": "^4.8.1",
     "svix": "^1.65.0"
   }

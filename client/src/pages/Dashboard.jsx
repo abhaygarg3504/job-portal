@@ -78,7 +78,7 @@ function Dashboard() {
                 isActive ? 'bg-blue-100 border-r-4 border-blue-500' : ''
               }`
             }>
-              <img src={assets.profile_icon} className='h-8 w-8' alt='' />
+              <img src={assets.profile_icon} className='h-6 w-6' alt='' />
               <p className='max-sm:hidden'>Profile</p>
             </NavLink>
             <NavLink to='/dashboard/add-job' className={({ isActive }) =>
@@ -110,7 +110,7 @@ function Dashboard() {
                 isActive ? 'bg-blue-100 border-r-4 border-blue-500' : ''
               }`
             }>
-              <img src={assets.blog_icon} className='w-7 h-7' alt='' />
+              <img src={assets.blog_icon} className='w-6 h-6' alt='' />
               <p className='max-sm:hidden'>Blogs</p>
             </NavLink>
           </ul>

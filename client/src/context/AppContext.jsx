@@ -358,7 +358,7 @@ console.log(companyData)
         savedJobs, setSavedJobs, fetchSavedJobs, saveJobForUser, unsaveJobForUser,
         setIsSavedJobsOpen, isSavedJobsOpen, token, 
         userId: userData?._id,       
-  companyId: companyData?._id , userData
+  companyId: companyData?._id 
     }; 
     return (
         <AppContext.Provider value={value}>

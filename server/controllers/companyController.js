@@ -11,6 +11,7 @@ import mongoose from "mongoose";
 import { PrismaClient } from '@prisma/client';
 import User from "../models/User.js";
 import { logCompanyActivity } from "../middlewares/activityTrack.js";
+import redis from "../config/redis.js";
 const prisma = new PrismaClient();
 
 export const registerCompany= async(req, res) => {
@@ -68,6 +69,9 @@ export const loginCompany = async (req, res) => {
 
         const isMatch = await bcrypt.compare(password, company.password);
         if (isMatch) {
+          if (res.locals.cacheKey) {
+  await redis.set(res.locals.cacheKey, JSON.stringify(company), 'EX', 300);
+}
             res.json({
                 success: true,
                 message: "Login Successfully",
@@ -103,6 +107,10 @@ export const getCompanyData = async (req, res) => {
 
         if (!company) {
             return res.status(404).json({ success: false, message: "Company not found" });
+        }
+
+       if (res.locals.cacheKey) {
+  await redis.set(res.locals.cacheKey, JSON.stringify(company), 'EX', 300);
         }
 
         res.json({ success: true, company });
@@ -455,6 +463,11 @@ export const updateBlog = async (req, res) => {
       data: { title, content, image },
     });
      await logCompanyActivity(companyId, "update_blog");
+     // After updating the blog in DB:
+if (res.locals.cacheKey) {
+  await redis.set(res.locals.cacheKey, JSON.stringify(updatedBlog), 'EX', 300); // update blog:<id>
+}
+await redis.del('blogs:all'); // invalidate blogs list cache
 
     res.json({ success: true, blog: updatedBlog });
   } catch (error) {
@@ -477,7 +490,8 @@ export const deleteBlog = async (req, res) => {
     await prisma.comment.deleteMany({ where: { blogId: id } });
     await prisma.blog.delete({ where: { id } });
     await logCompanyActivity(companyId, "delete_blog");
-
+    await redis.del('blogs:all');
+    await redis.del(`blog:${id}`);    
     res.json({ success: true, message: "Blog deleted successfully" });
   } catch (error) {
     console.error("Error deleting blog:", error);
