@@ -35,7 +35,6 @@ const corsConfig = {
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],
 };
-app.use("/uploads", express.static("uploads"));
 app.use(cors(corsConfig));
 app.options("*", cors(corsConfig)); 
 app.use(express.json());
@@ -68,7 +67,6 @@ export const io = new Server(server, {
   }
 });
 
-// Structure: { "User_abc123": { "socketId1": ["jobTitle1", "jobTitle2"], "socketId2": [...] }, "Company_def456": {...} }
 export const userSocketMap = {};
 
 const getOnlineUsers = () => {

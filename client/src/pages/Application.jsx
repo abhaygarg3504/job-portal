@@ -22,7 +22,7 @@ const Application = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   const { backendURL, totalJobs, applyJobs, userData, userApplications, 
-    fetchUserData,fetchUserApplicationData } = useContext(AppContext);
+    fetchUserData,fetchUserApplicationData, userId } = useContext(AppContext);
 
   const updateResume = async () => {
     try {
@@ -34,7 +34,7 @@ const Application = () => {
         const formData = new FormData();
         formData.append('resume', resume);
         const token = await getToken();
-        const userId = user?.id; 
+        // const userId = user?.id; 
 
         if (!userId) {
             toast.error("User ID not found");

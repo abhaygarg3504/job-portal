@@ -1,6 +1,6 @@
 import express from 'express';
 import { addComment, applyForData, createUserBlog, createUserData ,deleteComment,deleteUserBlog,getAllBlogs,getSavedJobs,getUserApplicationsCount,getUserData, getUserJobApplication, paymentRazorPay, saveJob, unsaveJob, updateComment, updateResume, updateUserBlog, verifyRazorPay } from '../controllers/userController.js';
-import {upload} from '../config/multeri.js';
+import upload from '../config/multer.js';
 import { getBlogComments } from '../controllers/companyController.js';
 
 import { requireAuth } from '@clerk/express';

@@ -40,5 +40,8 @@ const jobSchema = new mongoose.Schema({
     }
 }); 
 
+// ✅ Add index for companyId
+jobSchema.index({ companyId: 1 });
+
 const Job = mongoose.model("Job", jobSchema);
 export default Job;

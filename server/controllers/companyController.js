@@ -12,6 +12,7 @@ import { PrismaClient } from '@prisma/client';
 import User from "../models/User.js";
 import { logCompanyActivity } from "../middlewares/activityTrack.js";
 import redis from "../config/redis.js";
+import { jobQueue } from "../queues/jobQueue.js";
 const prisma = new PrismaClient();
 
 export const registerCompany= async(req, res) => {
@@ -143,6 +144,9 @@ export const postJob = async (req, res) => {
             category
         });
         await newJob.save();
+        await jobQueue.add('newJobPosted', {
+          jobId: newJob._id
+        })
         await logCompanyActivity(companyId, "post_job");
         res.json({ success: true, newJob });
     } catch (err) {

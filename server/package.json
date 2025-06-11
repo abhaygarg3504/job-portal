@@ -7,7 +7,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "server": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+     "worker": "node queues/jobWorker.js"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +21,7 @@
     "@sendgrid/mail": "^8.1.5",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
+    "bullmq": "^5.53.2",
     "chart.js": "^4.4.9",
     "cloudinary": "^2.6.1",
     "cors": "^2.8.5",

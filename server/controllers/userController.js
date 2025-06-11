@@ -63,46 +63,51 @@ export const createUserData = async (req, res) => {
     }
 };
 
-export const updateResume = async (req, res) => {
-    try {
-        const userId = req.params.id;
+// export const updateResume = async (req, res) => {
+//     try {
+//         const userId = req.params.id;
 
-        if (!userId) {
-            console.log("Can't get user ID");
-            return res.status(400).json({ success: false, message: "User ID is required" });
-        }
+//         if (!userId) {
+//             console.log("Can't get user ID");
+//             return res.status(400).json({ success: false, message: "User ID is required" });
+//         }
 
-        // ✅ Find the user in MongoDB
-        let userData = await User.findById(userId);
-        if (!userData) {
-            return res.status(404).json({ success: false, message: "User Not Found" });
-        }
+//         // ✅ Find the user in MongoDB
+//         let userData = await User.findById(userId);
+//         if (!userData) {
+//             return res.status(404).json({ success: false, message: "User Not Found" });
+//         }
 
-        if (!req.file) {
-            return res.status(400).json({ success: false, message: "No file uploaded" });
-        }
+//         if (!req.file) {
+//             return res.status(400).json({ success: false, message: "No file uploaded" });
+//         }
 
-        const resumeUpload = await cloudinary.uploader.upload(req.file.path, {
-            resource_type: "auto", 
-            type: 'upload',
-            access_mode: 'public'
-        });
-
-        userData.resume = resumeUpload.secure_url;
-        await userData.save();
-        await logUserActivity(userId, "update_resume");
-
-
-        return res.json({ 
-            success: true, 
-            message: "Resume Updated Successfully", 
-            user: userData  
-        });
-    } catch (err) {
-        console.error(`Error in updateResume: ${err.message}`);
-        return res.status(500).json({ success: false, message: "Internal Server Error" });
-    }
-};
+//       // Use buffer instead of file.path
+// const resumeUpload = await cloudinary.uploader.upload_stream(
+//   {
+//     resource_type: "raw",
+//     folder: "resume",
+//     access_mode: "public",
+//   },
+//   async (error, result) => {
+//     if (error) {
+//       return res.status(500).json({ success: false, message: "Cloudinary upload failed" });
+//     }
+//     userData.resume = result.secure_url;
+//     await userData.save();
+//     await logUserActivity(userId, "update_resume");
+//     return res.json({
+//       success: true,
+//       message: "Resume Updated Successfully",
+//       user: userData,
+//     });
+//   }
+// ).end(req.file.buffer);
+//     } catch (err) {
+//         console.error(`Error in updateResume: ${err.message}`);
+//         return res.status(500).json({ success: false, message: "Internal Server Error" });
+//     }
+// };
 
 // export const updateResume = async (req, res) => {
 //     try {
@@ -268,6 +273,48 @@ export const updateResume = async (req, res) => {
 //     return res.status(500).json({ success: false, message: "Internal Server Error" });
 //   }
 // };
+
+export const updateResume = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "User ID is required" });
+    }
+    let userData = await User.findById(userId);
+    if (!userData) {
+      return res.status(404).json({ success: false, message: "User Not Found" });
+    }
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
+
+    // Upload PDF buffer to Cloudinary as raw
+    const stream = await cloudinary.uploader.upload_stream(
+      {
+        resource_type: "raw",
+        folder: "resume",
+        access_mode: "public",
+      },
+      async (error, result) => {
+        if (error) {
+          return res.status(500).json({ success: false, message: "Cloudinary upload failed" });
+        }
+        userData.resume = result.secure_url;
+        await userData.save();
+        await logUserActivity(userId, "update_resume");
+        return res.json({
+          success: true,
+          message: "Resume Updated Successfully",
+          user: userData,
+        });
+      }
+    );
+    stream.end(req.file.buffer);
+  } catch (err) {
+    console.error(`Error in updateResume: ${err.message}`);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
 
 export const applyForData = async (req, res) => {
     try {

@@ -36,7 +36,7 @@ router.post("/login", loginLimiter, cacheCompanyProfile, loginCompany);
 router.get("/company", cacheCompanyProfile, comapnyDataProtection, getCompanyData);
 router.post("/post-job", authMiddleware, postJob);
 router.get("/applicants", ProtectionCompany, getCompanyJobApplicants);
-router.get("/list-jobs", comapnyDataProtection,getCompanyPostedJobs);
+router.get("/list-jobs", ProtectionCompany,getCompanyPostedJobs);
 router.post("/change-status", ProtectionCompany,changeJobApplicationStatus);
 router.post("/change-visibility", ProtectionCompany ,changeJobVisibility);
 router.post("/blogs", blogLimiter, ProtectionCompany, createBlog)
