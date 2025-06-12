@@ -11,7 +11,9 @@ import fs from "fs/promises";
 import path from "path";
 import connectCloudinary from "../config/cloudinary.js";
 import { logUserActivity } from "../middlewares/activityTrack.js";
+import streamifier from "streamifier"
 import redis from "../config/redis.js";
+import axios from "axios"
 export const getUserId = (req) => {
     const userId = req.query.id;
     if (!userId) throw new Error("User ID not found in request query");
@@ -274,45 +276,221 @@ export const createUserData = async (req, res) => {
 //   }
 // };
 
+// export const updateResume = async (req, res) => {
+//   try {
+//     const userId = req.params.id;
+//     if (!userId) {
+//       return res.status(400).json({ success: false, message: "User ID is required" });
+//     }
+
+//     const userData = await User.findById(userId);
+//     if (!userData) {
+//       return res.status(404).json({ success: false, message: "User Not Found" });
+//     }
+
+//     if (!req.file) {
+//       return res.status(400).json({ success: false, message: "No file uploaded" });
+//     }
+
+//     // Wrap in a promise to wait for upload_stream
+//     const uploadFromBuffer = (fileBuffer) => {
+//       return new Promise((resolve, reject) => {
+//         const stream = cloudinary.uploader.upload_stream(
+//           {
+//             resource_type: "raw",
+//             folder: "resume",
+//             access_mode: "public",
+//           },
+//           (error, result) => {
+//             if (error) return reject(error);
+//             resolve(result);
+//           }
+//         );
+//         streamifier.createReadStream(fileBuffer).pipe(stream);
+//       });
+//     };
+
+//     const result = await uploadFromBuffer(req.file.buffer);
+//     userData.resume = result.secure_url;
+//     await userData.save();
+//     await logUserActivity(userId, "update_resume");
+
+//     return res.json({
+//       success: true,
+//       message: "Resume Updated Successfully",
+//       user: userData,
+//     });
+//   } catch (err) {
+//     console.error(`Error in updateResume: ${err.message}`);
+//     return res.status(500).json({ success: false, message: "Internal Server Error" });
+//   }
+// };
+
+// export const updateResume = async (req, res) => {
+//     try {
+//         const userId = req.params.id;
+
+//         if (!userId) {
+//             console.log("Can't get user ID");
+//             return res.status(400).json({ success: false, message: "User ID is required" });
+//         }
+//         let userData = await User.findById(userId);
+//         if (!userData) {
+//             return res.status(404).json({ success: false, message: "User Not Found" });
+//         }
+
+//         if (!req.file) {
+//             return res.status(400).json({ success: false, message: "No file uploaded" });
+//         }
+
+//         // ✅ Upload resume to Cloudinary
+//         // const resourceType = req.file.mimetype === "application/pdf" ? "raw" : "image";
+
+// const resumeUpload = await cloudinary.uploader.upload(req.file.path, {
+//   resource_type: "auto",
+//   folder: "resume",
+// });
+//         let finalUrl = resumeUpload.secure_url;
+
+// // If the uploaded file is a PDF, fix the URL path
+// if (req.file.mimetype === "application/pdf") {
+//   finalUrl = finalUrl.replace("/image/upload/", "/raw/upload/");
+// }
+
+// userData.resume = finalUrl;
+// await userData.save();
+
+//         return res.json({ 
+//             success: true, 
+//             message: "Resume Updated Successfully", 
+//             user: userData  
+//         });
+//     } catch (err) {
+//         console.error(`Error in updateResume: ${err.message}`);
+//         return res.status(500).json({ success: false, message: "Internal Server Error" });
+//     }
+// };
+
+// export const updateResume = async (req, res) => {
+//   try {
+//     const userId = req.params.id;
+//     if (!userId) {
+//       return res.status(400).json({ success: false, message: "User ID is required" });
+//     }
+//     const user = await User.findById(userId);
+//     if (!user) {
+//       return res.status(404).json({ success: false, message: "User not found" });
+//     }
+//     if (!req.file) {
+//       return res.status(400).json({ success: false, message: "No file uploaded" });
+//     }
+
+//     // upload_stream gives you direct control over the Buffer
+//     const uploadResult = await new Promise((resolve, reject) => {
+//       const stream = cloudinary.uploader.upload_stream(
+//         {
+//           resource_type: "raw",
+//           folder:        "resume",
+//           access_mode:   "public",
+//         },
+//         (error, result) => (error ? reject(error) : resolve(result))
+//       );
+//       stream.end(req.file.buffer);
+//     });
+
+//     user.resume = uploadResult.secure_url;
+//     await user.save();
+//     await logUserActivity(userId, "update_resume");
+//     console.log("CLOUDINARY SECURE URL:", uploadResult.secure_url);
+
+
+//     res.json({
+//       success: true,
+//       message: "Resume updated successfully",
+//       user,
+//     });
+//   } catch (err) {
+//     console.error("Error in updateResume:", err);
+//     res.status(500).json({ success: false, message: "Internal Server Error" });
+//   }
+// };
+
 export const updateResume = async (req, res) => {
   try {
     const userId = req.params.id;
     if (!userId) {
       return res.status(400).json({ success: false, message: "User ID is required" });
     }
-    let userData = await User.findById(userId);
-    if (!userData) {
-      return res.status(404).json({ success: false, message: "User Not Found" });
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
     }
     if (!req.file) {
       return res.status(400).json({ success: false, message: "No file uploaded" });
     }
 
-    // Upload PDF buffer to Cloudinary as raw
-    const stream = await cloudinary.uploader.upload_stream(
-      {
-        resource_type: "raw",
-        folder: "resume",
-        access_mode: "public",
-      },
-      async (error, result) => {
-        if (error) {
-          return res.status(500).json({ success: false, message: "Cloudinary upload failed" });
-        }
-        userData.resume = result.secure_url;
-        await userData.save();
-        await logUserActivity(userId, "update_resume");
-        return res.json({
-          success: true,
-          message: "Resume Updated Successfully",
-          user: userData,
-        });
-      }
-    );
-    stream.end(req.file.buffer);
+    const uploadResult = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: "raw",
+          folder: "resume",
+          access_mode: "public",
+          public_id: `resume_${userId}_${Date.now()}`
+        },
+        (error, result) => (error ? reject(error) : resolve(result))
+      );
+      stream.end(req.file.buffer);
+    });
+
+    if (!uploadResult || !uploadResult.secure_url) {
+      return res.status(500).json({ success: false, message: "Cloudinary upload failed" });
+    }
+
+    user.resume = uploadResult.secure_url;
+    await user.save();
+    await logUserActivity(userId, "update_resume");
+
+    res.json({
+      success: true,
+      message: "Resume updated successfully",
+      user,
+    });
   } catch (err) {
-    console.error(`Error in updateResume: ${err.message}`);
-    return res.status(500).json({ success: false, message: "Internal Server Error" });
+    console.error("Error in updateResume:", err);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+export const getResumeBlob = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findById(userId);
+    if (!user || !user.resume) {
+      return res.status(404).json({ success: false, message: "No resume found" });
+    }
+
+    // Try to fetch the PDF from Cloudinary
+    let cloudRes;
+    try {
+      cloudRes = await axios.get(user.resume, { responseType: "arraybuffer" });
+    } catch (err) {
+      // If Cloudinary returns 404, clean up the user's resume field
+      if (err.response && err.response.status === 404) {
+        user.resume = undefined;
+        await user.save();
+        return res.status(404).json({ success: false, message: "Resume not found on Cloudinary. Please re-upload." });
+      }
+      throw err;
+    }
+
+    res.set({
+      "Content-Type": "application/pdf",
+      "Content-Disposition": 'inline; filename="resume.pdf"',
+      "Cache-Control": "no-store"
+    });
+    res.send(cloudRes.data);
+  } catch (err) {
+    console.error("Error streaming resume:", err);
+    res.status(500).json({ success: false, message: "Could not stream resume" });
   }
 };
 

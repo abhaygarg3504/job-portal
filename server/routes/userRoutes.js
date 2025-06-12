@@ -1,6 +1,6 @@
 import express from 'express';
-import { addComment, applyForData, createUserBlog, createUserData ,deleteComment,deleteUserBlog,getAllBlogs,getSavedJobs,getUserApplicationsCount,getUserData, getUserJobApplication, paymentRazorPay, saveJob, unsaveJob, updateComment, updateResume, updateUserBlog, verifyRazorPay } from '../controllers/userController.js';
-import upload from '../config/multer.js';
+import { addComment, applyForData, createUserBlog, createUserData ,deleteComment,deleteUserBlog,getAllBlogs,getResumeBlob,getSavedJobs,getUserApplicationsCount,getUserData, getUserJobApplication, paymentRazorPay, saveJob, unsaveJob, updateComment, updateResume, updateUserBlog, verifyRazorPay } from '../controllers/userController.js';
+import upload from '../config/multeri.js';
 import { getBlogComments } from '../controllers/companyController.js';
 
 import { requireAuth } from '@clerk/express';
@@ -14,9 +14,10 @@ router.post('/user', createUserData);
 router.get('/user/:id', cacheUserProfile, getUserData);
 router.post('/apply/:id', applyJobLimiter,  applyForData);
 router.get('/applications/:id', getUserJobApplication);
-router.post('/update-resume/:id', upload.single('resume'), updateResume);
+router.post('/update-resume/:id', upload.single("resume"), updateResume);
 router.get('/applications/count/:id', getUserApplicationsCount);
 router.post('/pay-razor', paymentRazorPay);
+router.get('/resume-blob/:id', getResumeBlob);
 router.post('/verify-razor', verifyRazorPay)
 router.post("/save-job/:id", saveJob);
 router.post("/unsave-job/:id", unsaveJob);

@@ -24,50 +24,155 @@ const Application = () => {
   const { backendURL, totalJobs, applyJobs, userData, userApplications, 
     fetchUserData,fetchUserApplicationData, userId } = useContext(AppContext);
 
-  const updateResume = async () => {
-    try {
-        if (!resume) {
-            toast.error("Please select a resume file");
-            return;
-        }
+  // const updateResume = async () => {
+  //   try {
+  //       if (!resume) {
+  //           toast.error("Please select a resume file");
+  //           return;
+  //       }
 
-        const formData = new FormData();
-        formData.append('resume', resume);
-        const token = await getToken();
-        // const userId = user?.id; 
+  //       const formData = new FormData();
+  //       formData.append('resume', resume);
+  //       const token = await getToken();
+  //       // const userId = user?.id; 
 
-        if (!userId) {
-            toast.error("User ID not found");
-            return;
-        }
+  //       if (!userId) {
+  //           toast.error("User ID not found");
+  //           return;
+  //       }
 
-        const { data } = await axios.post(
-            `${backendURL}/api/users/update-resume/${userId}`, 
-            formData,
-            { headers: { Authorization: `Bearer ${token}`,
-             } }
-        );
+  //       const { data } = await axios.post(
+  //           `${backendURL}/api/users/update-resume/${userId}`, 
+  //           formData,
+  //           { headers: { Authorization: `Bearer ${token}`,
+  //            } }
+  //       );
 
-        if (data.success) {
-            toast.success(data.message);
-            await fetchUserData(); 
-        } else {
-            toast.error(data.message);
-        }
-    } catch (err) {
-        toast.error(err.message);
-        console.error(`Error in update-resume: ${err}`);
+  //       if (data.success) {
+  //           toast.success(data.message);
+  //           await fetchUserData(); 
+  //       } else {
+  //           toast.error(data.message);
+  //       }
+  //   } catch (err) {
+  //       toast.error(err.message);
+  //       console.error(`Error in update-resume: ${err}`);
+  //   }
+
+  //   setIsEdit(false);
+  //   setResume(null);
+  // };
+  
+//   const updateResume = async () => {
+//   try {
+//     if (!resume) {
+//       toast.error("Please select a resume file");
+//       return;
+//     }
+
+//     const formData = new FormData();
+//     formData.append("resume", resume);
+//     const token = await getToken();
+//     if (!userId) {
+//       toast.error("User ID not found");
+//       return;
+//     }
+
+//     const { data } = await axios.post(
+//       `${backendURL}/api/users/update-resume/${userId}`,
+//       formData,
+//       { headers: { Authorization: `Bearer ${token}` } }
+//     );
+
+//     if (data.success) {
+//       toast.success(data.message);
+//       await fetchUserData();   // pulls in the new data.resume URL
+//     } else {
+//       toast.error(data.message);
+//     }
+//   } catch (err) {
+//     console.error("Error in update-resume:", err);
+//     toast.error(err.message);
+//   } finally {
+//     setIsEdit(false);
+//     setResume(null);
+//   }
+// };
+const updateResume = async () => {
+  try {
+    if (!resume) {
+      toast.error("Please select a resume file");
+      return;
     }
 
+    const formData = new FormData();
+    formData.append("resume", resume);
+    const token = await getToken();
+    if (!userId) {
+      toast.error("User ID not found");
+      return;
+    }
+
+    const { data } = await axios.post(
+      `${backendURL}/api/users/update-resume/${userId}`,
+      formData,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    if (data.success) {
+      await fetchUserData(); // Make sure this updates userData.resume
+      // Wait for userData to update before showing success
+      if (data.user && data.user.resume) {
+        toast.success(data.message);
+      } else {
+        toast.error("Resume upload failed. Please try again.");
+      }
+    } else {
+      toast.error(data.message);
+    }
+  } catch (err) {
+    console.error("Error in update-resume:", err);
+    toast.error(err.message);
+  } finally {
     setIsEdit(false);
     setResume(null);
-  };
-  
+  }
+};
+const openResumeAsBlob = async () => {
+  try {
+    if (!userId) {
+      toast.error("User ID not found");
+      return;
+    }
+    const token = await getToken();
+    const response = await fetch(`${backendURL}/api/users/resume-blob/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      if (response.status === 404) {
+        toast.error("Resume not found. Please upload your resume again.");
+      } else {
+        toast.error("Failed to fetch resume");
+      }
+      return;
+    }
+    const buffer = await response.arrayBuffer();
+    const blob = new Blob([buffer], { type: "application/pdf" });
+    const url = window.URL.createObjectURL(blob);
+    window.open(url, "_blank");
+    setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+  } catch (err) {
+    toast.error("Error opening resume");
+    console.error("Error opening resume as blob:", err);
+  }
+};
+
   const fetchActivityGraph = async () => {
   try {
     const { data } = await axios.get(`${backendURL}/api/users/activity-graph/${user?.id}`);
     if (data.success) {
-      // Convert backend object to array format required by CalendarHeatmap
       const transformed = Object.entries(data.graph).map(([date, count]) => ({
         date,
         count
@@ -182,15 +287,7 @@ const availableYears = [...new Set(userApplications.map(job =>
             </>
           ) : (
             <div className='flex gap-2'>
-              <a 
-                className='bg-blue-100 text-blue-600 px-4 py-2 rounded-lg' 
-                href={userData?.resume || "#"} 
-                target="_blank" 
-                rel="noopener noreferrer"
-              >
-                Resume
-              </a>
-              
+           <button onClick={openResumeAsBlob}>Resume</button>
               <button
                 onClick={() => setIsEdit(true)}
                 className='text-gray-500 border border-gray-300 rounded-lg px-4 py-2'
