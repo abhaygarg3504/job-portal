@@ -1,4 +1,3 @@
-import redis from "../config/redis.js";
 import Job from "../models/Job.js";
 
 export const getJobs = async (req, res) => {
@@ -13,10 +12,6 @@ export const getJobs = async (req, res) => {
   ? await Job.find({}).populate('companyId', '-password')
   : await Job.find({ visible: true }).populate('companyId', '-password');
   
-  if(res.locals.cacheKey){
-    await redis.set(res.locals.cacheKey, JSON.stringify(jobs), 'EX', 300)
-  }
-  
   res.json({ success: true, jobs });
 
   } catch (err) {
@@ -30,9 +25,7 @@ export const getJobById = async(req, res)=> {
     const { id } = req.params
     const job = await Job.findById(id).populate({path: 'companyId', select: '-password'})
     if(job){
-       if (res.locals.cacheKey) {
-        await redis.set(res.locals.cacheKey, JSON.stringify(job), 'EX', 300);
-      }
+    
       res.json({success: true,job})}
     else{res.json({success: false,message: "Job not found" })}}
    catch(err){

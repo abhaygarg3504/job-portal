@@ -12,7 +12,6 @@ import path from "path";
 import connectCloudinary from "../config/cloudinary.js";
 import { logUserActivity } from "../middlewares/activityTrack.js";
 import streamifier from "streamifier"
-import redis from "../config/redis.js";
 import axios from "axios"
 export const getUserId = (req) => {
     const userId = req.query.id;
@@ -32,10 +31,6 @@ export const getUserData = async (req, res) => {
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" });
         }
-        if (res.locals.cacheKey) {
-      await redis.set(res.locals.cacheKey, JSON.stringify(user), 'EX', 300);
-     }
-
         return res.json({ success: true, user });
     } catch (err) {
         console.error(`Error in getUserData: ${err.message}`);
@@ -460,6 +455,7 @@ export const updateResume = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
 export const getResumeBlob = async (req, res) => {
   try {
     const userId = req.params.id;
@@ -823,11 +819,7 @@ export const updateUserBlog = async (req, res) => {
     });
 
     await logUserActivity(userId, "update_blog");
-    // After updating the blog in DB:
-if (res.locals.cacheKey) {
-  await redis.set(res.locals.cacheKey, JSON.stringify(updatedBlog), 'EX', 300); // update blog:<id>
-}
-await redis.del('blogs:all');
+ 
     res.json({ success: true, blog: updatedBlog });
   } catch (error) {
     console.error("Error updating user blog:", error);
@@ -855,9 +847,6 @@ export const deleteUserBlog = async (req, res) => {
 
     await prisma.blog.delete({ where: { id } });
     await logUserActivity(userId, "delete_blog");
-    await redis.del('blogs:all');      
-    await redis.del(`blog:${id}`); 
-    
     res.json({ success: true, message: "Blog deleted successfully" });
   } catch (error) {
     console.error("Error deleting user blog:", error);
@@ -921,10 +910,6 @@ export const updateComment = async (req, res) => {
       },
     });
 
-    // Invalidate comments cache for the blog
-    await redis.del(`comments:blog:${comment.blogId}`);
-
-
     res.json({ success: true, comment: updatedComment });
   } catch (error) {
     console.error("Error updating comment:", error);
@@ -948,9 +933,7 @@ export const deleteComment = async (req, res) => {
     }
 
     await prisma.comment.delete({ where: { id: commentId } });
-    // Invalidate comments cache for the blog
-    await redis.del(`comments:blog:${comment.blogId}`);
-
+    
     res.json({ success: true, message: "Comment deleted successfully" });
   } catch (error) {
     console.error("Error deleting comment:", error);
@@ -969,10 +952,6 @@ export const getAllBlogs = async (req, res) => {
     
     const companies = await Company.find({ _id: { $in: companyIds } });
     const users = await User.find({ _id: { $in: userIds } });
-    if (res.locals.cacheKey) {
-  await redis.set(res.locals.cacheKey, JSON.stringify(blogs), 'EX', 300);
-}
-
     const enrichedBlogs = blogs.map(blog => {
       const company = companies.find(c => c._id.toString() === blog.companyId);
       const user = users.find(u => u._id.toString() === blog.userId);

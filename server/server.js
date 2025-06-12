@@ -16,19 +16,6 @@ import http from "http";
 import Contact from "./models/Contact.js";
 import { connectToDatabase } from "./config/postgresConnect.js";
 const app = express();
-import redis from './config/redis.js';
-
-const testRedis = async () => {
-  try {
-    await redis.set('testKey', 'Hello Redis!');
-    const value = await redis.get('testKey');
-    console.log('Redis Value:', value); 
-  } catch (err) {
-    console.error('❌ Redis usage error:', err);
-  }
-};
-
-testRedis();
 
 const corsConfig = {
   origin: "*",
