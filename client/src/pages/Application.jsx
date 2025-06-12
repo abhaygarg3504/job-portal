@@ -24,80 +24,6 @@ const Application = () => {
   const { backendURL, totalJobs, applyJobs, userData, userApplications, 
     fetchUserData,fetchUserApplicationData, userId } = useContext(AppContext);
 
-  // const updateResume = async () => {
-  //   try {
-  //       if (!resume) {
-  //           toast.error("Please select a resume file");
-  //           return;
-  //       }
-
-  //       const formData = new FormData();
-  //       formData.append('resume', resume);
-  //       const token = await getToken();
-  //       // const userId = user?.id; 
-
-  //       if (!userId) {
-  //           toast.error("User ID not found");
-  //           return;
-  //       }
-
-  //       const { data } = await axios.post(
-  //           `${backendURL}/api/users/update-resume/${userId}`, 
-  //           formData,
-  //           { headers: { Authorization: `Bearer ${token}`,
-  //            } }
-  //       );
-
-  //       if (data.success) {
-  //           toast.success(data.message);
-  //           await fetchUserData(); 
-  //       } else {
-  //           toast.error(data.message);
-  //       }
-  //   } catch (err) {
-  //       toast.error(err.message);
-  //       console.error(`Error in update-resume: ${err}`);
-  //   }
-
-  //   setIsEdit(false);
-  //   setResume(null);
-  // };
-  
-//   const updateResume = async () => {
-//   try {
-//     if (!resume) {
-//       toast.error("Please select a resume file");
-//       return;
-//     }
-
-//     const formData = new FormData();
-//     formData.append("resume", resume);
-//     const token = await getToken();
-//     if (!userId) {
-//       toast.error("User ID not found");
-//       return;
-//     }
-
-//     const { data } = await axios.post(
-//       `${backendURL}/api/users/update-resume/${userId}`,
-//       formData,
-//       { headers: { Authorization: `Bearer ${token}` } }
-//     );
-
-//     if (data.success) {
-//       toast.success(data.message);
-//       await fetchUserData();   // pulls in the new data.resume URL
-//     } else {
-//       toast.error(data.message);
-//     }
-//   } catch (err) {
-//     console.error("Error in update-resume:", err);
-//     toast.error(err.message);
-//   } finally {
-//     setIsEdit(false);
-//     setResume(null);
-//   }
-// };
 const updateResume = async () => {
   try {
     if (!resume) {
@@ -356,11 +282,23 @@ const availableYears = [...new Set(userApplications.map(job =>
             {userApplications.reverse().map((job, index) => (
               <tr key={index}>
                 <td className='py-2 px-2 flex items-center gap-2 border-b'>
-                  <img className='w-8 h-8' src={job.companyId.image} alt={job.company} />
-                  {job.companyId.name}
-                </td>
-                <td className='py-2 px-4 border-b'>{job.jobId.title}</td>
-                <td className='py-2 px-4 border-b max-sm:hidden'>{job.jobId.location}</td>
+  {job.companyId ? (
+    <>
+      <img className='w-8 h-8' src={job.companyId.image} alt={job.companyId.name} />
+      {job.companyId.name}
+    </>
+  ) : (
+    <span className="text-sm text-gray-400 italic">Unknown Company</span>
+  )}
+</td>
+
+               <td className='py-2 px-4 border-b'>
+  {job.jobId?.title || <span className="text-gray-400 italic">N/A</span>}
+</td>
+<td className='py-2 px-4 border-b max-sm:hidden'>
+  {job.jobId?.location || <span className="text-gray-400 italic">N/A</span>}
+</td>
+
                 <td className='py-2 px-4 border-b max-sm:hidden'>{moment(job.date).format('ll')}</td>
                 <td className='py-2 px-4 border-b'>
                   <span className={`${job.status === 'Accepted' ? 'bg-green-200' : job.status === 'Rejected' ? 'bg-red-200' : 'bg-blue-200'} px-4 py-1.5 rounded`}>
@@ -368,7 +306,7 @@ const availableYears = [...new Set(userApplications.map(job =>
                   </span>
                   
                 </td>
-                <td className='py-2 px-4 border-b'>
+              <td className='py-2 px-4 border-b'>
   {job.status === 'Accepted' && job.interviewDate ? (
     <span className="text-sm text-gray-600">
       {moment(job.interviewDate).format('ll')}
@@ -377,6 +315,7 @@ const availableYears = [...new Set(userApplications.map(job =>
     <span className="text-sm text-gray-400 italic">N/A</span>
   )}
 </td>
+
               </tr>
             ))}
           </tbody>

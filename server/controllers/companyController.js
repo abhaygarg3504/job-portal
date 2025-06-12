@@ -617,3 +617,22 @@ export const deleteCompanyComment = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
+
+export const deleteJob = async (req, res) => {
+  try {
+   const { id } = req.params;
+
+    const deletedJob = await Job.findByIdAndDelete(id);
+    if (!deletedJob) {
+      return res.status(404).json({ success: false, message: "Job not found" });
+    }
+
+    // Delete all applications for this job
+    await JobApplication.deleteMany({ jobId: id });
+
+    res.json({ success: true, message: "Job and related applications deleted" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

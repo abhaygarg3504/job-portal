@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import { Trash2 } from 'lucide-react';
 
 const ManageJobs = () => {
   const navigate = useNavigate();
@@ -25,6 +26,24 @@ const ManageJobs = () => {
       toast.error(err.response?.data?.message || err.message || 'An error occurred');
     }
   };
+  const deleteJobHandler = async (id) => {
+  if (!window.confirm('Are you sure you want to delete this job?')) return;
+
+  try {
+    const { data } = await axios.delete(`${backendURL}/api/company/delete/${id}`, {
+      headers: { Authorization: `Bearer ${companyToken}` },
+    });
+
+    if (data.success) {
+      toast.success('Job deleted successfully!');
+      setJobs((prevJobs) => prevJobs.filter((job) => job._id !== id));
+    } else {
+      toast.error(data.message || 'Failed to delete job');
+    }
+  } catch (err) {
+    toast.error(err.response?.data?.message || err.message || 'Something went wrong');
+  }
+};
 
   useEffect(() => {
     if (companyToken) {
@@ -87,6 +106,12 @@ const ManageJobs = () => {
                         checked={job.visible}
                       />
                     </td>
+                    <td className="px-4 py-2 border-b flex items-center gap-2">
+          {job.title}
+          <button onClick={() => deleteJobHandler(job._id)} title="Delete Job">
+            <Trash2 className="text-red-500 hover:text-red-700 cursor-pointer w-4 h-4" />
+          </button>
+        </td>
                   </tr>
                 ))
               ) : (

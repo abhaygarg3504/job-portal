@@ -6,6 +6,7 @@ import {
     createBlog, 
     deleteBlog, 
     deleteCompanyComment, 
+    deleteJob, 
     getBlogComments, 
     getCompanyData, 
     getCompanyJobApplicants, 
@@ -22,7 +23,7 @@ import {
 } from "../controllers/companyController.js"; 
 
 import upload from "../config/multer.js";
-import protectCompany, { authMiddleware, comapnyDataProtection, ProtectCompany, ProtectionCompany } from "../middlewares/auth.js";
+import  { authMiddleware, comapnyDataProtection, ProtectCompany, ProtectionCompany } from "../middlewares/auth.js";
 import { getAllBlogs } from "../controllers/userController.js";
 import { getCompanyActivityGraph } from "../controllers/activityController.js";
 import { getCompanyAnalytics } from "../controllers/companyAnalyticsController.js";
@@ -52,5 +53,6 @@ router.post("/verifyOtp", verifyOTP)
 router.post("/resetPassword", resetPassword)
 router.get("/activity-graph/:id", getCompanyActivityGraph);
 router.get('/analytics/:companyId', getCompanyAnalytics);
+router.delete('/delete/:id', ProtectionCompany, deleteJob);
 
 export default router;

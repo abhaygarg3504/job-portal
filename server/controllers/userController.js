@@ -539,10 +539,10 @@ export const getUserJobApplication = async (req, res) => {
             return res.status(400).json({ success: false, message: "User ID is required" });
         }
 
-        const applications = await JobApplication.find({ userId })
-            .populate("companyId", "name email image")
-            .populate("jobId", "title description category location salary")
-            .exec();
+        const applications = await JobApplication.find({ userId, jobId: { $ne: null } })
+    .populate("companyId", "name email image")
+    .populate("jobId", "title description category location salary")
+    .exec();
 
         return res.json({ success: true, applications });
     } catch (err) {
