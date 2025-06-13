@@ -11,7 +11,7 @@ import mongoose from "mongoose";
 import { PrismaClient } from '@prisma/client';
 import User from "../models/User.js";
 import { logCompanyActivity } from "../middlewares/activityTrack.js";
-
+import XLSX from "xlsx";
 const prisma = new PrismaClient();
 
 export const registerCompany= async(req, res) => {
@@ -627,12 +627,73 @@ export const deleteJob = async (req, res) => {
     if (!deletedJob) {
       return res.status(404).json({ success: false, message: "Job not found" });
     }
-
-    // Delete all applications for this job
     await JobApplication.deleteMany({ jobId: id });
 
     res.json({ success: true, message: "Job and related applications deleted" });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+
+export const uploadJobsExcel = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
+
+    const companyId = req.company._id;
+    const timestamp = Date.now();
+    const publicId = `jobs_excel_${companyId}_${timestamp}.xlsx`;
+
+    // Upload Excel to Cloudinary with a specific public_id
+    const uploadResult = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: "raw",
+          folder: "job_excels",
+          public_id: publicId,
+          use_filename: true,
+          unique_filename: false,
+        },
+        (error, result) => (error ? reject(error) : resolve(result))
+      );
+      stream.end(req.file.buffer);
+    });
+
+    if (!uploadResult?.secure_url) {
+      return res.status(500).json({ success: false, message: "Cloudinary upload failed" });
+    }
+
+    // Parse Excel from buffer
+    const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
+    const sheetName = workbook.SheetNames[0];
+    const jobsData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+    // Prepare jobs for insertion
+    const jobsToInsert = jobsData.map(job => ({
+      title: job.title || "N/A",
+      description: job.description || "N/A",
+      location: job.location || "N/A",
+      category: job.category || "N/A",
+      level: job.level || "N/A",
+      salary: job.salary ? Number(job.salary) : 0,
+      date: job.date ? new Date(job.date) : Date.now(),
+      visible: job.visible !== undefined ? Boolean(job.visible) : true,
+      companyId,
+    }));
+
+    // Insert jobs
+    await Job.insertMany(jobsToInsert);
+
+    res.json({
+      success: true,
+      message: "Excel uploaded to Cloudinary and jobs posted",
+      cloudinaryUrl: uploadResult.secure_url,
+      jobsPosted: jobsToInsert.length,
+    });
+  } catch (err) {
+    console.error("Error in uploadJobsExcel:", err);
+    res.status(500).json({ success: false, message: "Bulk job upload failed" });
   }
 };

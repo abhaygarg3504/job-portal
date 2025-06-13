@@ -14,7 +14,42 @@ const AddJob = () => {
     const [salary, setsalary] = useState(0)
     const editorRef = useRef(null)
     const quillRef = useRef(null)
+     const [uploading, setUploading] = useState(false);
     const { backendURL, companyToken } = useContext(AppContext)
+   
+    const handleExcelUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      setUploading(true);
+      const response = await axios.post(
+        `${backendURL}/api/company/upload-jobs-excel`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${companyToken}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      if (response.data.success) {
+        toast.success(`${response.data.jobsPosted} jobs posted successfully!`);
+      } else {
+        toast.error('Upload succeeded but jobs were not posted.');
+      }
+    } catch (err) {
+      console.error('Excel upload failed:', err);
+      toast.error('Excel upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
     const onSubmitHandler = async(e)=> {
         e.preventDefault()
         try{
@@ -48,6 +83,7 @@ const AddJob = () => {
         }
     })
   return (
+    <div>
     <form onSubmit={onSubmitHandler} className='conatiner p-4 flex flex-col w-full items-start gap-3 '>
         <div className='w-full'>
             <p className='mb-2'>Job Title</p>
@@ -96,6 +132,18 @@ const AddJob = () => {
         </div>
         <button className='w-28 py-3 mt-4 bg-black rounded text-white'>ADD</button>
     </form>
+    <div className="mt-6">
+        <h2 className="mb-2 text-lg font-semibold">Upload Excel to Add Jobs</h2>
+        <input
+          type="file"
+          accept=".xlsx, .xls"
+          onChange={handleExcelUpload}
+          disabled={uploading}
+        />
+        {uploading && <p className="text-gray-500 mt-2">Uploading...</p>}
+      </div>
+     
+    </div>
   )
 }
 

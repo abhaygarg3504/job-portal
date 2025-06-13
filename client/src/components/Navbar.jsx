@@ -109,7 +109,7 @@ const Navbar = () => {
               >
                 <Bookmark size={22} />
               </button>
-                            <Link to='/application'>Applied Jobs</Link>
+                            <Link to='/application'>DashBoard</Link>
                             <p className='max-sm:hidden'>Hello, {user.firstName} {user.lastName || ''}</p>
                             <UserButton />
                         </div>

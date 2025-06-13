@@ -19,6 +19,7 @@ import {
     setUpOTP,
     updateBlog,
     updateCompanyComment,
+    uploadJobsExcel,
     verifyOTP
 } from "../controllers/companyController.js"; 
 
@@ -27,6 +28,7 @@ import  { authMiddleware, comapnyDataProtection, ProtectCompany, ProtectionCompa
 import { getAllBlogs } from "../controllers/userController.js";
 import { getCompanyActivityGraph } from "../controllers/activityController.js";
 import { getCompanyAnalytics } from "../controllers/companyAnalyticsController.js";
+import uploadExcel from "../config/multerExcel.js";
 // import { blogLimiter, loginLimiter } from "../middlewares/rateLimiter.js";
 
 const router = express.Router();
@@ -54,5 +56,6 @@ router.post("/resetPassword", resetPassword)
 router.get("/activity-graph/:id", getCompanyActivityGraph);
 router.get('/analytics/:companyId', getCompanyAnalytics);
 router.delete('/delete/:id', ProtectionCompany, deleteJob);
+router.post("/upload-jobs-excel", ProtectionCompany,uploadExcel.single("file"),uploadJobsExcel);
 
 export default router;
