@@ -259,6 +259,7 @@ const unsaveJobForUser = async (jobId) => {
         }
     },[companyToken])
 
+    console.log(userData)
     const userId = user?.id;
   const recruiterId = companyData?._id;
 

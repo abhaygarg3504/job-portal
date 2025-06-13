@@ -41,6 +41,7 @@
     "node-cron": "^4.0.5",
     "nodemailer": "^7.0.3",
     "nodemon": "^3.1.10",
+    "pdf-parse": "^1.1.1",
     "prisma": "^6.9.0",
     "rate-limit-redis": "^4.2.1",
     "raw-body": "^3.0.0",

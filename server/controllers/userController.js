@@ -13,6 +13,7 @@ import connectCloudinary from "../config/cloudinary.js";
 import { logUserActivity } from "../middlewares/activityTrack.js";
 import streamifier from "streamifier"
 import axios from "axios"
+import { parseResumeFromUrl } from "../utils/resumeParser.js";
 export const getUserId = (req) => {
     const userId = req.query.id;
     if (!userId) throw new Error("User ID not found in request query");
@@ -615,5 +616,49 @@ export const getAllBlogs = async (req, res) => {
   } catch (err) {
     console.error("Error fetching blogs:", err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+export const updateUserProfile = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { skills, education, experience, achievements } = req.body;
+    
+    const updatedUser = await User.findByIdAndUpdate(userId, {
+      skills,
+      education,
+      experience,
+      achievements
+    }, { new: true });
+
+    res.json({ success: true, user: updatedUser });
+  } catch (err) {
+    console.error("Profile update error:", err);
+    res.status(500).json({ success: false, message: "Failed to update profile" });
+  }
+};
+
+export const parseAndUpdateProfileFromResume = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findById(userId);
+    if (!user || !user.resume) {
+      return res.status(404).json({ success: false, message: "No resume URL on record" });
+    }
+
+    const parsed = await parseResumeFromUrl(user.resume);
+
+    // update your user model however you like:
+    user.education    = parsed.education;
+    user.experience   = parsed.experience;
+    user.projects     = parsed.projects;
+    user.skills       = parsed.skills;
+    user.achievements = parsed.achievements;
+    await user.save();
+
+    res.json({ success: true, parsed });
+  } catch (err) {
+    console.error("Resume parsing error:", err);
+    res.status(500).json({ success: false, message: "Resume parsing failed" });
   }
 };

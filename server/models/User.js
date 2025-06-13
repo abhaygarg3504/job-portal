@@ -33,7 +33,25 @@ const userSchema = new mongoose.Schema({
     savedJobs: [{  
         type: mongoose.Schema.Types.ObjectId,
         ref: "Job"
-    }]
+    }],
+    // Parsed Profile Fields
+  skills: {
+  type: [String],
+  default: []
+},
+education: {
+  type: [String],
+  default: []
+},
+experience: {
+  type: [String],
+  default: []
+},
+achievements: {
+  type: [String],
+  default: []
+}
+
 });
 
 

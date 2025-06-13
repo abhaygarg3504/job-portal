@@ -132,15 +132,25 @@ const AddJob = () => {
         </div>
         <button className='w-28 py-3 mt-4 bg-black rounded text-white'>ADD</button>
     </form>
-    <div className="mt-6">
-        <h2 className="mb-2 text-lg font-semibold">Upload Excel to Add Jobs</h2>
+     <div className="mt-10 p-4 bg-gray-50 border border-dashed border-gray-300 rounded shadow-sm">
+        <h2 className="text-xl font-semibold mb-3">Upload Excel to Add Jobs</h2>
+        <label
+          htmlFor="excelUpload"
+          className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+        >
+          Choose Excel File
+        </label>
         <input
+          id="excelUpload"
           type="file"
           accept=".xlsx, .xls"
           onChange={handleExcelUpload}
           disabled={uploading}
+          className="hidden"
         />
-        {uploading && <p className="text-gray-500 mt-2">Uploading...</p>}
+        {uploading && (
+          <p className="text-gray-600 mt-3">Uploading... Please wait.</p>
+        )}
       </div>
      
     </div>

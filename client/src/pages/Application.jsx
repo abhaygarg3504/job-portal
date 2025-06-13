@@ -9,6 +9,10 @@ import axios from 'axios';
 import CalendarHeatmap from 'react-calendar-heatmap';
 import 'react-calendar-heatmap/dist/styles.css';
 import { Tooltip } from 'react-tooltip';
+import Quill from 'quill';
+import 'quill/dist/quill.snow.css';
+import { useRef } from 'react';
+
 
 import { toast } from 'react-toastify';
 import UserAnalytics from './UserAnalytics';
@@ -20,9 +24,47 @@ const Application = () => {
   const [resume, setResume] = useState(null);
   const [activityData, setActivityData] = useState([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-
+ 
   const { backendURL, totalJobs, applyJobs, userData, userApplications, 
     fetchUserData,fetchUserApplicationData, userId } = useContext(AppContext);
+
+     const quillExperienceRef = useRef(null);
+const quillAchievementsRef = useRef(null);
+
+const [skills, setSkills] = useState(userData?.skills || []);
+const [education, setEducation] = useState(userData?.education || []);
+const [experience, setExperience] = useState(userData?.experience?.join('\n') || '');
+const [achievements, setAchievements] = useState(userData?.achievements?.join('\n') || '');
+
+
+
+ useEffect(() => {
+    if (userData) {
+      setSkills(userData.skills || []);
+      setEducation(userData.education || []);
+      setExperience((userData.experience || []).join('\n'));
+      setAchievements((userData.achievements || []).join('\n'));
+    }
+  }, [userData]);
+
+   useEffect(() => {
+  if (isEdit) {
+    // Ensure DOM elements exist
+    const experienceElem = document.getElementById("experience-editor");
+    const achievementsElem = document.getElementById("achievements-editor");
+
+    if (experienceElem && !quillExperienceRef.current) {
+      quillExperienceRef.current = new Quill(experienceElem, { theme: "snow" });
+      quillExperienceRef.current.root.innerHTML = experience;
+    }
+
+    if (achievementsElem && !quillAchievementsRef.current) {
+      quillAchievementsRef.current = new Quill(achievementsElem, { theme: "snow" });
+      quillAchievementsRef.current.root.innerHTML = achievements;
+    }
+  }
+}, [isEdit]);  // Run only when isEdit becomes true
+
 
 const updateResume = async () => {
   try {
@@ -60,36 +102,30 @@ const updateResume = async () => {
     setResume(null);
   }
 };
-const openResumeAsBlob = async () => {
-  try {
-    if (!userId) {
-      toast.error("User ID not found");
-      return;
-    }
+ const handleSaveProfile = async () => {
     const token = await getToken();
-    const response = await fetch(`${backendURL}/api/users/resume-blob/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (!response.ok) {
-      if (response.status === 404) {
-        toast.error("Resume not found. Please upload your resume again.");
-      } else {
-        toast.error("Failed to fetch resume");
-      }
-      return;
+    const experienceHtml = quillExperienceRef.current?.root.innerHTML || '';
+    const achievementsHtml = quillAchievementsRef.current?.root.innerHTML || '';
+
+    try {
+      await axios.put(`${backendURL}/api/users/update/${userId}`, {
+        skills,
+        education,
+        experience: experienceHtml.split('<br>'),
+        achievements: achievementsHtml.split('<br>')
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      toast.success("Profile updated successfully!");
+      fetchUserData();
+      setIsEdit(false);
+    } catch (err) {
+      toast.error("Failed to update profile");
+      console.error(err);
     }
-    const buffer = await response.arrayBuffer();
-    const blob = new Blob([buffer], { type: "application/pdf" });
-    const url = window.URL.createObjectURL(blob);
-    window.open(url, "_blank");
-    setTimeout(() => window.URL.revokeObjectURL(url), 10000);
-  } catch (err) {
-    toast.error("Error opening resume");
-    console.error("Error opening resume as blob:", err);
-  }
-};
+  };
+
 
   const fetchActivityGraph = async () => {
   try {
@@ -150,7 +186,12 @@ const openResume = () => {
   <div className="flex-1">
     <h2 className="text-2xl font-bold">{userData?.name}</h2>
     <p className="text-gray-600">{userData?.email}</p>
-
+ <button
+                onClick={() => setIsEdit(!isEdit)}
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                {isEdit ? 'Cancel' : 'Edit Profile'}
+              </button>
     {/* Application Progress */}
     <div className="mt-4 flex items-center gap-4">
       <div className="relative w-20 h-20">
@@ -185,9 +226,44 @@ const openResume = () => {
         Jobs Applied
       </p>
     </div>
-  </div>
-</div>
+    
+    {isEdit && (
+            <div className="mt-6 bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-xl font-semibold mb-4">Update Profile</h3>
 
+              <label className="block font-medium mb-1">Skills (comma-separated)</label>
+              <input
+                type="text"
+                className="w-full border px-3 py-2 rounded mb-4"
+                value={skills.join(', ')}
+                onChange={(e) => setSkills(e.target.value.split(',').map(s => s.trim()))}
+              />
+
+              <label className="block font-medium mb-1">Education (one per line)</label>
+              <textarea
+                rows={3}
+                className="w-full border px-3 py-2 rounded mb-4"
+                value={education.join('\n')}
+                onChange={(e) => setEducation(e.target.value.split('\n'))}
+              />
+
+              <label className="block font-medium mb-1">Experience</label>
+              <div id="experience-editor" className="bg-white mb-4 h-40"></div>
+
+              <label className="block font-medium mb-1">Achievements</label>
+              <div id="achievements-editor" className="bg-white mb-4 h-40"></div>
+
+              <button
+                onClick={handleSaveProfile}
+                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+              >
+                Save Profile
+              </button>
+            </div>
+          )}
+
+  </div>
+    </div>
          </div>
         
         <h2 className='text-xl font-semibold'>Your Resume</h2>
