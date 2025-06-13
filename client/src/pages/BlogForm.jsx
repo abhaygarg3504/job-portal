@@ -1,13 +1,6 @@
 import React, { useState, useContext } from "react";
 import axios from "axios";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  TextField,
-  Button,
-  Box,
-} from "@mui/material";
+import {Dialog,DialogTitle,DialogContent,TextField,Button,Box,} from "@mui/material";
 import { AppContext } from "../context/AppContext";
 import { toast } from "react-toastify";
 
@@ -17,8 +10,8 @@ const BlogForm = ({ blog, onSuccess, onCancel }) => {
   const [content, setContent] = useState(blog?.content || "");
   const [image, setImage] = useState(blog?.image || "");
 
-  console.log(`user token is`, token)
-  console.log(`company token is `, companyToken)
+  // console.log(`user token is`, token)
+  // console.log(`company token is `, companyToken)
 
   const handleSubmit = async (e) => {
     e.preventDefault();

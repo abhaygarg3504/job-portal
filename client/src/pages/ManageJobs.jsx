@@ -105,13 +105,10 @@ const ManageJobs = () => {
                         type="checkbox"
                         checked={job.visible}
                       />
-                    </td>
-                    <td className="px-4 py-2 border-b flex items-center gap-2">
-          {job.title}
-          <button onClick={() => deleteJobHandler(job._id)} title="Delete Job">
+                      <button onClick={() => deleteJobHandler(job._id)} title="Delete Job">
             <Trash2 className="text-red-500 hover:text-red-700 cursor-pointer w-4 h-4" />
           </button>
-        </td>
+                    </td>
                   </tr>
                 ))
               ) : (

@@ -35,6 +35,7 @@ import adobe_logo from './adobe_logo.png'
 import amazon_logo from './amazon_logo.png'
 import blog_icon from "./blog_icon.svg"
 import profile_icon from "./profile-user-account-svgrepo-com.svg"
+import mic_icon from "./voice-microphone-svgrepo-com.svg"
 
 export const assets = {
     logo,
@@ -73,7 +74,8 @@ export const assets = {
     adobe_logo,
     amazon_logo,
     blog_icon, 
-    profile_icon
+    profile_icon,
+    mic_icon
 }
 
 export const JobCategories = [
