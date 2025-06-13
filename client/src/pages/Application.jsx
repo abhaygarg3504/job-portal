@@ -46,16 +46,12 @@ const updateResume = async () => {
     );
 
     if (data.success) {
-      await fetchUserData(); // Make sure this updates userData.resume
-      // Wait for userData to update before showing success
-      if (data.user && data.user.resume) {
-        toast.success(data.message);
-      } else {
+      await fetchUserData(); 
+       toast.success(data.message);
+    } 
+     else {
         toast.error("Resume upload failed. Please try again.");
       }
-    } else {
-      toast.error(data.message);
-    }
   } catch (err) {
     console.error("Error in update-resume:", err);
     toast.error(err.message);
@@ -114,6 +110,14 @@ const availableYears = [...new Set(userApplications.map(job =>
   new Date(job.date).getFullYear()
 ))].sort((a, b) => b - a); // descending
 
+const openResume = () => {
+  if (!userData.resume) {
+    toast.error("No resume found");
+    return;
+  }
+  // This will open the PDF in a new tab and the browser’s built‑in viewer will kick in
+  window.open(userData.resume, "_blank");
+};
 
   useEffect(()=>{
    if(user){
@@ -213,7 +217,7 @@ const availableYears = [...new Set(userApplications.map(job =>
             </>
           ) : (
             <div className='flex gap-2'>
-           <button onClick={openResumeAsBlob}>Resume</button>
+           <button onClick={openResume}>Resume</button>
               <button
                 onClick={() => setIsEdit(true)}
                 className='text-gray-500 border border-gray-300 rounded-lg px-4 py-2'

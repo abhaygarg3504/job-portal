@@ -106,7 +106,7 @@ const ManageJobs = () => {
                         checked={job.visible}
                       />
                       <button onClick={() => deleteJobHandler(job._id)} title="Delete Job">
-            <Trash2 className="text-red-500 hover:text-red-700 cursor-pointer w-4 h-4" />
+            <Trash2 className="text-red-500 hover:text-red-700 cursor-pointer w-5 h-5 " />
           </button>
                     </td>
                   </tr>

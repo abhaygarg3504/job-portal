@@ -410,51 +410,90 @@ export const createUserData = async (req, res) => {
 //   }
 // };
 
+// export const updateResume = async (req, res) => {
+//   try {
+//     const userId = req.params.id;
+//     if (!userId) {
+//       return res.status(400).json({ success: false, message: "User ID is required" });
+//     }
+//     const user = await User.findById(userId);
+//     if (!user) {
+//       return res.status(404).json({ success: false, message: "User not found" });
+//     }
+//     if (!req.file) {
+//       return res.status(400).json({ success: false, message: "No file uploaded" });
+//     }
+
+//     const uploadResult = await new Promise((resolve, reject) => {
+//       const stream = cloudinary.uploader.upload_stream(
+//         {
+//           resource_type: "raw",
+//           folder: "resume",
+//           access_mode: "public",
+//           public_id: `resume_${userId}_${Date.now()}`
+//         },
+//         (error, result) => (error ? reject(error) : resolve(result))
+//       );
+//       stream.end(req.file.buffer);
+//     });
+
+//     if (!uploadResult || !uploadResult.secure_url) {
+//       return res.status(500).json({ success: false, message: "Cloudinary upload failed" });
+//     }
+
+//     user.resume = uploadResult.secure_url;
+//     await user.save();
+//     await logUserActivity(userId, "update_resume");
+
+//     res.json({
+//       success: true,
+//       message: "Resume updated successfully",
+//       user,
+//     });
+//   } catch (err) {
+//     console.error("Error in updateResume:", err);
+//     res.status(500).json({ success: false, message: "Internal Server Error" });
+//   }
+// };
+
+// controllers/userController.js
+
 export const updateResume = async (req, res) => {
   try {
     const userId = req.params.id;
-    if (!userId) {
-      return res.status(400).json({ success: false, message: "User ID is required" });
-    }
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: "No file uploaded" });
-    }
+    if (!req.file) return res.status(400).json({ success: false, message: "No file uploaded" });
+
+    const publicId = `resume_${userId}_${Date.now()}.pdf`;
 
     const uploadResult = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         {
           resource_type: "raw",
           folder: "resume",
-          access_mode: "public",
-          public_id: `resume_${userId}_${Date.now()}`
+          public_id: publicId,
+          use_filename: true,       // optional: uses the original filename too
+          unique_filename: false,   // optional: prevents Cloudinary from appending random chars
         },
         (error, result) => (error ? reject(error) : resolve(result))
       );
       stream.end(req.file.buffer);
     });
 
-    if (!uploadResult || !uploadResult.secure_url) {
+    if (!uploadResult?.secure_url) {
       return res.status(500).json({ success: false, message: "Cloudinary upload failed" });
     }
 
-    user.resume = uploadResult.secure_url;
-    await user.save();
+    const pdfUrl = uploadResult.secure_url;
+    await User.findByIdAndUpdate(userId, { resume: pdfUrl });
     await logUserActivity(userId, "update_resume");
 
-    res.json({
-      success: true,
-      message: "Resume updated successfully",
-      user,
-    });
+    res.json({ success: true, message: "Resume updated successfully", resume: pdfUrl });
   } catch (err) {
-    console.error("Error in updateResume:", err);
+    console.error(err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
 
 export const getResumeBlob = async (req, res) => {
   try {
@@ -567,7 +606,6 @@ export const getUserApplicationsCount = async (req, res) => {
 
     const totalApplications = applications.length;
 
-    // Map to extract only necessary info
     const jobsApplied = applications.map(app => ({
       jobTitle: app.jobId?.title || "N/A",
       companyName: app.companyId?.name || "N/A",
