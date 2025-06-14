@@ -21,7 +21,7 @@ import JobRecommend from './pages/JobRecommend'
 
 const App = () => {
   const { showRecuriterLogin, companyToken, isSavedJobsOpen, setIsSavedJobsOpen,
-    isJobRecommend, setIsJobRecommend,
+    isJobRecommend, setIsJobRecommend, companyId, userId,
     userData } = useContext(AppContext)
  
   return (
@@ -31,7 +31,7 @@ const App = () => {
       <Routes>
         <Route path='/' element={<Home />} />
         <Route path='/forgotPassword' element={<ForgotPassword/>}/>
-        <Route path='/application' element={<Application />} />
+        <Route path='/application/:userId' element={<Application />} />
         <Route path='/apply-job/:id' element={<ApplyJob />} />
         <Route path='/subscribe' element={<Subscribe/>}/>
          <Route path="/chat-system" element={<ChatSystem />} />
@@ -45,11 +45,11 @@ const App = () => {
           <Route path='manage-jobs' element={<ManageJobs />} />
           <Route path='view-application' element={<ViewApplication />} />
             <Route path="blogs" element={<BlogPage />} />
-            <Route path='profile' element={<CompanyProfile/>}/>
-              {/* <Route path="/chat-system" element={<ChatSystem />} /> */}
-           </> : null
+            <Route path="profile/:companyId" element={<CompanyProfile/>}/>
+            </> : null
           }
         </Route>
+          <Route path="/dashboard/profile/:companyId" element={<CompanyProfile />} />
         
       </Routes>
       <SavedJobsPanel 

@@ -13,7 +13,7 @@ const CompanyProfile = () => {
   const [activityData, setActivityData] = useState([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [availableYears, setAvailableYears] = useState([]);
-
+  
   useEffect(() => {
     if (!companyData?._id) return;
 

@@ -326,9 +326,6 @@ const unsaveJobForUser = async (jobId) => {
   };
 }, [user?.id, companyData?._id, companyToken, isRecruiter, backendURL, jobTitles]);
 
-console.log(userData)
-
-
   useEffect(() => {
       const fetchContacts = async () => {
         try {
@@ -365,7 +362,6 @@ console.log(userData)
 console.log(userId)
 console.log(recruiterId)
 console.log(companyData)
-// console.log(`ueee`, userData?._id)
     const value = {
         setSearchFilter,searchFilter,isSearched,setIsSearched, jobs, setJobs,
          showRecuriterLogin, setShowRecuriterLogin, companyToken, setcompanyToken, companyData,
