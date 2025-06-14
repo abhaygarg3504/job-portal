@@ -36,8 +36,6 @@ const [education, setEducation] = useState(userData?.education || []);
 const [experience, setExperience] = useState(userData?.experience?.join('\n') || '');
 const [achievements, setAchievements] = useState(userData?.achievements?.join('\n') || '');
 
-
-
  useEffect(() => {
     if (userData) {
       setSkills(userData.skills || []);
@@ -126,7 +124,6 @@ const updateResume = async () => {
     }
   };
 
-
   const fetchActivityGraph = async () => {
   try {
     const { data } = await axios.get(`${backendURL}/api/users/activity-graph/${user?.id}`);
@@ -154,6 +151,22 @@ const openResume = () => {
   // This will open the PDF in a new tab and the browser’s built‑in viewer will kick in
   window.open(userData.resume, "_blank");
 };
+const handleDownloadExcel = async () => {
+  const token = await getToken();
+  const response = await fetch(`${backendURL}/api/users/applications/excel/${userId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "applications.xlsx";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+};
+
 
   useEffect(()=>{
    if(user){
@@ -162,109 +175,196 @@ const openResume = () => {
    }
   },[user])
 
+ const handleParseResume = async () => {
+  try {
+    if (!userData.resume) {
+      toast.error("No resume uploaded. Please upload one first.");
+      return;
+    }
+
+    const token = await getToken();
+    const { data } = await axios.post(
+      `${backendURL}/api/users/parse-resume/${userId}`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    if (data.success) {
+      const { skills, education, experience, achievements } = data.parsed;
+
+      // Set state
+      setSkills(skills || []);
+      setEducation(education || []);
+      setExperience((experience || []).join('\n'));
+      setAchievements((achievements || []).join('\n'));
+
+      // Set HTML in Quill editors
+      if (quillExperienceRef.current)
+        quillExperienceRef.current.root.innerHTML = (experience || []).join('<br>');
+
+      if (quillAchievementsRef.current)
+        quillAchievementsRef.current.root.innerHTML = (achievements || []).join('<br>');
+
+      toast.success('Resume parsed and profile auto-filled!');
+    } else {
+      toast.error('Parsing failed');
+    }
+  } catch (err) {
+    console.error(err);
+    toast.error('Error occurred while parsing resume');
+  }
+};
+
+
+  // completion percent
+  const percent = () => {
+    const fields = [skills, education, experience.trim(), achievements.trim()];
+    const filled = fields.filter(f => Array.isArray(f) ? f.length > 0 : f).length;
+    return Math.round((filled / 4) * 100);
+  };
+
+
   return (
     <>
       <Navbar />
       <div className='container px-4 min-h-[65vh] 2xl:px-20 mx-auto my-10'>
-         <div>
-    <div className="bg-white rounded-lg shadow-md p-6 mb-10 flex items-center gap-6">
- 
-  <div className="relative">
-    <img
-      src={userData?.image}
-      alt="Profile"
-      className="w-24 h-24 rounded-full object-cover border-4 border-gray-300"
-    />
-    {userData?.isPro && (
-      <span className="absolute top-0 right-0 bg-yellow-400 text-white text-xs px-2 py-0.5 rounded-full shadow-md font-semibold">
-        PRO
-      </span>
-    )}
-  </div>
+        <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+  <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-10 flex flex-col md:flex-row items-start md:items-center gap-6">
+    
+    {/* Profile Image */}
+    <div className="relative self-center md:self-start">
+      <img
+        src={userData?.image}
+        alt="Profile"
+        className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-gray-300"
+      />
+      {userData?.isPro && (
+        <span className="absolute top-0 right-0 bg-yellow-400 text-white text-xs px-2 py-0.5 rounded-full shadow-md font-semibold">
+          PRO
+        </span>
+      )}
+    </div>
 
-  {/* User Info and Stats */}
-  <div className="flex-1">
-    <h2 className="text-2xl font-bold">{userData?.name}</h2>
-    <p className="text-gray-600">{userData?.email}</p>
- <button
-                onClick={() => setIsEdit(!isEdit)}
-                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                {isEdit ? 'Cancel' : 'Edit Profile'}
-              </button>
-    {/* Application Progress */}
-    <div className="mt-4 flex items-center gap-4">
-      <div className="relative w-20 h-20">
-        <svg className="transform -rotate-90" viewBox="0 0 36 36">
-          <path
-            className="text-gray-200"
-            strokeWidth="4"
-            stroke="currentColor"
-            fill="none"
-            d="M18 2.0845
-              a 15.9155 15.9155 0 0 1 0 31.831
-              a 15.9155 15.9155 0 0 1 0 -31.831"
+    {/* User Info */}
+    <div className="flex-1 w-full">
+      <h2 className="text-xl sm:text-2xl font-bold">{userData?.name}</h2>
+      <p className="text-gray-600 text-sm sm:text-base">{userData?.email}</p>
+      <button
+        onClick={() => setIsEdit(!isEdit)}
+        className="mt-3 px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+      >
+        {isEdit ? 'Cancel' : 'Edit Profile'}
+      </button>
+
+      {/* Application Progress */}
+      <div className="mt-5 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="relative w-20 h-20 mx-auto sm:mx-0">
+          <svg className="transform -rotate-90 w-full h-full" viewBox="0 0 36 36">
+            <path
+              className="text-gray-200"
+              strokeWidth="4"
+              stroke="currentColor"
+              fill="none"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 
+                 a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+            <path
+              className="text-blue-500"
+              strokeWidth="4"
+              strokeDasharray={`${(applyJobs / totalJobs) * 100}, 100`}
+              stroke="currentColor"
+              fill="none"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 
+                 a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+          </svg>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-sm font-medium">{applyJobs}/{totalJobs}</span>
+          </div>
+        </div>
+        <p className="text-sm text-gray-500 text-center sm:text-left">Jobs Applied</p>
+      </div>
+
+      {/* Profile Completion */}
+      <div className="mt-4">
+        <p className="text-sm sm:text-base">Profile Completion: {percent()}%</p>
+        <div className="w-full bg-gray-200 h-2 rounded mt-1">
+          <div
+            className="h-2 bg-green-500 rounded"
+            style={{ width: `${percent()}%` }}
           />
-          <path
-            className="text-blue-500"
-            strokeWidth="4"
-            strokeDasharray={`${(applyJobs / totalJobs) * 100}, 100`}
-            stroke="currentColor"
-            fill="none"
-            d="M18 2.0845
-              a 15.9155 15.9155 0 0 1 0 31.831
-              a 15.9155 15.9155 0 0 1 0 -31.831"
-          />
-        </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-sm font-medium">
-            {applyJobs}/{totalJobs}
-          </span>
         </div>
       </div>
-      <p className="text-sm text-gray-500">
-        Jobs Applied
-      </p>
+
+      {/* Edit Mode */}
+      {isEdit ? (
+        <div className="mt-6 space-y-4">
+          <div>
+            <label className="text-sm font-medium">Skills</label>
+            <input
+              className="w-full border p-2 mt-1 text-sm rounded"
+              value={skills.join(', ')}
+              onChange={e => setSkills(e.target.value.split(',').map(s => s.trim()))}
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Education</label>
+            <textarea
+              className="w-full border p-2 mt-1 text-sm rounded"
+              rows={3}
+              value={education.join('\n')}
+              onChange={e => setEducation(e.target.value.split('\n'))}
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Experience</label>
+            <div id="experience-editor" className="h-40 bg-white border rounded mt-1" />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Achievements</label>
+            <div id="achievements-editor" className="h-40 bg-white border rounded mt-1" />
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <button
+              onClick={handleSaveProfile}
+              className="px-4 py-2 bg-green-600 text-white rounded text-sm"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+          <div>
+            <h4 className="font-semibold">Skills</h4>
+            <ul className="list-disc list-inside text-sm text-gray-700">
+              {skills.map((s, i) => <li key={i}>{s}</li>)}
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold">Education</h4>
+            <ul className="list-disc list-inside text-sm text-gray-700">
+              {education.map((e, i) => <li key={i}>{e}</li>)}
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold">Experience</h4>
+            <ul className="list-disc list-inside text-sm text-gray-700">
+              {experience.split('\n').map((ex, i) => <li key={i}>{ex}</li>)}
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold">Achievements</h4>
+            <ul className="list-disc list-inside text-sm text-gray-700">
+              {achievements.split('\n').map((a, i) => <li key={i}>{a}</li>)}
+            </ul>
+          </div>
+        </div>
+      )}
     </div>
-    
-    {isEdit && (
-            <div className="mt-6 bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-xl font-semibold mb-4">Update Profile</h3>
-
-              <label className="block font-medium mb-1">Skills (comma-separated)</label>
-              <input
-                type="text"
-                className="w-full border px-3 py-2 rounded mb-4"
-                value={skills.join(', ')}
-                onChange={(e) => setSkills(e.target.value.split(',').map(s => s.trim()))}
-              />
-
-              <label className="block font-medium mb-1">Education (one per line)</label>
-              <textarea
-                rows={3}
-                className="w-full border px-3 py-2 rounded mb-4"
-                value={education.join('\n')}
-                onChange={(e) => setEducation(e.target.value.split('\n'))}
-              />
-
-              <label className="block font-medium mb-1">Experience</label>
-              <div id="experience-editor" className="bg-white mb-4 h-40"></div>
-
-              <label className="block font-medium mb-1">Achievements</label>
-              <div id="achievements-editor" className="bg-white mb-4 h-40"></div>
-
-              <button
-                onClick={handleSaveProfile}
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-              >
-                Save Profile
-              </button>
-            </div>
-          )}
-
   </div>
-    </div>
-         </div>
+</div>
+
         
         <h2 className='text-xl font-semibold'>Your Resume</h2>
 
@@ -302,7 +402,17 @@ const openResume = () => {
               </button>
             </div>
           )}
+                 {/* only when not editing and a resume URL exists */}
+{!isEdit && userData?.resume && (
+  <button
+    onClick={handleParseResume}
+    className="mt-2 px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-sm"
+  >
+    Parse Resume
+  </button>
+)}
         </div>
+ 
      <div className='flex justify-between mr-10'>
         <h2 className="text-xl font-semibold my-6">Application Activity</h2>
 
@@ -344,6 +454,11 @@ const openResume = () => {
   />
   <Tooltip id="heatmap-tooltip" />
 </div>
+
+<button onClick={handleDownloadExcel} className="mt-3 px-4 py-2 bg-blue-600 text-white text-sm rounded
+                        cursor-pointer hover:bg-blue-700">
+  Download CSV(Applications)
+</button>
 
         <h2 className='text-xl font-semibold mb-4'>Jobs Applied</h2>
 

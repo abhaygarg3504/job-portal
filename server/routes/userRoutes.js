@@ -1,5 +1,5 @@
 import express from 'express';
-import { addComment, applyForData, createUserBlog, createUserData ,deleteComment,deleteUserBlog,getAllBlogs,getResumeBlob,getSavedJobs,getUserApplicationsCount,getUserData, getUserJobApplication, parseAndUpdateProfileFromResume, paymentRazorPay, saveJob, unsaveJob, updateComment, updateResume, updateUserBlog, updateUserProfile, verifyRazorPay } from '../controllers/userController.js';
+import { addComment, applyForData, createUserBlog, createUserData ,deleteComment,deleteUserBlog,downloadUserApplicationsExcel,getAllBlogs,getResumeBlob,getSavedJobs,getUserApplicationsCount,getUserData, getUserJobApplication, parseAndUpdateProfileFromResume, paymentRazorPay, saveJob, unsaveJob, updateComment, updateResume, updateUserBlog, updateUserProfile, verifyRazorPay } from '../controllers/userController.js';
 import upload from '../config/multeri.js';
 import { getBlogComments } from '../controllers/companyController.js';
 
@@ -33,5 +33,6 @@ router.get("/activity-graph/:id", getUserActivityGraph);
 router.get("/analytics/:userId", userAnalytics);
 router.put('/update/:id', updateUserProfile);
 router.post('/parse-resume/:id', parseAndUpdateProfileFromResume);
+router.get("/applications/excel/:id", downloadUserApplicationsExcel);
 
 export default router;

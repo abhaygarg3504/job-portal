@@ -13,6 +13,7 @@ import connectCloudinary from "../config/cloudinary.js";
 import { logUserActivity } from "../middlewares/activityTrack.js";
 import streamifier from "streamifier"
 import axios from "axios"
+import XLSX from "xlsx";
 import { parseResumeFromUrl } from "../utils/resumeParser.js";
 export const getUserId = (req) => {
     const userId = req.query.id;
@@ -647,8 +648,7 @@ export const parseAndUpdateProfileFromResume = async (req, res) => {
     }
 
     const parsed = await parseResumeFromUrl(user.resume);
-
-    // update your user model however you like:
+    
     user.education    = parsed.education;
     user.experience   = parsed.experience;
     user.projects     = parsed.projects;
@@ -660,5 +660,34 @@ export const parseAndUpdateProfileFromResume = async (req, res) => {
   } catch (err) {
     console.error("Resume parsing error:", err);
     res.status(500).json({ success: false, message: "Resume parsing failed" });
+  }
+};
+
+export const downloadUserApplicationsExcel = async(req, res) => {
+   try {
+    const userId = req.params.id;
+    const applications = await JobApplication.find({ userId })
+      .populate("jobId")
+      .populate("companyId");
+
+    const data = applications.map(app => ({
+      "Company": app.companyId?.name || "N/A",
+      "Job Title": app.jobId?.title || "N/A",
+      "Location": app.jobId?.location || "N/A",
+      "Status": app.status || "N/A",
+      "Applied Date": app.date ? new Date(app.date).toLocaleDateString() : "N/A",
+      "Interview Date": app.interviewDate ? new Date(app.interviewDate).toLocaleDateString() : "N/A"
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Applications");
+
+    const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+    res.setHeader("Content-Disposition", "attachment; filename=applications.xlsx");
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.send(buffer);
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Excel download failed" });
   }
 };

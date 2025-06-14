@@ -36,6 +36,21 @@ const ViewApplication = () => {
     toast.error(err.response?.data?.message || err.message);
   }
 };
+const handleDownloadExcel = async () => {
+  const response = await fetch(`${backendURL}/api/company/applications/excel`, {
+    headers: { Authorization: `Bearer ${companyToken}` }
+  });
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "company_applications.xlsx";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+};
+
 
   const changeJobApplicationStatus = async (id, status) => {
     try {
@@ -94,6 +109,10 @@ const ViewApplication = () => {
 ) : (
   <div className="container mx-auto px-2 sm:px-4 overflow-x-auto">
     <table className="min-w-full bg-white border border-gray-200 text-sm sm:text-base">
+     <button onClick={handleDownloadExcel} className="mt-3 px-4 py-2 bg-blue-600 text-white text-sm rounded
+                        cursor-pointer hover:bg-blue-700">
+  Download CSV(Applications)
+</button>
       <thead>
         <tr className="border-b bg-gray-50">
           <th className="px-2 py-3 text-left hidden sm:table-cell">#</th>

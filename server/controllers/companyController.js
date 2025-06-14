@@ -697,3 +697,31 @@ export const uploadJobsExcel = async (req, res) => {
     res.status(500).json({ success: false, message: "Bulk job upload failed" });
   }
 };
+
+
+export const downloadCompanyApplicationsExcel = async (req, res) => {
+  try {
+    const companyId = req.company._id; // or req.params.id if you use params
+    const applications = await JobApplication.find({ companyId })
+      .populate("jobId")
+      .populate("userId");
+
+    const data = applications.map(app => ({
+      "Username": app.userId?.name || "N/A",
+      "Job Title": app.jobId?.title || "N/A",
+      "Applied Date": app.date ? new Date(app.date).toLocaleDateString() : "N/A",
+      "Interview Date": app.interviewDate ? new Date(app.interviewDate).toLocaleDateString() : "N/A"
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Applications");
+
+    const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+    res.setHeader("Content-Disposition", "attachment; filename=company_applications.xlsx");
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.send(buffer);
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Excel download failed" });
+  }
+};

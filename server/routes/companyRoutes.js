@@ -7,6 +7,7 @@ import {
     deleteBlog, 
     deleteCompanyComment, 
     deleteJob, 
+    downloadCompanyApplicationsExcel, 
     getBlogComments, 
     getCompanyData, 
     getCompanyJobApplicants, 
@@ -57,5 +58,6 @@ router.get("/activity-graph/:id", getCompanyActivityGraph);
 router.get('/analytics/:companyId', getCompanyAnalytics);
 router.delete('/delete/:id', ProtectionCompany, deleteJob);
 router.post("/upload-jobs-excel", ProtectionCompany,uploadExcel.single("file"),uploadJobsExcel);
+router.get("/applications/excel", ProtectionCompany, downloadCompanyApplicationsExcel);
 
 export default router;
