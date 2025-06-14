@@ -37,7 +37,10 @@ export const AppContextProvider = (props) => {
     const [savedJobs, setSavedJobs] = useState([]);
      const [jobTitles, setJobTitles] = useState([]);
     const [isSavedJobsOpen, setIsSavedJobsOpen] = useState(false);
-    const [token, setToken] = useState(null);
+  const [isJobRecommend, setIsJobRecommend] = useState(false)
+  const [recommendedJobs, setRecommendedJobs] = useState([])
+     const [token, setToken] = useState(null);
+    
 useEffect(() => {
   const fetchToken = async () => {
     const fetchedToken = await getToken();
@@ -196,6 +199,19 @@ useEffect(() => {
     console.error("Error fetching saved jobs:", err.message);
   }
     };
+    
+ const fetchJobRecommendations = async (userId) => {
+    try {
+      const token = await getToken()
+      const res = await fetch(`${backendURL}/api/users/recommendations/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (data.success) setRecommendedJobs(data.jobs)
+    } catch (err) {
+      console.error('Failed to load recommendations', err)
+    }
+  }
 
 const saveJobForUser = async (jobId) => {
   try {
@@ -249,7 +265,8 @@ const unsaveJobForUser = async (jobId) => {
         fetchUserApplicationData()
         fetchTotalJobs()
         fetchApplicationCount()
-        fetchSavedJobs();
+        fetchSavedJobs()
+        fetchJobRecommendations()
       }
     }, [user])
 
@@ -359,7 +376,11 @@ console.log(companyData)
         savedJobs, setSavedJobs, fetchSavedJobs, saveJobForUser, unsaveJobForUser,
         setIsSavedJobsOpen, isSavedJobsOpen, token, 
         userId: userData?._id,       
-  companyId: companyData?._id 
+  companyId: companyData?._id ,
+  isJobRecommend,
+    setIsJobRecommend,
+    recommendedJobs,
+    fetchJobRecommendations,
     }; 
     return (
         <AppContext.Provider value={value}>

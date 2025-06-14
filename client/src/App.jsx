@@ -17,9 +17,12 @@ import ChatSystem from './pages/ChatSystem'
 import SavedJobsPanel from './pages/SavedJobsPanel'
 import BlogPage from './pages/BlogPage'
 import CompanyProfile from './pages/CompanyProfile'
+import JobRecommend from './pages/JobRecommend'
 
 const App = () => {
-  const { showRecuriterLogin, companyToken, isSavedJobsOpen, setIsSavedJobsOpen } = useContext(AppContext)
+  const { showRecuriterLogin, companyToken, isSavedJobsOpen, setIsSavedJobsOpen,
+    isJobRecommend, setIsJobRecommend,
+    userData } = useContext(AppContext)
  
   return (
     <div>
@@ -52,6 +55,11 @@ const App = () => {
       <SavedJobsPanel 
         isOpen={isSavedJobsOpen}
         onClose={() => setIsSavedJobsOpen(false)}
+      />
+        <JobRecommend
+        isOpen={isJobRecommend}
+        onClose={() => setIsJobRecommend(false)}
+        userId={userData?._id}
       />
     </div>
   )

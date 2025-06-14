@@ -691,3 +691,42 @@ export const downloadUserApplicationsExcel = async(req, res) => {
     res.status(500).json({ success: false, message: "Excel download failed" });
   }
 };
+
+
+export const getJobRecommendations = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findById(userId);
+
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    const skills = user.skills || [];
+    const education = user.education || [];
+
+    const keywords = [...skills, ...education].filter(Boolean);
+
+    if (keywords.length === 0) {
+      return res.json({ success: true, jobs: [] });
+    }
+
+    // Build case-insensitive regex array
+    const regexArr = keywords.map(k => new RegExp(k, "i"));
+
+    // Find and populate company info
+    const jobs = await Job.find({
+      $or: [
+        { title: { $in: regexArr } },
+        { description: { $in: regexArr } },
+        { category: { $in: regexArr } },
+        { level: { $in: regexArr } }
+      ],
+      visible: true
+    }).populate("companyId", "name email image"); // Only fetch needed company fields
+
+    res.json({ success: true, jobs });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Recommendation failed" });
+  }
+};
+

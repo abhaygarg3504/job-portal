@@ -12,8 +12,6 @@ import { Tooltip } from 'react-tooltip';
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import { useRef } from 'react';
-
-
 import { toast } from 'react-toastify';
 import UserAnalytics from './UserAnalytics';
 
@@ -26,7 +24,7 @@ const Application = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
  
   const { backendURL, totalJobs, applyJobs, userData, userApplications, 
-    fetchUserData,fetchUserApplicationData, userId } = useContext(AppContext);
+    fetchUserData,fetchUserApplicationData, userId,isJobRecommand,setIsJobRecommend} = useContext(AppContext);
 
      const quillExperienceRef = useRef(null);
 const quillAchievementsRef = useRef(null);
@@ -411,7 +409,15 @@ const handleDownloadExcel = async () => {
     Parse Resume
   </button>
 )}
+
+ <button
+      onClick={() => setIsJobRecommend(prev => !prev)}
+      className="mt-3 px-4 py-2 bg-blue-600 text-white text-sm rounded cursor-pointer hover:bg-blue-700"
+    >
+      Get Job Recommended
+    </button>
         </div>
+
  
      <div className='flex justify-between mr-10'>
         <h2 className="text-xl font-semibold my-6">Application Activity</h2>
