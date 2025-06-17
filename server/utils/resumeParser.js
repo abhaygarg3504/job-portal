@@ -5,7 +5,8 @@ import User from "../models/User.js";   // adjust your import!
 // Your master list of skills
 const SKILL_KEYWORDS = [
   "JavaScript","React","Node.js","Python","Java","C++","HTML","CSS",
-  "MongoDB","SQL","Express","AWS","Docker","Git","Redux","TypeScript"
+  "MongoDB","SQL","Express","AWS","Docker","Git","Redux","TypeScript", 
+  
 ];
 
 // escape any regex‑special chars in our keywords:

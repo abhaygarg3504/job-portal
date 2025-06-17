@@ -701,7 +701,7 @@ export const uploadJobsExcel = async (req, res) => {
 
 export const downloadCompanyApplicationsExcel = async (req, res) => {
   try {
-    const companyId = req.company._id; // or req.params.id if you use params
+    const companyId = req.company._id; 
     const applications = await JobApplication.find({ companyId })
       .populate("jobId")
       .populate("userId");

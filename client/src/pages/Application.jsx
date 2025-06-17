@@ -122,24 +122,53 @@ const updateResume = async () => {
     }
   };
 
-  const fetchActivityGraph = async () => {
-  try {
-    const { data } = await axios.get(`${backendURL}/api/users/activity-graph/${user?.id}`);
-    if (data.success) {
-      const transformed = Object.entries(data.graph).map(([date, count]) => ({
-        date,
-        count
-      }));
-      setActivityData(transformed);
-    }
-  } catch (err) {
-    console.error("Error fetching activity graph:", err);
-  }
-};
+//   const fetchActivityGraph = async () => {
+//   try {
+//     const { data } = await axios.get(`${backendURL}/api/users/activity-graph/${user?.id}`);
+//     if (data.success) {
+//       const transformed = Object.entries(data.graph).map(([date, count]) => ({
+//         date,
+//         count
+//       }));
+//       setActivityData(transformed);
+//     }
+//   } catch (err) {
+//     console.error("Error fetching activity graph:", err);
+//   }
+// };
 
-const availableYears = [...new Set(userApplications.map(job =>
-  new Date(job.date).getFullYear()
-))].sort((a, b) => b - a); // descending
+// const availableYears = [...new Set(userApplications.map(job =>
+//   new Date(job.date).getFullYear()
+// ))].sort((a, b) => b - a); // descending
+
+useEffect(() => {
+    const fetchActivityGraph = async () => {
+      try {
+        const { data } = await axios.get(
+          `${backendURL}/api/users/activity-graph/${userId}`
+        );
+        if (data.success && data.graph) {
+          setActivityData(
+            Object.entries(data.graph).map(([date, count]) => ({ date, count }))
+          );
+        }
+      } catch (err) {
+        console.error("Error fetching activity graph:", err);
+      }
+    };
+
+    fetchActivityGraph();
+  }, [backendURL, userId]);
+
+  const availableYears = Array.from(
+    new Set(activityData.map(item => moment(item.date).year()))
+  )
+    .sort((a, b) => b - a);
+
+  const valuesForYear = activityData
+    .filter(item => moment(item.date).year() === selectedYear)
+    .map(item => ({ date: item.date, count: item.count }));
+
 
 const openResume = () => {
   if (!userData.resume) {
@@ -168,8 +197,8 @@ const handleDownloadExcel = async () => {
 
   useEffect(()=>{
    if(user){
-    fetchUserApplicationData(),
-    fetchActivityGraph()
+    fetchUserApplicationData()
+    // fetchActivityGraph()
    }
   },[user])
 
@@ -213,8 +242,6 @@ const handleDownloadExcel = async () => {
   }
 };
 
-
-  // completion percent
   const percent = () => {
     const fields = [skills, education, experience.trim(), achievements.trim()];
     const filled = fields.filter(f => Array.isArray(f) ? f.length > 0 : f).length;
@@ -419,47 +446,42 @@ const handleDownloadExcel = async () => {
         </div>
 
  
-     <div className='flex justify-between mr-10'>
+   <div className='flex justify-between mr-10'>
         <h2 className="text-xl font-semibold my-6">Application Activity</h2>
+        <div className="mb-4">
+          <label htmlFor="year-select" className="font-medium mr-2">Select Year:</label>
+          <select
+            id="year-select"
+            className="border px-3 py-1 rounded"
+            value={selectedYear}
+            onChange={e => setSelectedYear(Number(e.target.value))}
+          >
+            {availableYears.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </div>
+      </div>
 
-<div className="mb-4">
-  <label htmlFor="year-select" className="font-medium mr-2">Select Year:</label>
-  <select
-    id="year-select"
-    className="border px-3 py-1 rounded"
-    value={selectedYear}
-    onChange={(e) => setSelectedYear(Number(e.target.value))}
-  >
-    {availableYears.map((year) => (
-      <option key={year} value={year}>{year}</option>
-    ))}
-  </select>
-</div>
-     </div>
-
-<div className="bg-white p-4 rounded-lg shadow-md overflow-x-auto">
-  <CalendarHeatmap
-    startDate={new Date(`${selectedYear}-01-01`)}
-    endDate={new Date(`${selectedYear}-12-31`)}
-    values={userApplications
-      .filter(job => new Date(job.date).getFullYear() === selectedYear)
-      .map(job => ({
-        date: moment(job.date).format("YYYY-MM-DD"),
-        count: 1,
-      }))
-    }
-    classForValue={value => {
-      if (!value) return 'color-empty';
-      return `color-github-${Math.min(value.count, 4)}`;
-    }}
-    tooltipDataAttrs={value => ({
-      'data-tooltip-id': 'heatmap-tooltip',
-      'data-tooltip-html': value.date ? `${value.date}<br/>${value.count} application(s)` : 'No data',
-    })}
-    showWeekdayLabels={true}
-  />
-  <Tooltip id="heatmap-tooltip" />
-</div>
+      <div className="bg-white p-4 rounded-lg shadow-md overflow-x-auto">
+        <CalendarHeatmap
+          startDate={new Date(`${selectedYear}-01-01`)}
+          endDate={new Date(`${selectedYear}-12-31`)}
+          values={valuesForYear}
+          classForValue={value => {
+            if (!value || value.count === 0) return 'color-empty';
+            return `color-github-${Math.min(value.count, 4)}`;
+          }}
+          tooltipDataAttrs={value => ({
+            'data-tooltip-id': 'heatmap-tooltip',
+            'data-tooltip-html': value.date
+              ? `${value.date}<br/>${value.count} application(s)`
+              : 'No data',
+          })}
+          showWeekdayLabels
+        />
+        <Tooltip id="heatmap-tooltip" />
+      </div>
 
 <button onClick={handleDownloadExcel} className="mt-3 px-4 py-2 bg-blue-600 text-white text-sm rounded
                         cursor-pointer hover:bg-blue-700">
