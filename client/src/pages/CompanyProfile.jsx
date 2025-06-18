@@ -13,28 +13,30 @@ const CompanyProfile = () => {
   const [activityData, setActivityData] = useState([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [availableYears, setAvailableYears] = useState([]);
-  
- seEffect(() => {
+
+  useEffect(() => {
     if (!companyData?._id) return;
 
     const fetchActivity = async () => {
       try {
-        const res = await axios.get(
+        const res = await fetch(
           `${backendURL}/api/company/activity-graph/${companyData._id}`
         );
-        const data = res.data;
-        if (data.success && data.graph) {
-          const values = Object.entries(data.graph).map(([date, count]) => ({ date, count }));
+        const data = await res.json();
+        if (data.success) {
+          const rawGraph = data.graph;
+
+          const values = Object.entries(rawGraph).map(([date, count]) => ({
+            date,
+            count,
+          }));
+
           setActivityData(values);
 
-          const years = Array.from(
-            new Set(values.map(val => moment(val.date).year()))
-          ).sort((a, b) => b - a);
-          setAvailableYears(years);
-          // default to most recent year
-          if (years.length && selectedYear === null) {
-            setSelectedYear(years[0]);
-          }
+          const years = new Set(
+            values.map((val) => new Date(val.date).getFullYear())
+          );
+          setAvailableYears(Array.from(years).sort((a, b) => b - a));
         }
       } catch (err) {
         console.error("Failed to fetch company activity", err);
@@ -42,17 +44,9 @@ const CompanyProfile = () => {
     };
 
     fetchActivity();
-  }, [backendURL, companyData, selectedYear]);
+  }, [companyData, backendURL]);
 
   if (!companyData) return null;
-  if (availableYears.length === 0) return <p>No activity data available.</p>;
-
-  const heatmapValues = activityData
-    .filter(item => moment(item.date).year() === selectedYear)
-    .map(item => ({
-      date: moment(item.date).format("YYYY-MM-DD"),
-      count: item.count
-    }));
 
   return (
     <div className="container px-4 min-h-[65vh] 2xl:px-20 mx-auto my-10">
@@ -71,42 +65,57 @@ const CompanyProfile = () => {
           </div>
         </div>
 
-       <div className='flex justify-between items-center mb-6'>
-        <h2 className="text-xl font-semibold">Company Activity</h2>
-        <div>
-          <label htmlFor="year-select" className="font-medium mr-2">Select Year:</label>
-          <select
-            id="year-select"
-            className="border px-3 py-1 rounded"
-            value={selectedYear}
-            onChange={e => setSelectedYear(Number(e.target.value))}
-          >
-            {availableYears.map(year => (
-              <option key={year} value={year}>{year}</option>
-            ))}
-          </select>
+        <div className="flex justify-between mr-10">
+          <h2 className="text-xl font-semibold my-6">Company Activity</h2>
+          <div className="mb-4">
+            <label htmlFor="year-select" className="font-medium mr-2">
+              Select Year:
+            </label>
+            <select
+              id="year-select"
+              className="border px-3 py-1 rounded"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+            >
+              {availableYears.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-      </div>
 
-      <div className="bg-white p-4 rounded-lg shadow-md w-full overflow-x-auto">
-        <CalendarHeatmap
-          startDate={new Date(`${selectedYear}-01-01`)}
-          endDate={new Date(`${selectedYear}-12-31`)}
-          values={heatmapValues}
-          classForValue={value => {
-            if (!value || value.count === 0) return 'color-empty';
-            return `color-github-${Math.min(value.count, 4)}`;
-          }}
-          tooltipDataAttrs={value => ({
-            'data-tooltip-id': 'heatmap-tooltip',
-            'data-tooltip-html': value.date
-              ? `${value.date}<br/>${value.count} application(s)`
-              : 'No data'
-          })}
-          showWeekdayLabels={true}
-        />
-        <Tooltip id="heatmap-tooltip" />
-      </div>
+       <div className="bg-white p-4 rounded-lg shadow-md w-full">
+  <div className="overflow-x-auto">
+    <div className="min-w-[800px]">
+      <CalendarHeatmap
+        startDate={new Date(`${selectedYear}-01-01`)}
+        endDate={new Date(`${selectedYear}-12-31`)}
+        values={activityData
+          .filter(
+            (item) => new Date(item.date).getFullYear() === selectedYear
+          )
+          .map((item) => ({
+            date: moment(item.date).format("YYYY-MM-DD"),
+            count: item.count,
+          }))}
+        classForValue={(value) => {
+          if (!value || value.count === 0) return "color-empty";
+          return `color-github-${Math.min(value.count, 4)}`;
+        }}
+        tooltipDataAttrs={(value) => ({
+          "data-tooltip-id": "heatmap-tooltip",
+          "data-tooltip-html": value.date
+            ? `${value.date}<br/>${value.count} application(s)`
+            : "No data",
+        })}
+        showWeekdayLabels={true}
+      />
+    </div>
+  </div>
+  <Tooltip id="heatmap-tooltip" />
+</div>
 
       </div>
       <CompanyAnalytics/>
