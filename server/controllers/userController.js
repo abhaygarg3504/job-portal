@@ -24,8 +24,8 @@ export const getUserId = (req) => {
 
 export const getUserData = async (req, res) => {
     try {
-        const id = req.params.id; // ✅ Get user ID from URL params
-
+        const id = req.params.id;
+        
         if (!id) {
             return res.status(400).json({ success: false, message: "User ID is required" });
         }
@@ -252,11 +252,10 @@ export const getUserBySlug = async (req, res) => {
   }
 };
 
-// controllers/userController.js
 export const toggleShowApplications = async (req, res) => {
   try {
-    const userId = req.params.userId;            // via requireAuth
-    const { enabled } = req.body;              // boolean
+    const userId = req.params.userId;            
+    const { enabled } = req.body;             
 
     if (typeof enabled !== "boolean") {
       return res.status(400).json({ success:false, message:"`enabled` must be boolean" });
@@ -722,6 +721,7 @@ export const getAllBlogs = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
 export const getUserBlogsBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
@@ -757,7 +757,6 @@ export const getUserBlogsBySlug = async (req, res) => {
       .json({ success: false, message: "Server Error" });
   }
 };
-
 
 export const updateUserProfile = async (req, res) => {
   try {

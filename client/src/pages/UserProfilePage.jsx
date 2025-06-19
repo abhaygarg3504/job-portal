@@ -6,7 +6,23 @@ import CalendarHeatmap from 'react-calendar-heatmap'
 import 'react-calendar-heatmap/dist/styles.css'
 import { Tooltip } from 'react-tooltip'
 import { AppContext } from '../context/AppContext'  
-import { Container, Typography, Card, CardContent, Button, Box, ButtonGroup } from "@mui/material"
+import {
+  Container,
+  Typography,
+  Card,
+  CardContent,
+  Button,
+  Box,
+  ButtonGroup,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Backdrop,
+  CircularProgress
+} from '@mui/material'
+import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
 
 export default function UserProfilePage() {
   const [user, setUser] = useState(null)
@@ -14,6 +30,8 @@ export default function UserProfilePage() {
   const { backendURL } = useContext(AppContext)
   const { slug } = useParams()
    const [selectedBlog, setSelectedBlog] = useState(null)
+    const [blogComments, setBlogComments] = useState([])
+  const [commentsLoading, setCommentsLoading] = useState(false)
     const [view, setView] = useState('applications') 
 
   // Public profile state
@@ -57,16 +75,30 @@ export default function UserProfilePage() {
       .catch(err => console.error('Applications load error', err))
   }, [slug, backendURL])
 
-  useEffect(()=>{
-    if(!slug) return 
+ useEffect(() => {
+    if (!slug) return
     axios.get(`${backendURL}/api/users/profile/${slug}/blogs`)
-    .then(res => {
-        if(res.data.success) setBlogs(res.data.blogs)
-        else setError(res.data.message || "Cloud not load blogs")
-    } )
-    .catch(err => console.error('Blogs load error', err))
-
+      .then(res => {
+        if (res.data.success) setBlogs(res.data.blogs)
+        else setError(res.data.message || 'Could not load blogs')
+      })
+      .catch(err => console.error('Blogs load error', err))
   }, [slug, backendURL])
+
+  // When a blog is selected, extract its comments from the previously fetched blogs
+  useEffect(() => {
+    if (selectedBlog) {
+      setCommentsLoading(true)
+      // find the blog object in blogs array
+      const blogObj = blogs.find(b => b.id === selectedBlog.id)
+      if (blogObj && Array.isArray(blogObj.comments)) {
+        setBlogComments(blogObj.comments)
+      } else {
+        setBlogComments([])
+      }
+      setCommentsLoading(false)
+    }
+  }, [selectedBlog, blogs])
   const fetchBlogs = () => {
     if (!slug) return
     axios.get(`${backendURL}/api/users/profile/${slug}/blogs`)
@@ -79,6 +111,11 @@ export default function UserProfilePage() {
 
   // Fetch blogs on mount and when slug changes
   useEffect(fetchBlogs, [slug, backendURL])
+    
+   const handleClose = () => {
+    setSelectedBlog(null)
+    setBlogComments([])
+  }
 
   if (error) return <p className="p-6 text-center text-red-600">{error}</p>
   if (!user) return <p className="p-6 text-center">Loading…</p>
@@ -90,6 +127,7 @@ export default function UserProfilePage() {
 
   return (
     <div className="max-w-3xl mx-auto mt-10 px-4">
+        <Navbar/>
       {/* Profile Card */}
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
         <div className="flex flex-col md:flex-row items-center p-6 space-y-4 md:space-y-0 md:space-x-6">
@@ -238,40 +276,55 @@ export default function UserProfilePage() {
         ) : (
           <Typography>No applications to display.</Typography>
         )
-      ) : (
-        <Box>
-          {blogs.length === 0 && (
-            <Typography>No blogs to display.</Typography>
-          )}
+      ) :
+       (
+       <Box>
+          {blogs.length === 0 && <Typography>No blogs to display.</Typography>}
           {blogs.map(blog => (
-            <Card
-              key={blog.id}
-              sx={{ my: 2, cursor: 'pointer' }}
-              onClick={() => setSelectedBlog(blog)}
-            >
+            <Card key={blog.id} sx={{ my: 2, cursor: 'pointer' }} onClick={() => setSelectedBlog(blog)}>
               <CardContent>
                 <Typography variant="h6">{blog.title}</Typography>
-                <Typography variant="body2">
-                  {blog.content.slice(0, 100)}…
-                </Typography>
+                <Typography variant="body2">{blog.content.slice(0, 100)}…</Typography>
               </CardContent>
             </Card>
           ))}
-          {selectedBlog && (
-            <Card sx={{ my: 2 }}>
-              <CardContent>
-                <Typography variant="h5">{selectedBlog.title}</Typography>
-                <Typography variant="body1">
-                  {selectedBlog.content}
-                </Typography>
-                <Button onClick={() => setSelectedBlog(null)} sx={{ mt: 2 }}>
-                  Close
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+
+          <Dialog
+            open={Boolean(selectedBlog)}
+            onClose={handleClose}
+            BackdropProps={{ style: { backgroundColor: 'rgba(0, 0, 0, 0.5)' } }}
+            PaperProps={{ sx: { width: '80vw', maxWidth: 'none', height: '80vh' } }}
+          >
+            <DialogTitle>{selectedBlog?.title}</DialogTitle>
+            <DialogContent dividers sx={{ overflowY: 'auto' }}>
+              <Typography variant="body1" paragraph>
+                {selectedBlog?.content}
+              </Typography>
+              <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
+                Comments
+              </Typography>
+              {commentsLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                  <CircularProgress />
+                </Box>
+              ) : (
+                blogComments.map(comment => (
+                  <Box key={comment.id} sx={{ mb: 2, p: 1, border: '1px solid #ddd', borderRadius: 1 }}>
+                    <Typography variant="body2">{comment.content}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {moment(comment.createdAt).fromNow()}
+                    </Typography>
+                  </Box>
+                ))
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleClose}>Close</Button>
+            </DialogActions>
+          </Dialog>
         </Box>
       )}
+      <Footer/>
     </div>
   )
 }

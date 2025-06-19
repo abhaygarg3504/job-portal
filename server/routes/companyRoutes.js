@@ -9,7 +9,10 @@ import {
     deleteJob, 
     downloadCompanyApplicationsExcel, 
     getBlogComments, 
+    getCompanyActivityGraphBySlug, 
+    getCompanyBlogsBySlug, 
     getCompanyData, 
+    getCompanyDataBySlug, 
     getCompanyJobApplicants, 
     getCompanyPostedJobs, 
     loginCompany, 
@@ -59,5 +62,8 @@ router.get('/analytics/:companyId', getCompanyAnalytics);
 router.delete('/delete/:id', ProtectionCompany, deleteJob);
 router.post("/upload-jobs-excel", ProtectionCompany,uploadExcel.single("file"),uploadJobsExcel);
 router.get("/applications/excel", ProtectionCompany, downloadCompanyApplicationsExcel);
+router.get("/profile/:slug", getCompanyDataBySlug)
+router.get("/profile/:slug/activity", getCompanyActivityGraphBySlug)
+router.get("/profile/:slug/blogs", getCompanyBlogsBySlug)
 
 export default router;

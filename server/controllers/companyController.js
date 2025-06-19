@@ -12,6 +12,7 @@ import { PrismaClient } from '@prisma/client';
 import User from "../models/User.js";
 import { logCompanyActivity } from "../middlewares/activityTrack.js";
 import XLSX from "xlsx";
+import { getActivityGraphByRole } from "./activityController.js";
 const prisma = new PrismaClient();
 
 export const registerCompany= async(req, res) => {
@@ -114,6 +115,86 @@ export const getCompanyData = async (req, res) => {
     }
 };
 
+export const getCompanyDataBySlug = async(req, res) => {
+  try {
+    const {slug} = req.params;
+     if (!slug) {
+      return res.status(400).json({ success: false, message: "Slug is required" });
+    }
+
+    const company = await Company.findOne({slug}).select("-password")
+
+    if (!company) {
+      return res.status(404).json({ success: false, message: "Company not found" });
+    }
+
+    return res.json({ success: true, company });
+    
+  } catch (error) {
+    console.error(`error in getcompanydatabySlug `, error.message)
+    res.json({success: false, message:error.message || "Internal Server Error"})
+  }
+};
+
+export const getCompanyActivityGraphBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    if (!slug) {
+      return res.status(400).json({ success: false, message: "Slug is required" });
+    }
+
+    // 1) Lookup user ID by slug
+    const company = await Company.findOne({ slug }).select("_id").lean();
+    if (!company) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // 2) Call the shared logic, not the Express handler
+    const graph = await getActivityGraphByRole(company._id, "company");
+
+    return res.json({ success: true, graph });
+  } catch (err) {
+    console.error("getCompanyActivityGraphBySlug:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const getCompanyBlogsBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    if (!slug) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Slug is required" });
+    }
+
+    // 1) Lookup the user by slug
+    const company = await Company.findOne({ slug }).select("_id password").lean();
+    if (!company) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // 2) Query Prisma for blogs by that userId
+    const blogs = await prisma.blog.findMany({
+      where: { companyId: company._id },
+      orderBy: { createdAt: "desc" },
+      include: {
+        comments: true,    // or leave out/include fields as you wish
+      },
+    });
+
+    // 3) Return
+    return res.json({ success: true, blogs });
+  } catch (err) {
+    console.error("getUserBlogsBySlug:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Server Error" });
+  }
+};
+
 export const postJob = async (req, res) => {
     if (!req.company) {
         return res.status(401).json({ success: false, message: "Not Authorized, Login Again" });
@@ -186,7 +267,7 @@ export const getCompanyPostedJobs = async (req, res) => {
       console.error(`Error in getCompanyPostedJobs: ${err.message}`);
       res.status(500).json({ success: false, message: "Internal Server Error" });
     }
-  };
+};
   
 export const changeJobApplicationStatus = async (req, res) => {
   try {

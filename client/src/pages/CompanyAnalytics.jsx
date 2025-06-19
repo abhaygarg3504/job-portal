@@ -89,17 +89,6 @@ const CompanyAnalytics = () => {
     ],
   };
 
-  const fillRateData = {
-    labels: analytics.jobFillRates.map(j => j.jobTitle),
-    datasets: [
-      {
-        label: "Days to Fill",
-        data: analytics.jobFillRates.map(j => j.daysToFill),
-        backgroundColor: "#f59e42",
-      },
-    ],
-  };
-
   const stackedBarData = {
     labels: analytics.statusDistributionPerJob.map(j => j.jobTitle),
     datasets: [
@@ -142,11 +131,7 @@ const CompanyAnalytics = () => {
           </ChartCard>
         </div>
 
-        <div className="md:col-span-2">
-          <ChartCard title="Job Fill Rate">
-            <Bar data={fillRateData} options={{ indexAxis: "y" }} />
-          </ChartCard>
-        </div>
+        
 
         <div className="md:col-span-2">
           <ChartCard title="Status Distribution Per Job">

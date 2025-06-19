@@ -62,6 +62,7 @@ const CompanyProfile = () => {
           <div className="flex-1">
             <h2 className="text-2xl font-bold">{companyData?.name}</h2>
             <p className="text-gray-600">{companyData?.email}</p>
+            <p className="text-gray-600">Slug: {companyData?.slug}</p>
           </div>
         </div>
 

@@ -19,6 +19,7 @@ import BlogPage from './pages/BlogPage'
 import CompanyProfile from './pages/CompanyProfile'
 import JobRecommend from './pages/JobRecommend'
 import UserProfilePage from './pages/UserProfilePage'
+import CompanyPublicProfile from './pages/CompanyPublicProfile'
 
 const App = () => {
   const { showRecuriterLogin, companyToken, isSavedJobsOpen, setIsSavedJobsOpen,
@@ -35,6 +36,7 @@ const App = () => {
         <Route path='/application' element={<Application />} />
         <Route path='/apply-job/:id' element={<ApplyJob />} />
         <Route path="/profile/:slug" element={<UserProfilePage />} />
+         <Route path="/companyProfile/:slug" element={<CompanyPublicProfile />} />
         <Route path='/subscribe' element={<Subscribe/>}/>
          <Route path="/chat-system" element={<ChatSystem />} />
          <Route path="/blogs" element={<BlogPage />} />
