@@ -15,6 +15,7 @@ import streamifier from "streamifier"
 import axios from "axios"
 import XLSX from "xlsx";
 import { parseResumeFromUrl } from "../utils/resumeParser.js";
+import { getActivityGraphByRole} from "./activityController.js";
 export const getUserId = (req) => {
     const userId = req.query.id;
     if (!userId) throw new Error("User ID not found in request query");
@@ -227,6 +228,53 @@ export const getUserApplicationsCount = async (req, res) => {
     return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
+export const getUserBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    if (!slug) {
+      return res.status(400).json({ success: false, message: "Slug is required" });
+    }
+
+    // find by slug
+    const user = await User.findOne({ slug })
+      .select("-savedJobs -email")   // omit anything you don’t want public
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    return res.json({ success: true, user });
+  } catch (err) {
+    console.error("getUserBySlug:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const getActivityGraphBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    if (!slug) {
+      return res.status(400).json({ success: false, message: "Slug is required" });
+    }
+
+    // 1) Lookup user ID by slug
+    const user = await User.findOne({ slug }).select("_id").lean();
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // 2) Call the shared logic, not the Express handler
+    const graph = await getActivityGraphByRole(user._id, "user");
+
+    return res.json({ success: true, graph });
+  } catch (err) {
+    console.error("getActivityGraphBySlug:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 
 export const razorPayInstance = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,

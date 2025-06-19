@@ -50,10 +50,25 @@ experience: {
 achievements: {
   type: [String],
   default: []
-}
-
+},
+slug: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true,
+  }
 });
 
+// before saving a new user, generate slug from the name + id
+userSchema.pre("validate", function(next) {
+  if (this.isNew || this.isModified("name")) {
+    // e.g. "John Doe" → "john-doe-<shortid>"
+    const base = slugify(this.name, { lower: true, strict: true });
+    const suffix = this._id.slice(0, 6); 
+    this.slug = `${base}-${suffix}`;
+  }
+  next();
+});
 
 const User = mongoose.model('User', userSchema);
 

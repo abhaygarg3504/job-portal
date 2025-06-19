@@ -1,13 +1,11 @@
 import express from 'express';
-import { addComment, applyForData, createUserBlog, createUserData ,deleteComment,deleteUserBlog,downloadUserApplicationsExcel,getAllBlogs,getJobRecommendations,getResumeBlob,getSavedJobs,getUserApplicationsCount,getUserData, getUserJobApplication, parseAndUpdateProfileFromResume, paymentRazorPay, saveJob, unsaveJob, updateComment, updateResume, updateUserBlog, updateUserProfile, verifyRazorPay } from '../controllers/userController.js';
+import { addComment, applyForData, createUserBlog, createUserData ,deleteComment,deleteUserBlog,downloadUserApplicationsExcel,getActivityGraphBySlug,getAllBlogs,getJobRecommendations,getResumeBlob,getSavedJobs,getUserApplicationsCount,getUserBySlug,getUserData, getUserJobApplication, parseAndUpdateProfileFromResume, paymentRazorPay, saveJob, unsaveJob, updateComment, updateResume, updateUserBlog, updateUserProfile, verifyRazorPay } from '../controllers/userController.js';
 import upload from '../config/multeri.js';
 import { getBlogComments } from '../controllers/companyController.js';
 
 import { requireAuth } from '@clerk/express';
 import { getUserActivityGraph } from '../controllers/activityController.js';
 import { userAnalytics } from '../controllers/userAnalyticsController.js';
-// import { applyJobLimiter, blogLimiter } from '../middlewares/rateLimiter.js';
-
 const router = express.Router();
 router.post('/user', createUserData);
 router.get('/user/:id', getUserData);
@@ -15,6 +13,8 @@ router.post('/apply/:id',  applyForData);
 router.get('/applications/:id', getUserJobApplication);
 router.post('/update-resume/:id', upload.single("resume"), updateResume);
 router.get('/applications/count/:id', getUserApplicationsCount);
+router.get("/profile/:slug", getUserBySlug);
+router.get("/profile/:slug/activity-graph", getActivityGraphBySlug);
 router.post('/pay-razor', paymentRazorPay);
 router.get('/resume-blob/:id', getResumeBlob);
 router.post('/verify-razor', verifyRazorPay)

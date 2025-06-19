@@ -122,25 +122,6 @@ const updateResume = async () => {
     }
   };
 
-//   const fetchActivityGraph = async () => {
-//   try {
-//     const { data } = await axios.get(`${backendURL}/api/users/activity-graph/${user?.id}`);
-//     if (data.success) {
-//       const transformed = Object.entries(data.graph).map(([date, count]) => ({
-//         date,
-//         count
-//       }));
-//       setActivityData(transformed);
-//     }
-//   } catch (err) {
-//     console.error("Error fetching activity graph:", err);
-//   }
-// };
-
-// const availableYears = [...new Set(userApplications.map(job =>
-//   new Date(job.date).getFullYear()
-// ))].sort((a, b) => b - a); // descending
-
 useEffect(() => {
     const fetchActivityGraph = async () => {
       try {
@@ -193,7 +174,6 @@ const handleDownloadExcel = async () => {
   a.remove();
   window.URL.revokeObjectURL(url);
 };
-
 
   useEffect(()=>{
    if(user){
@@ -274,6 +254,7 @@ const handleDownloadExcel = async () => {
     <div className="flex-1 w-full">
       <h2 className="text-xl sm:text-2xl font-bold">{userData?.name}</h2>
       <p className="text-gray-600 text-sm sm:text-base">{userData?.email}</p>
+      <p className="text-gray-600 text-sm sm:text-base">User's slug: {userData?.slug}</p>
       <button
         onClick={() => setIsEdit(!isEdit)}
         className="mt-3 px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
