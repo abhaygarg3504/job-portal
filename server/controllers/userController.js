@@ -252,6 +252,25 @@ export const getUserBySlug = async (req, res) => {
   }
 };
 
+// controllers/userController.js
+export const toggleShowApplications = async (req, res) => {
+  try {
+    const userId = req.params.userId;            // via requireAuth
+    const { enabled } = req.body;              // boolean
+
+    if (typeof enabled !== "boolean") {
+      return res.status(400).json({ success:false, message:"`enabled` must be boolean" });
+    }
+
+    await User.findByIdAndUpdate(userId, { showApplications: enabled });
+    return res.json({ success: true, showApplications: enabled });
+  } catch (err) {
+    console.error("toggleShowApplications:", err);
+    return res.status(500).json({ success:false, message:"Server error" });
+  }
+};
+
+
 export const getActivityGraphBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
@@ -275,6 +294,42 @@ export const getActivityGraphBySlug = async (req, res) => {
   }
 };
 
+export const getUserApplicationsBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    if (!slug) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Slug is required" });
+    }
+
+    // 1) Look up the user by slug
+      const user = await User.findOne({ slug }).select("_id showApplications").lean();
+    if (!user) return res.status(404).json({ success:false, message:"User not found" });
+
+    if (!user.showApplications) {
+      // Stranger requests get an empty list (or you could 403)
+      return res.json({ success: true, applications: [] });
+    }
+
+    // 2) Query applications for that userId
+    const applications = await JobApplication.find({
+      userId: user._id,
+      jobId: { $ne: null },
+    })
+      .populate("companyId", "name email image")
+      .populate("jobId", "title description category location salary")
+      .exec();
+
+    // 3) Return
+    return res.json({ success: true, applications });
+  } catch (err) {
+    console.error("getUserApplicationsBySlug:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Server Error" });
+  }
+};
 
 export const razorPayInstance = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
@@ -643,8 +698,8 @@ export const getAllBlogs = async (req, res) => {
     const companies = await Company.find({ _id: { $in: companyIds } });
     const users = await User.find({ _id: { $in: userIds } });
     const enrichedBlogs = blogs.map(blog => {
-      const company = companies.find(c => c._id.toString() === blog.companyId);
-      const user = users.find(u => u._id.toString() === blog.userId);
+    const company = companies.find(c => c._id.toString() === blog.companyId);
+    const user = users.find(u => u._id.toString() === blog.userId);
 
       let author = null;
       
@@ -667,6 +722,42 @@ export const getAllBlogs = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+export const getUserBlogsBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    if (!slug) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Slug is required" });
+    }
+
+    // 1) Lookup the user by slug
+    const user = await User.findOne({ slug }).select("_id").lean();
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // 2) Query Prisma for blogs by that userId
+    const blogs = await prisma.blog.findMany({
+      where: { userId: user._id },
+      orderBy: { createdAt: "desc" },
+      include: {
+        comments: true,    // or leave out/include fields as you wish
+      },
+    });
+
+    // 3) Return
+    return res.json({ success: true, blogs });
+  } catch (err) {
+    console.error("getUserBlogsBySlug:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Server Error" });
+  }
+};
+
 
 export const updateUserProfile = async (req, res) => {
   try {

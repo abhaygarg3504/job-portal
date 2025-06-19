@@ -14,6 +14,7 @@ import 'quill/dist/quill.snow.css';
 import { useRef } from 'react';
 import { toast } from 'react-toastify';
 import UserAnalytics from './UserAnalytics';
+import { Switch, FormControlLabel } from "@mui/material";
 
 const Application = () => {
   const { user } = useUser();
@@ -22,6 +23,7 @@ const Application = () => {
   const [resume, setResume] = useState(null);
   const [activityData, setActivityData] = useState([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  
  
   const { backendURL, totalJobs, applyJobs, userData, userApplications, 
     fetchUserData,fetchUserApplicationData, userId,isJobRecommand,setIsJobRecommend} = useContext(AppContext);
@@ -33,6 +35,21 @@ const [skills, setSkills] = useState(userData?.skills || []);
 const [education, setEducation] = useState(userData?.education || []);
 const [experience, setExperience] = useState(userData?.experience?.join('\n') || '');
 const [achievements, setAchievements] = useState(userData?.achievements?.join('\n') || '');
+const [enabled, setEnabled] = useState(userData?.showApplications ?? true);
+ const update = async (val) => {
+    const token = await getToken();
+    await axios.put(
+      `${backendURL}/api/users/settings/applications-visibility/${userId}`,
+      { enabled: val },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    setEnabled(val);
+    fetchUserData();  // refresh userData
+  };
+
+  useEffect(()=>{
+   update()
+  },[backendURL, userId])
 
  useEffect(() => {
     if (userData) {
@@ -254,7 +271,7 @@ const handleDownloadExcel = async () => {
     <div className="flex-1 w-full">
       <h2 className="text-xl sm:text-2xl font-bold">{userData?.name}</h2>
       <p className="text-gray-600 text-sm sm:text-base">{userData?.email}</p>
-      <p className="text-gray-600 text-sm sm:text-base">User's slug: {userData?.slug}</p>
+      <p className="text-gray-600 text-sm sm:text-base">Slug For Public Profile: {userData?.slug}</p>
       <button
         onClick={() => setIsEdit(!isEdit)}
         className="mt-3 px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
@@ -289,6 +306,18 @@ const handleDownloadExcel = async () => {
           </div>
         </div>
         <p className="text-sm text-gray-500 text-center sm:text-left">Jobs Applied</p>
+      </div>
+      <div>
+         <FormControlLabel
+      control={
+        <Switch
+          checked={enabled}
+          onChange={e => update(e.target.checked)}
+          color="primary"
+        />
+      }
+      label="Show my applications on public profile"
+    />
       </div>
 
       {/* Profile Completion */}

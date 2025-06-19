@@ -56,6 +56,11 @@ slug: {
     required: true,
     unique: true,
     index: true,
+  },
+   showApplications: {
+    type: Boolean,
+    required: true,
+    default: true
   }
 });
 

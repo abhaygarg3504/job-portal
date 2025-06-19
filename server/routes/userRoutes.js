@@ -1,5 +1,5 @@
 import express from 'express';
-import { addComment, applyForData, createUserBlog, createUserData ,deleteComment,deleteUserBlog,downloadUserApplicationsExcel,getActivityGraphBySlug,getAllBlogs,getJobRecommendations,getResumeBlob,getSavedJobs,getUserApplicationsCount,getUserBySlug,getUserData, getUserJobApplication, parseAndUpdateProfileFromResume, paymentRazorPay, saveJob, unsaveJob, updateComment, updateResume, updateUserBlog, updateUserProfile, verifyRazorPay } from '../controllers/userController.js';
+import { addComment, applyForData, createUserBlog, createUserData ,deleteComment,deleteUserBlog,downloadUserApplicationsExcel,getActivityGraphBySlug,getAllBlogs,getJobRecommendations,getResumeBlob,getSavedJobs,getUserApplicationsBySlug,getUserApplicationsCount,getUserBlogsBySlug,getUserBySlug,getUserData, getUserJobApplication, parseAndUpdateProfileFromResume, paymentRazorPay, saveJob, toggleShowApplications, unsaveJob, updateComment, updateResume, updateUserBlog, updateUserProfile, verifyRazorPay } from '../controllers/userController.js';
 import upload from '../config/multeri.js';
 import { getBlogComments } from '../controllers/companyController.js';
 
@@ -14,7 +14,9 @@ router.get('/applications/:id', getUserJobApplication);
 router.post('/update-resume/:id', upload.single("resume"), updateResume);
 router.get('/applications/count/:id', getUserApplicationsCount);
 router.get("/profile/:slug", getUserBySlug);
+router.put("/settings/applications-visibility/:userId",toggleShowApplications);
 router.get("/profile/:slug/activity-graph", getActivityGraphBySlug);
+router.get("/profile/:slug/applications", getUserApplicationsBySlug);
 router.post('/pay-razor', paymentRazorPay);
 router.get('/resume-blob/:id', getResumeBlob);
 router.post('/verify-razor', verifyRazorPay)
@@ -28,6 +30,7 @@ router.delete("/comments/:commentId", requireAuth(), deleteComment);
 router.post("/blogs", requireAuth(), createUserBlog);
 router.put("/blogs/:id", requireAuth(), updateUserBlog);
 router.delete("/blogs/:id", requireAuth(), deleteUserBlog);
+router.get("/profile/:slug/blogs",   getUserBlogsBySlug);
 router.get("/getAllBlogs", getAllBlogs)
 router.get("/activity-graph/:id", getUserActivityGraph);
 router.get("/analytics/:userId", userAnalytics);
