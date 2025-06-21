@@ -5,11 +5,16 @@ import App from './App.jsx';
 import { BrowserRouter } from 'react-router-dom';
 import { AppContextProvider } from './context/AppContext.jsx';
 import {ClerkProvider} from '@clerk/clerk-react'
+import web_log from './assets/website_logo.svg'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
 if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key")
+}
+const link = document.querySelector('#favicon')
+if (link) {
+  link.setAttribute('href', web_log)
 }
 
 createRoot(document.getElementById('root')).render(

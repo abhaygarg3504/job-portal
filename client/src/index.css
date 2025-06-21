@@ -1,4 +1,4 @@
-/* @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap'); */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
 
 @import "tailwindcss";
 
@@ -44,6 +44,36 @@
   color: white !important;
 } */
  /* index.css */
+
+/* 1. Bring in Tailwind’s Reset (preflight) */
+/* @import "tailwindcss/preflight"; */
+
+/* 2. Your custom base‐layer styles */
+@layer base {
+  html { scroll-behavior: smooth; }
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* 3. Your custom utilities (grid vs list) */
+@layer utilities {
+  .blog-grid {
+    @apply grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3;
+  }
+  .blog-list {
+    @apply flex flex-col gap-6;
+  }
+}
+
+/* 4. Any other overrides—e.g. your react-calendar, message‑bubble, etc. */
+/* …and so on… */
+
+/* 5. Finally, pull in Tailwind’s utility classes */
+@import "tailwindcss/utilities";
+
+
 .react-calendar {
   border: none !important;
   background-color: transparent;

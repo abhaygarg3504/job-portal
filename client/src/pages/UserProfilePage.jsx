@@ -212,66 +212,85 @@ export default function UserProfilePage() {
             <Typography variant="h5" gutterBottom>
               Jobs Applied
             </Typography>
-            <table className="min-w-full bg-white border rounded-lg">
-              <thead>
-                <tr>
-                  {['Company', 'Job Title', 'Date', 'Status', 'Interview Date'].map(
-                    header => (
-                      <th
-                        key={header}
-                        className="py-2 px-4 text-left border-b"
-                      >
-                        {header}
-                      </th>
-                    )
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {userApplications.map((app, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50">
-                    <td className="py-2 px-4 border-b flex items-center gap-2">
-                      {app.companyId ? (
-                        <>
-                          <img
-                            src={app.companyId.image}
-                            alt={app.companyId.name}
-                            className="w-8 h-8 rounded"
-                          />
-                          {app.companyId.name}
-                        </>
-                      ) : (
-                        <span className="italic text-gray-400">N/A</span>
-                      )}
-                    </td>
-                    <td className="py-2 px-4 border-b">
-                      {app.jobId?.title || 'N/A'}
-                    </td>
-                    <td className="py-2 px-4 border-b">
-                      {moment(app.date).format('LL')}
-                    </td>
-                    <td className="py-2 px-4 border-b">
-                      <span
-                        className={`px-2 py-1 rounded ${
-                          app.status === 'Accepted'
-                            ? 'bg-green-200'
-                            : app.status === 'Rejected'
-                            ? 'bg-red-200'
-                            : 'bg-blue-200'
-                        }`}
-                      >
-                        {app.status}
-                      </span>
-                    </td>
-                    <td className="py-2 px-4 border-b">
-                      {app.interviewDate
-                        ? moment(app.interviewDate).format('LL')
-                        : 'N/A'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+           <div className="overflow-x-auto">
+  <table className="min-w-full bg-white border border-gray-200 text-sm sm:text-base rounded-lg">
+    <thead>
+      <tr className="border-b bg-gray-50">
+        <th className="px-2 py-3 text-left">Company</th>
+        <th className="px-2 py-3 text-left hidden sm:table-cell">Job Title</th>
+        <th className="px-2 py-3 text-left hidden sm:table-cell">Location</th>
+        <th className="px-2 py-3 text-left">Date</th>
+        <th className="px-2 py-3 text-left">Status</th>
+        <th className="px-2 py-3 text-left">Interview Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {userApplications
+        .slice()
+        .reverse()
+        .map((job, idx) => (
+          <tr key={idx} className="border-b hover:bg-gray-50">
+            {/* Company */}
+            <td className="px-2 py-2">
+              <div className="flex items-center gap-2 max-w-[200px]">
+                {job.companyId ? (
+                  <>
+                    <img
+                      className="w-8 h-8 object-cover rounded-full flex-shrink-0"
+                      src={job.companyId.image}
+                      alt={job.companyId.name}
+                    />
+                    <span className="truncate">{job.companyId.name}</span>
+                  </>
+                ) : (
+                  <span className="text-gray-400 italic">Unknown Company</span>
+                )}
+              </div>
+            </td>
+
+            {/* Job Title (sm+) */}
+            <td className="px-2 py-2 hidden sm:table-cell truncate max-w-[120px]">
+              {job.jobId?.title || 'N/A'}
+            </td>
+
+            {/* Location (sm+) */}
+            <td className="px-2 py-2 hidden sm:table-cell truncate max-w-[120px]">
+              {job.jobId?.location || 'N/A'}
+            </td>
+
+            {/* Date */}
+            <td className="px-2 py-2 whitespace-nowrap">
+              {job.date ? moment(job.date).format('ll') : 'N/A'}
+            </td>
+
+            {/* Status */}
+            <td className="px-2 py-2 whitespace-nowrap">
+              <span
+                className={
+                  (job.status === 'Accepted'
+                    ? 'bg-green-100 text-green-800'
+                    : job.status === 'Rejected'
+                    ? 'bg-red-100 text-red-800'
+                    : 'bg-blue-100 text-blue-800') +
+                  ' px-3 py-1 rounded-full text-xs font-semibold'
+                }
+              >
+                {job.status}
+              </span>
+            </td>
+
+            {/* Interview Date */}
+            <td className="px-2 py-2 whitespace-nowrap">
+              {job.status === 'Accepted' && job.interviewDate
+                ? moment(job.interviewDate).format('ll')
+                : 'N/A'}
+            </td>
+          </tr>
+        ))}
+    </tbody>
+  </table>
+</div>
+
           </Box>
         ) : (
           <Typography>No applications to display.</Typography>

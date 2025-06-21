@@ -18,14 +18,17 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  CircularProgress
+  CircularProgress, 
 } from '@mui/material'
 import Navbar from '../components/Navbar'
+import GridViewOutlinedIcon from '@mui/icons-material/GridViewOutlined';
+import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
+
 
 export default function CompanyPublicProfile() {
   const { backendURL } = useContext(AppContext)
   const { slug } = useParams()
-
+  const [viewMode, setViewMode] = useState('grid');
   const [company, setCompany] = useState(null)
   const [activityData, setActivityData] = useState([])
   const [blogs, setBlogs] = useState([])
@@ -168,27 +171,43 @@ export default function CompanyPublicProfile() {
       )}
 
       {/* Blogs List */}
-       <Typography variant="h6" gutterBottom>Blogs</Typography>
+         <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold">Blogs</h2>
+        <div className="space-x-2">
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`p-2 rounded ${viewMode === 'grid' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
+          >
+            <GridViewOutlinedIcon className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setViewMode('list')}
+            className={`p-2 rounded ${viewMode === 'list' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
+          >
+            <ArticleOutlinedIcon className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Blogs container: apply grid or list */}
       {blogs.length === 0 ? (
-        <Typography>No blogs published yet.</Typography>
+        <p className="text-gray-500">No blogs published yet.</p>
       ) : (
-        <Grid container spacing={2}>
+        <div className={viewMode === 'grid' ? 'blog-grid' : 'blog-list'}>
           {blogs.map(blog => (
-            <Grid item xs={12} key={blog.id}>
-              <Card sx={{ cursor: 'pointer' }} onClick={() => setSelectedBlog(blog)}>
-                <CardContent>
-                  <Typography variant="h6">{blog.title}</Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap', mb: 1 }}>
-                    {blog.content.slice(0, 150)}…
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {moment(blog.createdAt).format('LL')}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
+            <div
+              key={blog.id}
+              onClick={() => setSelectedBlog(blog)}
+              className="cursor-pointer bg-white rounded-lg shadow p-4 hover:shadow-lg transition"
+            >
+              <h3 className="text-lg font-medium mb-2">{blog.title}</h3>
+              <p className="text-gray-600 mb-1 line-clamp-3">{blog.content}</p>
+              <time className="text-sm text-gray-400">
+                {moment(blog.createdAt).format('LL')}
+              </time>
+            </div>
           ))}
-        </Grid>
+        </div>
       )}
 
       <Dialog open={Boolean(selectedBlog)} onClose={handleClose}

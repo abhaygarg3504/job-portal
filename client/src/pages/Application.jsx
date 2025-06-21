@@ -300,13 +300,14 @@ const handleDownloadExcel = async () => {
       {copied && (
         <span className="ml-2 text-green-500 text-xs">Copied!</span>
       )}
-       </div>
-      <button
+     <button
         onClick={() => setIsEdit(!isEdit)}
         className="mt-3 px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
       >
         {isEdit ? 'Cancel' : 'Edit Profile'}
       </button>
+       </div>
+      
 
       {/* Application Progress */}
       <div className="mt-5 flex flex-col sm:flex-row sm:items-center gap-4">
@@ -528,59 +529,86 @@ const handleDownloadExcel = async () => {
 
         <h2 className='text-xl font-semibold mb-4'>Jobs Applied</h2>
 
-        <table className='min-w-full  bg-white border rounded-lg'>
-          <thead>
-            <tr>
-              <th className='py-3 px-4 border-b text-left'>Company</th>
-              <th className='py-3 px-4 border-b text-left'>Job Title</th>
-              <th className='py-3 px-4 border-b text-left max-sm:hidden'>Location</th>
-              <th className='py-3 px-4 border-b text-left max-sm:hidden'>Date</th>
-              <th className='py-3 px-4 border-b text-left'>Status</th>
-              <th className='py-3 px-4 border-b text-left'>Interview Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {userApplications.reverse().map((job, index) => (
-              <tr key={index}>
-                <td className='py-2 px-2 flex items-center gap-2 border-b'>
-  {job.companyId ? (
-    <>
-      <img className='w-8 h-8' src={job.companyId.image} alt={job.companyId.name} />
-      {job.companyId.name}
-    </>
-  ) : (
-    <span className="text-sm text-gray-400 italic">Unknown Company</span>
-  )}
-</td>
+    <div className="overflow-x-auto">
+  <table className="min-w-full bg-white border border-gray-200 text-sm sm:text-base rounded-lg">
+    <thead>
+      <tr className="border-b bg-gray-50">
+        <th className="px-2 py-3 text-left">Company</th>
+        <th className="px-2 py-3 text-left hidden sm:table-cell">Job Title</th>
+        <th className="px-2 py-3 text-left hidden sm:table-cell">Location</th>
+        <th className="px-2 py-3 text-left">Date</th>
+        <th className="px-2 py-3 text-left">Status</th>
+        <th className="px-2 py-3 text-left">Interview Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {userApplications
+        .slice()
+        .reverse()
+        .map((job, idx) => (
+          <tr key={idx} className="border-b hover:bg-gray-50">
+            {/* Company */}
+            <td className="px-2 py-2">
+              <div className="flex items-center gap-2 max-w-[200px]">
+                {job.companyId ? (
+                  <>
+                    <img
+                      className="w-8 h-8 object-cover rounded-full flex-shrink-0"
+                      src={job.companyId.image}
+                      alt={job.companyId.name}
+                    />
+                    <span className="truncate">{job.companyId.name}</span>
+                  </>
+                ) : (
+                  <span className="text-gray-400 italic">Unknown Company</span>
+                )}
+              </div>
+            </td>
 
-               <td className='py-2 px-4 border-b'>
-  {job.jobId?.title || <span className="text-gray-400 italic">N/A</span>}
-</td>
-<td className='py-2 px-4 border-b max-sm:hidden'>
-  {job.jobId?.location || <span className="text-gray-400 italic">N/A</span>}
-</td>
+            {/* Job Title (sm+) */}
+            <td className="px-2 py-2 hidden sm:table-cell truncate max-w-[120px]">
+              {job.jobId?.title || 'N/A'}
+            </td>
 
-                <td className='py-2 px-4 border-b max-sm:hidden'>{moment(job.date).format('ll')}</td>
-                <td className='py-2 px-4 border-b'>
-                  <span className={`${job.status === 'Accepted' ? 'bg-green-200' : job.status === 'Rejected' ? 'bg-red-200' : 'bg-blue-200'} px-4 py-1.5 rounded`}>
-                    {job.status}
-                  </span>
-                  
-                </td>
-              <td className='py-2 px-4 border-b'>
-  {job.status === 'Accepted' && job.interviewDate ? (
-    <span className="text-sm text-gray-600">
-      {moment(job.interviewDate).format('ll')}
-    </span>
-  ) : (
-    <span className="text-sm text-gray-400 italic">N/A</span>
-  )}
-</td>
+            {/* Location (sm+) */}
+            <td className="px-2 py-2 hidden sm:table-cell truncate max-w-[120px]">
+              {job.jobId?.location || 'N/A'}
+            </td>
 
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            {/* Date */}
+            <td className="px-2 py-2 whitespace-nowrap">
+              {job.date ? moment(job.date).format('ll') : 'N/A'}
+            </td>
+
+            {/* Status */}
+            <td className="px-2 py-2 whitespace-nowrap">
+              <span
+                className={
+                  (job.status === 'Accepted'
+                    ? 'bg-green-100 text-green-800'
+                    : job.status === 'Rejected'
+                    ? 'bg-red-100 text-red-800'
+                    : 'bg-blue-100 text-blue-800') +
+                  ' px-3 py-1 rounded-full text-xs font-semibold'
+                }
+              >
+                {job.status}
+              </span>
+            </td>
+
+            {/* Interview Date */}
+            <td className="px-2 py-2 whitespace-nowrap">
+              {job.status === 'Accepted' && job.interviewDate
+                ? moment(job.interviewDate).format('ll')
+                : 'N/A'}
+            </td>
+          </tr>
+        ))}
+    </tbody>
+  </table>
+</div>
+
+
 
         <UserAnalytics/>
       </div>
