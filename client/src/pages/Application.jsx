@@ -15,6 +15,7 @@ import { useRef } from 'react';
 import { toast } from 'react-toastify';
 import UserAnalytics from './UserAnalytics';
 import { Switch, FormControlLabel } from "@mui/material";
+import { Copy } from 'lucide-react';
 
 const Application = () => {
   const { user } = useUser();
@@ -23,14 +24,13 @@ const Application = () => {
   const [resume, setResume] = useState(null);
   const [activityData, setActivityData] = useState([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  
- 
+
   const { backendURL, totalJobs, applyJobs, userData, userApplications, 
     fetchUserData,fetchUserApplicationData, userId,isJobRecommand,setIsJobRecommend} = useContext(AppContext);
 
-     const quillExperienceRef = useRef(null);
+  const quillExperienceRef = useRef(null);
 const quillAchievementsRef = useRef(null);
-
+ const [copied, setCopied] = useState(false);
 const [skills, setSkills] = useState(userData?.skills || []);
 const [education, setEducation] = useState(userData?.education || []);
 const [experience, setExperience] = useState(userData?.experience?.join('\n') || '');
@@ -59,6 +59,7 @@ const [enabled, setEnabled] = useState(userData?.showApplications ?? true);
       setAchievements((userData.achievements || []).join('\n'));
     }
   }, [userData]);
+  const origin  = window.location.origin;
 
    useEffect(() => {
   if (isEdit) {
@@ -76,8 +77,7 @@ const [enabled, setEnabled] = useState(userData?.showApplications ?? true);
       quillAchievementsRef.current.root.innerHTML = achievements;
     }
   }
-}, [isEdit]);  // Run only when isEdit becomes true
-
+}, [isEdit]); 
 
 const updateResume = async () => {
   try {
@@ -173,9 +173,22 @@ const openResume = () => {
     toast.error("No resume found");
     return;
   }
-  // This will open the PDF in a new tab and the browser’s built‑in viewer will kick in
   window.open(userData.resume, "_blank");
 };
+
+
+   const handleCopy = async () => {
+    const fullUrl = `${origin}/profile/${userData?.slug}`;
+    try {
+      await navigator.clipboard.writeText(fullUrl);
+      setCopied(true);
+      // reset the “Copied!” indicator after a moment
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Copy failed', err);
+    }
+  };
+
 const handleDownloadExcel = async () => {
   const token = await getToken();
   const response = await fetch(`${backendURL}/api/users/applications/excel/${userId}`, {
@@ -195,7 +208,6 @@ const handleDownloadExcel = async () => {
   useEffect(()=>{
    if(user){
     fetchUserApplicationData()
-    // fetchActivityGraph()
    }
   },[user])
 
@@ -271,7 +283,24 @@ const handleDownloadExcel = async () => {
     <div className="flex-1 w-full">
       <h2 className="text-xl sm:text-2xl font-bold">{userData?.name}</h2>
       <p className="text-gray-600 text-sm sm:text-base">{userData?.email}</p>
-      <p className="text-gray-600 text-sm sm:text-base">Slug For Public Profile: {userData?.slug}</p>
+       <div className='flex items-center gap-2 mt-1'>
+         <p
+        className="cursor-pointer hover:text-blue-600 transition"
+        onClick={handleCopy}
+        title="Click to copy profile URL"
+      >
+        {userData?.slug}
+      </p>
+      <Copy
+        size={16}
+        className="cursor-pointer hover:text-blue-600 transition"
+        onClick={handleCopy}
+        title="Copy profile URL"
+      />
+      {copied && (
+        <span className="ml-2 text-green-500 text-xs">Copied!</span>
+      )}
+       </div>
       <button
         onClick={() => setIsEdit(!isEdit)}
         className="mt-3 px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
@@ -400,9 +429,8 @@ const handleDownloadExcel = async () => {
   </div>
 </div>
 
-        
-        <h2 className='text-xl font-semibold'>Your Resume</h2>
 
+        <h2 className='text-xl font-semibold'>Your Resume</h2>
         <div className='flex gap-2 mb-6 mt-3'>
           {isEdit || (userData && !userData.resume) ? (
             <>
@@ -500,7 +528,7 @@ const handleDownloadExcel = async () => {
 
         <h2 className='text-xl font-semibold mb-4'>Jobs Applied</h2>
 
-        <table className='min-w-full bg-white border rounded-lg'>
+        <table className='min-w-full  bg-white border rounded-lg'>
           <thead>
             <tr>
               <th className='py-3 px-4 border-b text-left'>Company</th>

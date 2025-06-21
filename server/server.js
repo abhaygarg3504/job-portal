@@ -13,8 +13,10 @@ import contactRoutes from "./routes/contactRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import { Server } from "socket.io";
 import http from "http";
+import cron from "node-cron"
 import Contact from "./models/Contact.js";
 import { connectToDatabase } from "./config/postgresConnect.js";
+import { scheduleSubscriptionCheck } from "./cron/subscriptionReminder.js";
 const app = express();
 
 const corsConfig = {
@@ -37,6 +39,8 @@ app.get("/", async (req, res) => {
   res.send("API working");
 });
 
+scheduleSubscriptionCheck()
+
 app.set("view engine", "ejs");
 app.set("views", path.join(path.resolve(), "views"));
 // app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -45,6 +49,7 @@ app.use("/api/jobs", jobRouter);
 app.use("/api/users", userRouter);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/messages", messageRoutes);
+
 
 await connectToDatabase()
 

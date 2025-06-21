@@ -126,7 +126,7 @@ export default function UserProfilePage() {
   const valuesForYear = activityData.filter(a => new Date(a.date).getFullYear() === selectedYear)
 
   return (
-    <div className="max-w-3xl mx-auto mt-10 px-4">
+    <div className="max-w-[100%] mx-auto mt-10 px-4">
         <Navbar/>
       {/* Profile Card */}
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">

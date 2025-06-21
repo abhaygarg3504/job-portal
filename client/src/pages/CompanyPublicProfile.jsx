@@ -20,6 +20,7 @@ import {
   DialogActions,
   CircularProgress
 } from '@mui/material'
+import Navbar from '../components/Navbar'
 
 export default function CompanyPublicProfile() {
   const { backendURL } = useContext(AppContext)
@@ -111,7 +112,8 @@ export default function CompanyPublicProfile() {
   )
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="100%" sx={{ mt: 4, mb: 4 }}>
+      <Navbar/>
       {/* Company Header */}
       <Card sx={{ mb: 4, p: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -201,6 +203,7 @@ export default function CompanyPublicProfile() {
           ) : (
             blogComments.map(c => (
               <Box key={c.id} sx={{ mb: 2, p: 1, border: '1px solid #ddd', borderRadius: 1 }}>
+                
                 <Typography variant="body2">{c.content}</Typography>
                 <Typography variant="caption" color="text.secondary">
                   {moment(c.createdAt).fromNow()}

@@ -26,6 +26,8 @@
 //   }
 // };
 // sendEmail.js
+
+
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 
@@ -47,7 +49,7 @@ const transporter = nodemailer.createTransport({
  */
 export const sendEmail = async (to, subject, htmlContent) => {
   const mailOptions = {
-    from: process.env.MY_EMAIL,
+    from: `"Job Portal" <${process.env.MY_EMAIL}>`,
     to,
     subject,
     html: htmlContent,
