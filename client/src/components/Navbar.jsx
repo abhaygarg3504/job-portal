@@ -4,7 +4,9 @@ import { useClerk, UserButton, useUser } from '@clerk/clerk-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import InterviewCalendarModal from '../pages/interviewCalenderModel';
-import { Bell, CalendarDays, Bookmark, Menu, X, MessageCircle } from 'lucide-react';
+import {  CalendarDays, Bookmark, Menu, X, MessageCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import SlideInMenu from './SliderMenu';
 
 const Navbar = () => {
   const { openSignIn } = useClerk();
@@ -43,6 +45,15 @@ const Navbar = () => {
     } catch (error) {
       console.error('❌ Server error:', error);
     }
+  };
+    const backdrop = {
+    visible: { opacity: 0.5 },
+    hidden: { opacity: 0 }
+  };
+
+  const panel = {
+    hidden: { x: '100%' },
+    visible: { x: 0, transition: { type: 'spring', stiffness: 300, damping: 30 } }
   };
 
   useEffect(() => {
@@ -147,79 +158,13 @@ const Navbar = () => {
           </div>
         )}
 
-        {/* Mobile Side Drawer */}
-        {isMenuOpen && (
-          <div className="fixed inset-0 z-50 flex">
-            <div
-              className="fixed inset-0 bg-black opacity-50"
-              onClick={() => setIsMenuOpen(false)}
-            />
-            <div className="relative bg-white w-64 p-6 transform transition-transform duration-300 ease-in-out slide-in">
-              <button
-                className="absolute top-4 right-4"
-                onClick={() => setIsMenuOpen(false)}
-                aria-label="Close menu"
-              >
-                <X size={24} />
-              </button>
-              <nav className="flex flex-col gap-4 mt-8">
-                <button
-                  onClick={() => {
-                    setIsCalendarOpen(true);
-                    setIsMenuOpen(false);
-                  }}
-                  className="flex items-center gap-2"
-                >
-                  <CalendarDays size={20} />
-                  Calendar
-                </button>
-                <Link
-                  to="/chat-system"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center gap-2"
-                >
-                  <Bell size={20} />
-                  Chat
-                </Link>
-                <Link
-                  to="/subscribe"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="py-2 px-4 bg-blue-600 text-white rounded-lg"
-                >
-                  Subscription
-                </Link>
-                <Link
-                  to="/blogs"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="py-2 px-4 bg-blue-600 text-white rounded-lg"
-                >
-                  Blogs
-                </Link>
-                <button
-                  onClick={() => {
-                    setIsSavedJobsOpen(!isSavedJobsOpen);
-                    setIsMenuOpen(false);
-                  }}
-                  className="flex items-center gap-2"
-                >
-                  <Bookmark size={20} />
-                  Saved Jobs
-                </button>
-                <Link
-                  to="/application"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center gap-2"
-                >
-                  Dashboard
-                </Link>
-                <div className="pt-4 border-t">
-                  <p>Hello, {user.firstName}</p>
-                  <UserButton />
-                </div>
-              </nav>
-            </div>
-          </div>
-        )}
+         <SlideInMenu
+          isOpen={isMenuOpen}
+          onClose={() => setIsMenuOpen(false)}
+          user={user}
+          onOpenCalendar={() => setIsCalendarOpen(true)}
+          onToggleSavedJobs={() => setIsSavedJobsOpen(!isSavedJobsOpen)}
+        />
 
         {/* Interview Calendar Modal */}
         <InterviewCalendarModal

@@ -34,7 +34,6 @@ export default function CompanyPublicProfile() {
   const [blogs, setBlogs] = useState([])
   const [error, setError] = useState('')
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
-
   const [selectedBlog, setSelectedBlog] = useState(null)
   const [blogComments, setBlogComments] = useState([])
   const [commentsLoading, setCommentsLoading] = useState(false)

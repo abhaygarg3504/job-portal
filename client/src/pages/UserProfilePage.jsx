@@ -22,12 +22,17 @@ import {
   CircularProgress
 } from '@mui/material'
 import Navbar from '../components/Navbar'
+
+import GridViewOutlinedIcon from '@mui/icons-material/GridViewOutlined';
+import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
 import Footer from '../components/Footer'
 
 export default function UserProfilePage() {
   const [user, setUser] = useState(null)
   const [error, setError] = useState('')
   const { backendURL } = useContext(AppContext)
+    const [viewMode, setViewMode] = useState('grid');
+  
   const { slug } = useParams()
    const [selectedBlog, setSelectedBlog] = useState(null)
     const [blogComments, setBlogComments] = useState([])
@@ -268,11 +273,11 @@ export default function UserProfilePage() {
               <span
                 className={
                   (job.status === 'Accepted'
-                    ? 'bg-green-100 text-green-800'
+                    ? 'bg-green-300 text-green-800'
                     : job.status === 'Rejected'
-                    ? 'bg-red-100 text-red-800'
-                    : 'bg-blue-100 text-blue-800') +
-                  ' px-3 py-1 rounded-full text-xs font-semibold'
+                    ? 'bg-red-300 text-red-800'
+                    : 'bg-blue-300 text-blue-800') +
+                  ' px-3 py-1 text-xs font-semibold'
                 }
               >
                 {job.status}
@@ -297,52 +302,69 @@ export default function UserProfilePage() {
         )
       ) :
        (
-       <Box>
-          {blogs.length === 0 && <Typography>No blogs to display.</Typography>}
-          {blogs.map(blog => (
-            <Card key={blog.id} sx={{ my: 2, cursor: 'pointer' }} onClick={() => setSelectedBlog(blog)}>
-              <CardContent>
-                <Typography variant="h6">{blog.title}</Typography>
-                <Typography variant="body2">{blog.content.slice(0, 100)}…</Typography>
-              </CardContent>
-            </Card>
-          ))}
-
-          <Dialog
-            open={Boolean(selectedBlog)}
-            onClose={handleClose}
-            BackdropProps={{ style: { backgroundColor: 'rgba(0, 0, 0, 0.5)' } }}
-            PaperProps={{ sx: { width: '80vw', maxWidth: 'none', height: '80vh' } }}
+        <>
+          <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold">Blogs</h2>
+        <div className="space-x-2">
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`p-2 rounded ${viewMode === 'grid' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
           >
-            <DialogTitle>{selectedBlog?.title}</DialogTitle>
-            <DialogContent dividers sx={{ overflowY: 'auto' }}>
-              <Typography variant="body1" paragraph>
-                {selectedBlog?.content}
-              </Typography>
-              <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
-                Comments
-              </Typography>
-              {commentsLoading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-                  <CircularProgress />
-                </Box>
-              ) : (
-                blogComments.map(comment => (
-                  <Box key={comment.id} sx={{ mb: 2, p: 1, border: '1px solid #ddd', borderRadius: 1 }}>
-                    <Typography variant="body2">{comment.content}</Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {moment(comment.createdAt).fromNow()}
-                    </Typography>
-                  </Box>
-                ))
-              )}
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleClose}>Close</Button>
-            </DialogActions>
-          </Dialog>
-        </Box>
+            <GridViewOutlinedIcon className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setViewMode('list')}
+            className={`p-2 rounded ${viewMode === 'list' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
+          >
+            <ArticleOutlinedIcon className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+       { blogs.length === 0 ? (
+        <p className="text-gray-500">No blogs published yet.</p>
+      ) : (
+        <div className={viewMode === 'grid' ? 'blog-grid' : 'blog-list'}>
+          {blogs.map(blog => (
+            <div
+              key={blog.id}
+              onClick={() => setSelectedBlog(blog)}
+              className="cursor-pointer bg-white rounded-lg shadow p-4 hover:shadow-lg transition"
+            >
+              <h3 className="text-lg font-medium mb-2">{blog.title}</h3>
+              <p className="text-gray-600 mb-1 line-clamp-3">{blog.content}</p>
+              <time className="text-sm text-gray-400">
+                {moment(blog.createdAt).format('LL')}
+              </time>
+            </div>
+          ))}
+        </div>
       )}
+
+      <Dialog open={Boolean(selectedBlog)} onClose={handleClose}
+        BackdropProps={{ style: { backgroundColor: 'rgba(0, 0, 0, 0.5)' } }}
+        PaperProps={{ sx: { width: '80vw', maxWidth: 'none', height: '80vh' } }}>
+        <DialogTitle>{selectedBlog?.title}</DialogTitle>
+        <DialogContent dividers sx={{ overflowY: 'auto' }}>
+          <Typography variant="body1" paragraph>{selectedBlog?.content}</Typography>
+          <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Comments</Typography>
+          {commentsLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}><CircularProgress /></Box>
+          ) : (
+            blogComments.map(c => (
+              <Box key={c.id} sx={{ mb: 2, p: 1, border: '1px solid #ddd', borderRadius: 1 }}>
+                
+                <Typography variant="body2">{c.content}</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {moment(c.createdAt).fromNow()}
+                </Typography>
+              </Box>
+            ))
+          )}
+        </DialogContent>
+        <DialogActions><Button onClick={handleClose}>Close</Button></DialogActions>
+      </Dialog>
+      </>)}
       <Footer/>
     </div>
   )
