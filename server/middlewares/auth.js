@@ -77,8 +77,31 @@ export const ProtectCompany = async(req, res, next) =>{
         console.log(`error in auth.js is - ${err}`)
 
     }
-
 };
+
+export async function attachUser(req, res, next) {
+  try {
+    // If you’re using Clerk, `req.auth.userId` will be set;
+    // if you later switch to passport, you can change this one spot.
+    const userId = req.auth?.userId;
+    if (!userId) {
+      // no user logged in → leave req.user undefined
+      return next();
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Invalid user" });
+    }
+
+    req.user = user;
+    next();
+  } catch (err) {
+    console.error("attachUser error:", err);
+    res.status(500).json({ success: false, message: "Auth error" });
+  }
+}
+
 
 // export const ProtectionCompany = async(req, res, next)=>{
 //     let token;
