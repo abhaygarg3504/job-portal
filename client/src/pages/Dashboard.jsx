@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { assets } from '../assets/assets';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
-import { Bell, CalendarDays } from 'lucide-react';
+import { Bell, CalendarDays, MessageCircle } from 'lucide-react';
 import RecriuterCalender from './RecruiterCalender';
 import Footer from '../components/Footer';
 
@@ -40,18 +40,22 @@ function Dashboard() {
             <div className='flex items-center gap-4'>
               {/* Chat bell icon */}
               <a href='/dashboard/chat-system' target='_blank' rel='noopener noreferrer'>
-                <Bell className='cursor-pointer' />
+                <MessageCircle className='cursor-pointer' />
               </a>
 
               {/* Calendar icon */}
-              <CalendarDays
+             <button className="text-blue-600 hover:text-blue-800" type='calendar'>
+       <CalendarDays
                 className='cursor-pointer'
+                
                 onClick={() => {
                   if (companyData?._id) {
                     setIsCalendarOpen(true);
                   }
                 }}
               />
+             </button>
+              
               <p className='max-sm:hidden'>Welcome, {companyData.name}</p>
 
               <div className='relative group'>
