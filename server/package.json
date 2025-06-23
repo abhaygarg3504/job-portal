@@ -7,6 +7,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "server": "nodemon server.js",
+    "build": "prisma generate && prisma migrate deploy",
     "start": "node server.js"
   },
   "keywords": [],
@@ -41,7 +42,6 @@
     "nodemailer": "^7.0.3",
     "nodemon": "^3.1.10",
     "pdf-parse": "^1.1.1",
-    "prisma": "^6.9.0",
     "rate-limit-redis": "^4.2.1",
     "raw-body": "^3.0.0",
     "razorpay": "^2.9.6",
@@ -52,5 +52,8 @@
     "streamifier": "^0.1.1",
     "svix": "^1.65.0",
     "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "prisma": "^6.10.1"
   }
 }
