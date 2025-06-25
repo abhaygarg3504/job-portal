@@ -7,11 +7,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 import Company from "../models/Comapny.js";
 import { v2 as cloudinary } from "cloudinary";
-import fs from "fs/promises";
-import path from "path";
-import connectCloudinary from "../config/cloudinary.js";
 import { logUserActivity } from "../middlewares/activityTrack.js";
-import streamifier from "streamifier"
 import axios from "axios"
 import XLSX from "xlsx";
 import { parseResumeFromUrl } from "../utils/resumeParser.js";
@@ -512,23 +508,39 @@ export const getSavedJobs = async (req, res) => {
   }
 };
 
+async function uploadImageBuffer(buffer, folder = "blogs") {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder, resource_type: "image" },
+      (err, result) => (err ? reject(err) : resolve(result))
+    );
+    stream.end(buffer);
+  });
+}
+
 export const createUserBlog = async (req, res) => {
-  const userId = req.auth.userId; 
-  
+  const userId = req.auth.userId;
   if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
 
+  // multer + memoryStorage => req.file.buffer exists
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: "Image file is required" });
+  }
+
   try {
+    const uploadResult = await uploadImageBuffer(req.file.buffer);
+
     const newBlog = await prisma.blog.create({
       data: {
-        title: req.body.title,
+        title:   req.body.title,
         content: req.body.content,
-        image: req.body.image,
+        image:   uploadResult.secure_url,
         userId,
         companyId: null,
       },
     });
-    await logUserActivity(userId, "create_blog");
 
+    await logUserActivity(userId, "create_blog");
 
     res.status(201).json({ success: true, blog: newBlog });
   } catch (err) {
@@ -538,62 +550,59 @@ export const createUserBlog = async (req, res) => {
 };
 
 export const updateUserBlog = async (req, res) => {
-  const { id } = req.params;
-  const { title, content, image } = req.body;
   const userId = req.auth.userId;
-
-  if (!userId) {
-    return res.status(401).json({ success: false, message: "Unauthorized" });
-  }
+  const blogId = req.params.id;
+  if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
 
   try {
-    const blog = await prisma.blog.findUnique({ where: { id } });
-
-    if (!blog || blog.userId !== userId) {
-      return res.status(403).json({ success: false, message: "Forbidden: You can only update your own blog" });
+    const existing = await prisma.blog.findUnique({ where: { id: blogId } });
+    if (!existing || existing.userId !== userId) {
+      return res.status(403).json({ success: false, message: "Forbidden" });
     }
 
-    const updatedBlog = await prisma.blog.update({
-      where: { id },
+    let imageUrl = existing.image;
+    if (req.file) {
+      // only re-upload if there's a new file
+      const uploadResult = await uploadImageBuffer(req.file.buffer);
+      imageUrl = uploadResult.secure_url;
+    }
+
+    const updated = await prisma.blog.update({
+      where: { id: blogId },
       data: {
-        title,
-        content,
-        image,
+        title:   req.body.title  ?? existing.title,
+        content: req.body.content ?? existing.content,
+        image:   imageUrl,
       },
     });
 
     await logUserActivity(userId, "update_blog");
- 
-    res.json({ success: true, blog: updatedBlog });
-  } catch (error) {
-    console.error("Error updating user blog:", error);
+    res.json({ success: true, blog: updated });
+  } catch (err) {
+    console.error("Error updating user blog:", err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
 export const deleteUserBlog = async (req, res) => {
-  const { id } = req.params;
   const userId = req.auth.userId;
-
-  if (!userId) {
-    return res.status(401).json({ success: false, message: "Unauthorized" });
-  }
+  const blogId = req.params.id;
+  if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
 
   try {
-    const blog = await prisma.blog.findUnique({ where: { id } });
-
-    if (!blog || blog.userId !== userId) {
-      return res.status(403).json({ success: false, message: "Forbidden: You can only delete your own blog" });
+    const existing = await prisma.blog.findUnique({ where: { id: blogId } });
+    if (!existing || existing.userId !== userId) {
+      return res.status(403).json({ success: false, message: "Forbidden" });
     }
 
-    // Delete associated comments first (optional for cascade handling)
-    await prisma.comment.deleteMany({ where: { blogId: id } });
+    // delete comments first if you have that relation
+    await prisma.comment.deleteMany({ where: { blogId } });
+    await prisma.blog.delete({ where: { id: blogId } });
 
-    await prisma.blog.delete({ where: { id } });
     await logUserActivity(userId, "delete_blog");
-    res.json({ success: true, message: "Blog deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting user blog:", error);
+    res.json({ success: true, message: "Blog deleted" });
+  } catch (err) {
+    console.error("Error deleting user blog:", err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };

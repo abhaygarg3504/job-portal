@@ -27,7 +27,7 @@ import {
     verifyOTP
 } from "../controllers/companyController.js"; 
 
-import upload from "../config/multer.js";
+import upload from "../config/multeri.js";
 import  { authMiddleware, comapnyDataProtection, ProtectCompany, ProtectionCompany } from "../middlewares/auth.js";
 import { getAllBlogs } from "../controllers/userController.js";
 import { getCompanyActivityGraph } from "../controllers/activityController.js";
@@ -45,9 +45,9 @@ router.get("/applicants", ProtectionCompany, getCompanyJobApplicants);
 router.get("/list-jobs", ProtectionCompany,getCompanyPostedJobs);
 router.post("/change-status", ProtectionCompany,changeJobApplicationStatus);
 router.post("/change-visibility", ProtectionCompany ,changeJobVisibility);
-router.post("/blogs", ProtectionCompany, createBlog)
+router.post("/blogs", ProtectionCompany,upload.single('image'), createBlog)
 router.post("/set-interview-date",ProtectionCompany, setInterviewDate);
-router.put("/blogs/:id", ProtectionCompany, updateBlog);
+router.put("/blogs/:id", ProtectionCompany,upload.single('image'), updateBlog);
 router.delete("/blogs/:id", ProtectionCompany, deleteBlog);
 router.get("/getAllBlogs", getAllBlogs)
 router.post("/blogs/:blogId/comments", ProtectionCompany, addCompanyComment);

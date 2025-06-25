@@ -2,7 +2,6 @@ import express from 'express';
 import { addComment, applyForData, createUserBlog, createUserData ,deleteComment,deleteUserBlog,downloadUserApplicationsExcel,getActivityGraphBySlug,getAllBlogs,getJobRecommendations,getResumeBlob,getSavedJobs,getUserApplicationsBySlug,getUserApplicationsCount,getUserBlogsBySlug,getUserBySlug,getUserData, getUserJobApplication, parseAndUpdateProfileFromResume, paymentRazorPay, saveJob, toggleShowApplications, unsaveJob, updateComment, updateResume, updateUserBlog, updateUserProfile, verifyRazorPay } from '../controllers/userController.js';
 import upload from '../config/multeri.js';
 import { getBlogComments } from '../controllers/companyController.js';
-
 import { requireAuth } from '@clerk/express';
 import { getUserActivityGraph } from '../controllers/activityController.js';
 import { userAnalytics } from '../controllers/userAnalyticsController.js';
@@ -27,8 +26,8 @@ router.get("/blogs/:blogId/comments", getBlogComments);
 router.post("/blogs/:blogId/comments", requireAuth(), addComment);
 router.put("/comments/:commentId", requireAuth(),updateComment);
 router.delete("/comments/:commentId", requireAuth(), deleteComment);
-router.post("/blogs", requireAuth(), createUserBlog);
-router.put("/blogs/:id", requireAuth(), updateUserBlog);
+router.post("/blogs", requireAuth(), upload.single("image"), createUserBlog);
+router.put("/blogs/:id", requireAuth(),upload.single("image"), updateUserBlog);
 router.delete("/blogs/:id", requireAuth(), deleteUserBlog);
 router.get("/profile/:slug/blogs",   getUserBlogsBySlug);
 router.get("/getAllBlogs", getAllBlogs)

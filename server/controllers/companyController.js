@@ -15,46 +15,62 @@ import XLSX from "xlsx";
 import { getActivityGraphByRole } from "./activityController.js";
 const prisma = new PrismaClient();
 
-export const registerCompany= async(req, res) => {
- const {name, email, password} = req.body
+async function uploadImageBuffer(buffer, folder = "blogs") {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder, resource_type: "image" },
+      (err, result) => (err ? reject(err) : resolve(result))
+    );
+    stream.end(buffer);
+  });
+}
 
- const imagefile = req.file;
+export const registerCompany = async (req, res) => {
+  const { name, email, password } = req.body;
+  if (!name || !email || !password || !req.file || !req.file.buffer) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Name, email, password and image are required" });
+  }
 
- if(!name || !email || !password || !imagefile){
-   return res.json({success: false, message: "Missing Details"})
- }
-
- try{
-    const companyexist = await Company.findOne({email})
-    if(companyexist){
-        return res.json({success: false, message: "Company already Registered"})
+  try {
+    const exists = await Company.findOne({ email });
+    if (exists) {
+      return res
+        .status(409)
+        .json({ success: false, message: "Company already registered" });
     }
 
-    const salt = await bcrypt.genSalt(10)
-    const hashedPasssword = await bcrypt.hash(password, salt);
-
-    const imageUpload = await cloudinary.uploader.upload(imagefile.path)
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    const uploadResult = await uploadImageBuffer(req.file.buffer, "company_logos");
 
     const company = await Company.create({
-        name,email,password: hashedPasssword, image: imageUpload.secure_url
-    })
-     res.json({
-       success: true,
-       company: {
-        _id: company._id,
-        name: company.name,
-        email: company.email,
-        image: company.image
-       },
-       token: generateToken(company._id)
-    })
+      name,
+      email,
+      password: hashedPassword,
+      image: uploadResult.secure_url,
+    });
 
- }
- catch(err){
-    console.log(`error in registerCompany is ${err}`)
- }
-    
-}
+    const payload = {
+      _id: company._id,
+      name: company.name,
+      email: company.email,
+      image: company.image,
+    };
+
+    return res.status(201).json({
+      success: true,
+      company: payload,
+      token: generateToken(company._id),
+    });
+  } catch (err) {
+    console.error("Error in registerCompany:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
 
 export const loginCompany = async (req, res) => {
     const { email, password } = req.body;
@@ -501,72 +517,100 @@ export const getInterviewDetails = async (req, res) => {
 };
 
 export const createBlog = async (req, res) => {
-  const { title, content, image } = req.body;
   const companyId = req.company?._id?.toString();
+  if (!companyId) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
 
-  if (!companyId) return res.status(401).json({ success: false, message: "Unauthorized" });
+  const { title, content } = req.body;
+  if (!req.file || !req.file.buffer) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Image file is required" });
+  }
 
   try {
+    const uploadResult = await uploadImageBuffer(req.file.buffer, "company_blogs");
     const newBlog = await prisma.blog.create({
       data: {
         title,
         content,
-        image,
+        image: uploadResult.secure_url,
         companyId,
-        userId: null, // explicitly set to avoid Prisma error
+        userId: null,
       },
     });
 
-     await logCompanyActivity(companyId, "create_blog");
-    res.status(201).json({ success: true, blog: newBlog });
+    await logCompanyActivity(companyId, "create_blog");
+    return res.status(201).json({ success: true, blog: newBlog });
   } catch (error) {
     console.error("Error creating blog:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 };
+
 export const updateBlog = async (req, res) => {
-  const { id } = req.params;
-  const { title, content, image } = req.body;
   const companyId = req.company?._id?.toString();
+  const blogId = req.params.id;
+  if (!companyId) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
 
   try {
-    const blog = await prisma.blog.findUnique({ where: { id } });
-
-    if (!blog || blog.companyId !== companyId) {
+    const existing = await prisma.blog.findUnique({ where: { id: blogId } });
+    if (!existing || existing.companyId !== companyId) {
       return res.status(403).json({ success: false, message: "Forbidden" });
     }
 
-    const updatedBlog = await prisma.blog.update({
-      where: { id },
-      data: { title, content, image },
+    let imageUrl = existing.image;
+    if (req.file && req.file.buffer) {
+      const uploadResult = await uploadImageBuffer(req.file.buffer, "company_blogs");
+      imageUrl = uploadResult.secure_url;
+    }
+
+    const updated = await prisma.blog.update({
+      where: { id: blogId },
+      data: {
+        title: req.body.title   ?? existing.title,
+        content: req.body.content ?? existing.content,
+        image: imageUrl,
+      },
     });
-     await logCompanyActivity(companyId, "update_blog");
-     // After updating the blog in DB
-    res.json({ success: true, blog: updatedBlog });
+
+    await logCompanyActivity(companyId, "update_blog");
+    return res.json({ success: true, blog: updated });
   } catch (error) {
     console.error("Error updating blog:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 };
 
 export const deleteBlog = async (req, res) => {
-  const { id } = req.params;
   const companyId = req.company?._id?.toString();
+  const blogId = req.params.id;
+  if (!companyId) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
 
   try {
-    const blog = await prisma.blog.findUnique({ where: { id } });
-
-    if (!blog || blog.companyId !== companyId) {
+    const existing = await prisma.blog.findUnique({ where: { id: blogId } });
+    if (!existing || existing.companyId !== companyId) {
       return res.status(403).json({ success: false, message: "Forbidden" });
     }
 
-    await prisma.comment.deleteMany({ where: { blogId: id } });
-    await prisma.blog.delete({ where: { id } });
-    await logCompanyActivity(companyId, "delete_blog");    
-    res.json({ success: true, message: "Blog deleted successfully" });
+    await prisma.comment.deleteMany({ where: { blogId } });
+    await prisma.blog.delete({ where: { id: blogId } });
+    await logCompanyActivity(companyId, "delete_blog");
+    return res.json({ success: true, message: "Blog deleted successfully" });
   } catch (error) {
     console.error("Error deleting blog:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 };
 
