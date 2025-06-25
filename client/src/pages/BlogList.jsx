@@ -3,18 +3,14 @@ import axios from "axios";
 import moment from "moment";
 import {
   Container,
-  Typography,
   Button,
-  Box,
   Dialog,
-  DialogTitle,
-  DialogContent,
   DialogActions,
-  CircularProgress,
 } from "@mui/material";
 import GridViewOutlinedIcon from "@mui/icons-material/GridViewOutlined";
 import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
 import BlogForm from "./BlogForm";
+import BlogDetails from "./BlogDetails";
 import { AppContext } from "../context/AppContext";
 
 const BlogList = () => {
@@ -136,35 +132,15 @@ const BlogList = () => {
       <Dialog
         open={Boolean(selectedBlog)}
         onClose={handleClose}
-        BackdropProps={{ style: { backgroundColor: "rgba(0, 0, 0, 0.5)" } }}
-        PaperProps={{ sx: { width: "80vw", maxWidth: "none", height: "80vh" } }}
       >
-        <DialogTitle>{selectedBlog?.title}</DialogTitle>
-        <DialogContent dividers sx={{ overflowY: "auto" }}>
-          <Typography variant="body1" paragraph>
-            {selectedBlog?.content}
-          </Typography>
-          <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
-            Comments
-          </Typography>
-          {commentsLoading ? (
-            <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            blogComments.map((c) => (
-              <Box
-                key={c._id}
-                sx={{ mb: 2, p: 1, border: "1px solid #ddd", borderRadius: 1 }}
-              >
-                <Typography variant="body2">{c.content}</Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {moment(c.createdAt).fromNow()}
-                </Typography>
-              </Box>
-            ))
-          )}
-        </DialogContent>
+       
+         {selectedBlog && (
+        <BlogDetails
+          blog={selectedBlog}
+          onClose={() => setSelectedBlog(null)}
+          onBlogChange={fetchBlogs}
+        />
+      )}
         <DialogActions>
           <Button onClick={handleClose}>Close</Button>
         </DialogActions>
