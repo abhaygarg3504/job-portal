@@ -5,7 +5,6 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import InterviewCalendarModal from '../pages/interviewCalenderModel';
 import {  CalendarDays, Bookmark, Menu, X, MessageCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import SlideInMenu from './SliderMenu';
 
 const Navbar = () => {
