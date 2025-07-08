@@ -5,8 +5,22 @@ import User from "../models/User.js";   // adjust your import!
 // Your master list of skills
 const SKILL_KEYWORDS = [
   "JavaScript","React","Node.js","Python","Java","C++","HTML","CSS",
-  "MongoDB","SQL","Express","AWS","Docker","Git","Redux","TypeScript", 
-  
+  "MongoDB","SQL","Express","AWS","Docker","Git","Redux","TypeScript",
+  "Next.js","Tailwind CSS","GraphQL","PostgreSQL","MySQL","Redis","Kubernetes","Azure","GCP","Serverless",
+"Kafka","RabbitMQ","Elasticsearch","TensorFlow","PyTorch","Scikit-learn","Pandas","NumPy","Firebase","Jenkins",
+"CircleCI","Clerk","GitHub Actions","Stripe","PayPal","OAuth","JWT","Webpack","Babel","ESLint",
+"Prettier","Material UI","Ant Design","Chakra UI","SASS","LESS","WebSockets","Apollo","Prisma","Sequelize",
+"Jest","Mocha","Cypress","Selenium","Android","iOS","Swift","Kotlin","Flutter","Dart",
+"Go","Rust","Ruby","PHP","Scala","Elixir","C#","F#","Haskell","Erlang",
+"Django","Flask","Spring Boot","ASP.NET","Laravel","Symfony","Ruby on Rails","Phoenix","React Native","Xamarin",
+"MATLAB","R","ZeroMQ","Helm","Terraform","Ansible","Vagrant","Packer","Prometheus","Grafana",
+"Splunk","New Relic","Datadog","Cloudflare","Memcached","Solr","Airflow","Logstash","NATS","Travis CI",
+"SonarQube","AppDynamics","gRPC","SAML","LDAP","Okta","WordPress","Drupal","Strapi","Contentful",
+"Apache Spark","Hadoop","Hive","Pig","Apache Flink","Apache Storm","Cassandra","HBase","ClickHouse","Snowflake",
+"BigQuery","Databricks","D3.js","Chart.js","Three.js","Babylon.js","Unity","Unreal Engine","OpenCV","CUDA",
+"OpenCL","Nginx","Apache HTTP Server","IIS","Traefik","Istio","Envoy","Linkerd","Consul","Vault",
+"Keycloak","Sentry","Rollbar","Firebase Functions","AWS Lambda","GCP Functions","Azure Functions","CloudFormation","Pulumi","Serverless Framework",
+"FastAPI","Tornado","CherryPy","Bottle","Rocket","Actix","Beego","Gin","Echo","Fiber"
 ];
 
 // escape any regex‑special chars in our keywords:

@@ -8,35 +8,6 @@ const Hero = () => {
     const {setSearchFilter, setIsSearched} = useContext(AppContext)
     const titleRef = useRef(null);
     const locationRef = useRef(null);
-     const [listeningField, setListeningField] = useState(null);
-
-  // Web Speech API setup
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const recognition = SpeechRecognition ? new SpeechRecognition() : null;
-
-  const startListening = (field) => {
-    if (!recognition) {
-      alert("Speech Recognition not supported in this browser.");
-      return;
-    }
-    setListeningField(field);
-    recognition.start();
-  };
-  
-  if (recognition) {
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      if (listeningField === "title") {
-        titleRef.current.value = transcript;
-      } else if (listeningField === "location") {
-        locationRef.current.value = transcript;
-      }
-      setListeningField(null);
-    };
-    recognition.onerror = () => setListeningField(null);
-    recognition.onend = () => setListeningField(null);
-  }
-
 
     const onSearch = () =>{
         setSearchFilter({
@@ -66,28 +37,13 @@ const Hero = () => {
             <input type="text"placeholder='Search for jobs'
              className='max-sm:text-ps p-2 outline-none bg-white rounded outline none w-full'
              ref={titleRef} />
-             <button
-              type="button"
-              onClick={() => startListening("title")}
-              className="ml-2"
-              title="Speak job title"
-            >
-              <img src={assets.mic_icon} alt="Mic" className="h-5 w-5" />
-            </button>
+           
            </div>
            <div className='flex items-center'>
              <img className='h-4 sm:h-5' src={assets.location_icon} alt="" />
             <input type="text"placeholder='Location'
              className='max-sm:text-ps p-2 rounded outline-none bg-white outline none w-full'
-             ref={locationRef} />
-              <button
-              type="button"
-              onClick={() => startListening("location")}
-              className="ml-2"
-              title="Speak location"
-            >
-              <img src={assets.mic_icon} alt="Mic" className="h-5 w-5" />
-            </button>
+             ref={locationRef} /> 
         </div>
         <button onClick={onSearch} className='bg-blue-600 px-6 py-2 rounded text-white m-1'>
             Search</button>

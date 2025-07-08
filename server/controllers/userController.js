@@ -790,25 +790,39 @@ export const parseAndUpdateProfileFromResume = async (req, res) => {
   try {
     const userId = req.params.id;
     const user = await User.findById(userId);
+    
     if (!user || !user.resume) {
-      return res.status(404).json({ success: false, message: "No resume URL on record" });
+      return res.status(404).json({ 
+        success: false, 
+        message: "No resume URL found for this user" 
+      });
     }
 
     const parsed = await parseResumeFromUrl(user.resume);
     
-    user.education    = parsed.education;
-    user.experience   = parsed.experience;
-    user.projects     = parsed.projects;
-    user.skills       = parsed.skills;
+    // Update user profile with parsed data
+    user.education = parsed.education;
+    user.experience = parsed.experience;
+    user.projects = parsed.projects;
+    user.skills = parsed.skills;
     user.achievements = parsed.achievements;
+    
     await user.save();
 
-    res.json({ success: true, parsed });
+    res.json({ 
+      success: true, 
+      message: "Resume parsed and profile updated successfully",
+      parsed 
+    });
   } catch (err) {
     console.error("Resume parsing error:", err);
-    res.status(500).json({ success: false, message: "Resume parsing failed" });
+    res.status(500).json({ 
+      success: false, 
+      message: "Resume parsing failed. Please try again." 
+    });
   }
 };
+
 
 export const downloadUserApplicationsExcel = async(req, res) => {
    try {
