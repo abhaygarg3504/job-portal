@@ -3,7 +3,7 @@ import { assets } from '../assets/assets';
 import { useClerk, UserButton, useUser } from '@clerk/clerk-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
-import InterviewCalendarModal from '../pages/interviewCalenderModel';
+import InterviewCalendarModal from '../pages/InterviewCalenderModel.jsx';
 import {  CalendarDays, Bookmark, Menu, X, MessageCircle } from 'lucide-react';
 import SlideInMenu from './SliderMenu';
 
