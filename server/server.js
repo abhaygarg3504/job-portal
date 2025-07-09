@@ -17,6 +17,7 @@ import cron from "node-cron"
 import Contact from "./models/Contact.js";
 import { connectToDatabase } from "./config/postgresConnect.js";
 import { scheduleSubscriptionCheck } from "./cron/subscriptionReminder.js";
+
 const app = express();
 
 const corsConfig = {
@@ -32,6 +33,7 @@ app.use(clerkMiddleware());
 
 const server = http.createServer(app);
 
+// Connect to MongoDB (required)
 await connectDB();
 await connectCloudinary();
 
@@ -50,8 +52,14 @@ app.use("/api/users", userRouter);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/messages", messageRoutes);
 
-
-await connectToDatabase()
+// Try to connect to PostgreSQL (optional)
+try {
+  await connectToDatabase();
+  console.log("PostgreSQL connection successful");
+} catch (error) {
+  console.warn("PostgreSQL connection failed, continuing without it:", error.message);
+  // Continue without PostgreSQL - your app can still work with just MongoDB
+}
 
 export const io = new Server(server, {
   cors: {
@@ -146,7 +154,6 @@ app.post("/webhooks", clerkWebhook);
 app.get("/api/company/register", (req, res) => {
   res.render("register");
 });
-
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
