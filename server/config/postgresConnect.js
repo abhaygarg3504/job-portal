@@ -10,7 +10,6 @@ export async function connectToDatabase() {
     return true;
   } catch (error) {
     console.error('Failed to connect to PostgreSQL:', error.message)
-    // Don't exit the process, just throw the error
     throw error;
   }
 }

@@ -13,7 +13,6 @@ import contactRoutes from "./routes/contactRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import { Server } from "socket.io";
 import http from "http";
-import cron from "node-cron"
 import Contact from "./models/Contact.js";
 import { connectToDatabase } from "./config/postgresConnect.js";
 import { scheduleSubscriptionCheck } from "./cron/subscriptionReminder.js";
@@ -30,35 +29,26 @@ app.use(cors(corsConfig));
 app.options("*", cors(corsConfig)); 
 app.use(express.json());
 app.use(clerkMiddleware());
-
 const server = http.createServer(app);
-
-// Connect to MongoDB (required)
 await connectDB();
 await connectCloudinary();
-
 app.get("/", async (req, res) => {
   res.send("API working");
 });
-
 scheduleSubscriptionCheck()
-
 app.set("view engine", "ejs");
 app.set("views", path.join(path.resolve(), "views"));
-// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use("/api/company", companyRouter);
 app.use("/api/jobs", jobRouter);
 app.use("/api/users", userRouter);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/messages", messageRoutes);
 
-// Try to connect to PostgreSQL (optional)
 try {
   await connectToDatabase();
   console.log("PostgreSQL connection successful");
 } catch (error) {
   console.warn("PostgreSQL connection failed, continuing without it:", error.message);
-  // Continue without PostgreSQL - your app can still work with just MongoDB
 }
 
 export const io = new Server(server, {
