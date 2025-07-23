@@ -19,7 +19,7 @@ export const AppContextProvider = (props) => {
     });
     const [isSearched, setIsSearched] = useState(false);
     const [jobs, setJobs] = useState([])
-    const [showRecuriterLogin, setShowRecuriterLogin] = useState(false)
+    const [showRecruiterLogin, setShowRecruiterLogin] = useState(false)
     const [companyToken, setcompanyToken] = useState(null)
     const [companyData, setcompanyData] = useState(null)
     const [userData, setUserData] = useState(null)
@@ -364,7 +364,7 @@ console.log(recruiterId)
 console.log(companyData)
     const value = {
         setSearchFilter,searchFilter,isSearched,setIsSearched, jobs, setJobs,
-         showRecuriterLogin, setShowRecuriterLogin, companyToken, setcompanyToken, companyData,
+         showRecruiterLogin, setShowRecruiterLogin, companyToken, setcompanyToken, companyData,
         setcompanyData, backendURL, userData, setUserData, userApplications, setUserApplications,
         fetchUserData, fetchUserApplicationData, totalJobs, settotalJobs, applyJobs, setapplyJobs,
         isRecruiter, socket, onlineUsers, contacts, filteredContacts,

@@ -13,7 +13,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const {
-    setShowRecuriterLogin,
+    setShowRecruiterLogin,
     backendURL,
     setIsSavedJobsOpen,
     isSavedJobsOpen,
@@ -45,7 +45,8 @@ const Navbar = () => {
       console.error('❌ Server error:', error);
     }
   };
-    const backdrop = {
+
+  const backdrop = {
     visible: { opacity: 0.5 },
     hidden: { opacity: 0 }
   };
@@ -115,7 +116,7 @@ const Navbar = () => {
         ) : (
           <div className="hidden md:flex gap-4">
             <button
-              onClick={() => setShowRecuriterLogin(true)}
+              onClick={() => setShowRecruiterLogin(true)}
               className="text-gray-600"
             >
               Recruiter Login
@@ -143,7 +144,7 @@ const Navbar = () => {
         {!isSignedIn && (
           <div className="md:hidden flex gap-2">
             <button
-              onClick={() => setShowRecuriterLogin(true)}
+              onClick={() => setShowRecruiterLogin(true)}
               className="text-gray-600"
             >
               Recruiter Login

@@ -1,9 +1,9 @@
 import React, { useContext } from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
 import Application from './pages/Application'
 import ApplyJob from './pages/ApplyJob'
-import RecuriterLogin from './components/RecuriterLogin'
+import RecruiterLogin from './components/RecuriterLogin'
 import { AppContext } from './context/AppContext'
 import Dashboard from './pages/Dashboard'
 import AddJob from './pages/AddJob'
@@ -11,7 +11,6 @@ import ManageJobs from './pages/ManageJobs'
 import ViewApplication from './pages/ViewApplicaton'
 import "react-quill/dist/quill.snow.css"; // Import Quill styles
 import { ToastContainer, toast } from 'react-toastify';
-import ForgotPassword from './pages/ForgetPassword'
 import Subscribe from './pages/Subscribe'
 import ChatSystem from './pages/ChatSystem' 
 import SavedJobsPanel from './pages/SavedJobsPanel'
@@ -20,19 +19,31 @@ import CompanyProfile from './pages/CompanyProfile'
 import JobRecommend from './pages/JobRecommend'
 import UserProfilePage from './pages/UserProfilePage'
 import CompanyPublicProfile from './pages/CompanyPublicProfile'
+import CompanyNavbar from './pages/CompanyNavbar'
 
 const App = () => {
-  const { showRecuriterLogin, companyToken, isSavedJobsOpen, setIsSavedJobsOpen,
+  const { showRecruiterLogin, companyToken, isSavedJobsOpen, setIsSavedJobsOpen,
     isJobRecommend, setIsJobRecommend, companyId, userId,
     userData } = useContext(AppContext)
+  
+  const location = useLocation();
+  
+  // Check if current route is a dashboard route (where CompanyNavbar should be shown)
+  const isDashboardRoute = location.pathname.startsWith('/dashboard');
+  
+  // Check if current route should show CompanyNavbar for company users
+  const shouldShowCompanyNavbar = companyToken && (
+    isDashboardRoute || 
+    location.pathname === '/dashboard/chat-system'
+  );
  
   return (
     <div>
-      { showRecuriterLogin && <RecuriterLogin />}
+      { showRecruiterLogin && <RecruiterLogin />}
       <ToastContainer/>
+      {shouldShowCompanyNavbar && <CompanyNavbar />}
       <Routes>
         <Route path='/' element={<Home />} />
-        <Route path='/forgotPassword' element={<ForgotPassword/>}/>
         <Route path='/application' element={<Application />} />
         <Route path='/apply-job/:id' element={<ApplyJob />} />
         <Route path="/profile/:slug" element={<UserProfilePage />} />
@@ -69,4 +80,4 @@ const App = () => {
   )
 }
 
-export default App
+export default App;

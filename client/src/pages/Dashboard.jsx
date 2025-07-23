@@ -5,6 +5,7 @@ import { AppContext } from '../context/AppContext';
 import { Bell, CalendarDays, MessageCircle } from 'lucide-react';
 import RecriuterCalender from './RecruiterCalender';
 import Footer from '../components/Footer';
+import CompanyNavbar from './CompanyNavbar';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -26,53 +27,6 @@ function Dashboard() {
 
   return (
     <div className='min-h-screen'>
-      {/* Navbar */}
-      <div className='shadow py-4'>
-        <div className='px-5 flex justify-between items-center'>
-          <img
-            onClick={() => navigate('/')}
-            className='max-sm:w-32 cursor-pointer'
-            src={assets.logo}
-            alt='Logo'
-          />
-
-          {companyData && (
-            <div className='flex items-center gap-4'>
-              {/* Chat bell icon */}
-              {/* <a href='/dashboard/chat-system' target='_blank' rel='noopener noreferrer'>
-                <MessageCircle className='cursor-pointer' />
-              </a> */}
-
-              {/* Calendar icon */}
-             <button className="text-blue-600 hover:text-blue-800" type='calendar'>
-       <CalendarDays
-                className='cursor-pointer'
-                
-                onClick={() => {
-                  if (companyData?._id) {
-                    setIsCalendarOpen(true);
-                  }
-                }}
-              />
-             </button>
-              
-              <p className='max-sm:hidden'>Welcome, {companyData.name}</p>
-
-              <div className='relative group'>
-                <img className='w-8 border rounded-full' src={companyData.image} alt='Profile' />
-                <div className='absolute hidden group-hover:block top-0 right-0 z-10 text-black rounded pt-12'>
-                  <ul className='list-none m-0 p-2 bg-white rounded-md border text-sm'>
-                    <li onClick={logout} className='py-1 px-2 cursor-pointer pr-10'>
-                      Logout
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* Sidebar + Outlet */}
       <div className='flex items-start'>
         <div className='inline-block min-h-screen border-r-2'>
