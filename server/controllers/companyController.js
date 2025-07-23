@@ -823,7 +823,6 @@ export const uploadJobsExcel = async (req, res) => {
   }
 };
 
-
 export const downloadCompanyApplicationsExcel = async (req, res) => {
   try {
     const companyId = req.company._id; 

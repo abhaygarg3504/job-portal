@@ -344,7 +344,7 @@ console.log(onlineUsers)
 
   return (
     <div>
-      <Navbar/>
+     {!isRecruiter ? <Navbar/> : <></>}
     <div className="flex h-screen overflow-hidden">
       
       {/* Sidebar */}

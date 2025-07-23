@@ -39,9 +39,9 @@ function Dashboard() {
           {companyData && (
             <div className='flex items-center gap-4'>
               {/* Chat bell icon */}
-              <a href='/dashboard/chat-system' target='_blank' rel='noopener noreferrer'>
+              {/* <a href='/dashboard/chat-system' target='_blank' rel='noopener noreferrer'>
                 <MessageCircle className='cursor-pointer' />
-              </a>
+              </a> */}
 
               {/* Calendar icon */}
              <button className="text-blue-600 hover:text-blue-800" type='calendar'>
@@ -116,6 +116,14 @@ function Dashboard() {
             }>
               <img src={assets.blog_icon} className='w-6 h-6' alt='' />
               <p className='max-sm:hidden'>Blogs</p>
+            </NavLink>
+            <NavLink to='/dashboard/chat-system' className={({ isActive }) =>
+              `flex items-center p-3 sm:px-6 gap-2 w-full hover:bg-gray-100 ${
+                isActive ? 'bg-blue-100 border-r-4 border-blue-500' : ''
+              }`
+            }>
+              <MessageCircle className='cursor-pointer' />
+              <p className='max-sm:hidden'>Chat System</p>
             </NavLink>
           </ul>
         </div>

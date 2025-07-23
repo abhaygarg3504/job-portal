@@ -11,7 +11,6 @@ function Home() {
       <Navbar/>
       <Hero/>
       <JobListing/>
-      <AppDownload/>
       <Footer/>
     </div>
   )
