@@ -235,7 +235,7 @@ export const getCompanyAnalytics = async (req, res) => {
       else outcomeBreakdown.review += count;
     });
 
-    // Build job fill rates
+    
     const jobFillRates = await Promise.all(jobs.map(async job => {
       const acceptedApp = await JobApplication.findOne({
         jobId: job._id,
