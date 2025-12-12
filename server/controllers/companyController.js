@@ -229,14 +229,14 @@ export const postJob = async (req, res) => {
             description,
             location,
             salary,
-            companyId, // ✅ Corrected
+            companyId,
             level,
             category
         });
         await newJob.save();
-        await jobQueue.add('newJobPosted', {
-          jobId: newJob._id
-        })
+        // Remove this line:
+        // await jobQueue.add('newJobPosted', { jobId: newJob._id })
+        
         await logCompanyActivity(companyId, "post_job");
         res.json({ success: true, newJob });
     } catch (err) {

@@ -40,6 +40,13 @@ export const AppContextProvider = (props) => {
   const [isJobRecommend, setIsJobRecommend] = useState(false)
   const [recommendedJobs, setRecommendedJobs] = useState([])
      const [token, setToken] = useState(null);
+     const [jobsPagination, setJobsPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalJobs: 0,
+    hasMore: false
+});
+
     
 useEffect(() => {
   const fetchToken = async () => {
@@ -50,20 +57,39 @@ useEffect(() => {
 }, [getToken]);
 
 
-    const fetchJobs = async () => {
-        try {
-            const { data } = await axios.get(`${backendURL}/api/jobs`);
-            if (data.success) {
-                setJobs(data.jobs);
-                console.log(data.jobs);
-            } else {
-                toast.error(data.message);
-            }
-        } catch (err) {
-            console.error("Error fetching jobs:", err);
-            toast.error(err.response?.data?.message || err.message);
+    // const fetchJobs = async () => {
+    //     try {
+    //         const { data } = await axios.get(`${backendURL}/api/jobs`);
+    //         if (data.success) {
+    //             setJobs(data.jobs);
+    //             console.log(data.jobs);
+    //         } else {
+    //             toast.error(data.message);
+    //         }
+    //     } catch (err) {
+    //         console.error("Error fetching jobs:", err);
+    //         toast.error(err.response?.data?.message || err.message);
+    //     }
+    // };
+
+    const fetchJobs = async (page = 1, limit = 50) => {
+    try {
+        const { data } = await axios.get(`${backendURL}/api/jobs`, {
+            params: { page, limit }
+        });
+        if (data.success) {
+            setJobs(data.jobs);
+            setJobsPagination(data.pagination);
+            console.log(data.jobs);
+        } else {
+            toast.error(data.message);
         }
-    };
+    } catch (err) {
+        console.error("Error fetching jobs:", err);
+        toast.error(err.response?.data?.message || err.message);
+    }
+};
+
     const fetchCompanyData = async () => {
         try {
             if (!companyToken) {
@@ -250,14 +276,22 @@ const unsaveJobForUser = async (jobId) => {
   }
 };
 
-    useEffect(()=>{
-        fetchJobs()
-        const storedCompanyToken = localStorage.getItem('companyToken')
-        if(storedCompanyToken){
-            setcompanyToken(storedCompanyToken)
-        }
+    // useEffect(()=>{
+    //     fetchJobs()
+    //     const storedCompanyToken = localStorage.getItem('companyToken')
+    //     if(storedCompanyToken){
+    //         setcompanyToken(storedCompanyToken)
+    //     }
 
-    },[])
+    // },[])
+
+    useEffect(()=>{
+    fetchJobs(1, 50) // Load first 50 jobs initially
+    const storedCompanyToken = localStorage.getItem('companyToken')
+    if(storedCompanyToken){
+        setcompanyToken(storedCompanyToken)
+    }
+},[])
 
     useEffect(()=>{
       if(user){
@@ -374,9 +408,11 @@ console.log(companyData)
         userId: userData?._id,       
   companyId: companyData?._id ,
   isJobRecommend,
-    setIsJobRecommend,
+    setIsJobRecommend, fetchJobs,
     recommendedJobs,
     fetchJobRecommendations,
+    jobsPagination,
+    setJobsPagination
     }; 
     return (
         <AppContext.Provider value={value}>

@@ -2,46 +2,51 @@ import React, {useState, useContext, useEffect } from 'react';
 import { AppContext } from '../context/AppContext';
 import { assets, JobCategories, JobLocations, jobsData } from '../assets/assets';
 import JobCard from './JobCard';
-
 const JobListing = () => {
-    const { isSearched, applyJobs, searchFilter, setSearchFilter, jobs, totalJobs } = useContext(AppContext);
+    const { 
+        isSearched, 
+        searchFilter, 
+        setSearchFilter, 
+        jobs, 
+        fetchJobs,
+        jobsPagination 
+    } = useContext(AppContext);
 
     const [showFilter, setShowFilter] = useState(true)
     const [currentpage, setcurrentpage] = useState(1)
     const [selectedCategories, setSelectedCategories] = useState([])
     const [selectedLocations, setSelectedLocations] = useState([])
-
     const [jobsFilter, setJobsFilter] = useState(jobs)
+    const [isLoadingMore, setIsLoadingMore] = useState(false)
 
-    const handleCategoryChange = (category)=>{
-        setSelectedCategories(
-            prev => prev.includes(category) ? prev.filter(c => c !== category) : [...prev,category] 
-        )
-    }
+    // Update jobsFilter when jobs change
+    useEffect(() => {
+        const matchCategory = job => selectedCategories.length === 0 || selectedCategories.includes(job.category);
+        const matchLocation = job => selectedLocations.length === 0 || selectedLocations.includes(job.location);
+        const matchTitle = job => searchFilter.title === "" || job.title.toLowerCase().includes(searchFilter.title.toLowerCase());
+        const matchSearchLocation = job => searchFilter.location === "" || job.location.toLowerCase().includes(searchFilter.location.toLowerCase());
+        
+        let newFilteredJobs = jobs.filter(
+            job => matchCategory(job) && matchLocation(job) && matchTitle(job) && matchSearchLocation(job)
+        );
+        newFilteredJobs = newFilteredJobs.reverse();
 
-    const handleLocationChange = (location)=> {
-        setSelectedLocations(
-            prev => prev.includes(location) ? prev.filter(c => c !== location) : [...prev,location] 
-        )
-    }
+        setJobsFilter(newFilteredJobs);
+        setcurrentpage(1);
+    }, [jobs, selectedCategories, selectedLocations, searchFilter]);
 
-   useEffect(() => {
-  const matchCategory = job => selectedCategories.length === 0 || selectedCategories.includes(job.category);
-  const matchLocation = job => selectedLocations.length === 0 || selectedLocations.includes(job.location);
-  const matchTitle = job => searchFilter.title === "" || job.title.toLowerCase().includes(searchFilter.title.toLowerCase());
-  const matchSearchLocation = job => searchFilter.location === "" || job.location.toLowerCase().includes(searchFilter.location.toLowerCase());
-  let newFilteredJobs = jobs.filter(
-    job => matchCategory(job) && matchLocation(job) && matchTitle(job) && matchSearchLocation(job));
-  newFilteredJobs = newFilteredJobs.reverse();
-
-  setJobsFilter(newFilteredJobs);
-  setcurrentpage(1);
-}, [jobs, selectedCategories, selectedLocations, searchFilter]);
-
+    const handleLoadMore = async () => {
+        if (jobsPagination.hasMore && !isLoadingMore) {
+            setIsLoadingMore(true);
+            await fetchJobs(jobsPagination.currentPage + 1, 50);
+            setIsLoadingMore(false);
+        }
+    };
 
     return (
+        
         <div className='container 2xl:px-20 mx-auto flex flex-col lg:flex-row py-8 max-lg:space-y-8'>
-            <div>
+             <div>
                 {/* Search job section */}
             </div>
             <div className='w-full lg:w-1/4 bg-white px-4'>
