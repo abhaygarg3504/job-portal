@@ -5,6 +5,7 @@ import generateToken from "../utils/generateToken.js";
 import Job from "../models/Job.js";
 import JobApplication from "../models/JobApplication.js";
 import Token from "../models/Token.js"; 
+import slugify from "slugify"; 
 import {sendEmail}  from "../utils/sendEmails.js"
 import Contact from "../models/Contact.js";
 import mongoose from "mongoose"; 

@@ -4,6 +4,7 @@ import transactionModel from "../models/transactionModel.js";
 import User from "../models/User.js";
 import Razorpay from "razorpay"
 import { PrismaClient } from "@prisma/client";
+import slugify from "slugify"; 
 const prisma = new PrismaClient();
 import Company from "../models/Comapny.js";
 import { v2 as cloudinary } from "cloudinary";
