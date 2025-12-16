@@ -132,7 +132,6 @@ PORT=5000
 MONGO_URI=mongodb://localhost:27017/jobportal
 DATABASE_URL=postgresql://user:password@localhost:5432/jobportal
 DIRECT_URL=postgresql://user:password@localhost:5432/jobportal
-REDIS_URL=redis://localhost:6379
 CLERK_SECRET_KEY=your_clerk_secret
 CLOUDINARY_NAME=your_cloudinary_name
 CLOUDINARY_API_KEY=your_api_key
