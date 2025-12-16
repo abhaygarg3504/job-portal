@@ -13,6 +13,7 @@ A comprehensive full-stack job portal platform built with modern web technologie
 - **User Analytics**: Track application statistics and insights
 - **Blog System**: Read industry insights and company blogs
 - **Profile Management**: Comprehensive user profiles with resume upload
+- **Subscription Management**: Handle premium features
 
 ### For Recruiters
 - **Company Dashboard**: Manage jobs, applications, and analytics
@@ -22,7 +23,6 @@ A comprehensive full-stack job portal platform built with modern web technologie
 - **Analytics Dashboard**: Track hiring metrics and performance
 - **Blog Management**: Publish company blogs and updates
 - **Interview Scheduling**: Calendar integration for interviews
-- **Subscription Management**: Handle premium features
 
 ### Core Features
 - **Authentication**: Secure login/signup with Clerk authentication
@@ -55,8 +55,6 @@ A comprehensive full-stack job portal platform built with modern web technologie
 - **PostgreSQL** - Secondary database for blogs and analytics
 - **Prisma** - ORM for PostgreSQL
 - **Socket.io** - Real-time bidirectional communication
-- **Redis** - Caching and rate limiting
-- **BullMQ** - Job queue for background tasks
 - **JWT** - JSON Web Tokens for authentication
 - **Bcrypt** - Password hashing
 
@@ -105,7 +103,6 @@ A comprehensive full-stack job portal platform built with modern web technologie
 - Node.js (v18 or higher)
 - MongoDB (local or Atlas)
 - PostgreSQL (local or cloud)
-- Redis (local or cloud)
 - Clerk account for authentication
 - Cloudinary account for media storage
 - SendGrid account for emails
@@ -231,10 +228,10 @@ This project is licensed under the ISC License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-For support, email support@jobportal.com or join our Discord community.
+For support, email abhaygarg5684@gmail.com.
 
 ---
 
-**Made with ❤️ by [Your Name]**
+**Made with ❤️ by Abhay Garg**
 
 *Showcase your full-stack development skills with this comprehensive job portal platform featuring modern technologies and best practices.*
