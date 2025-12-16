@@ -30,7 +30,6 @@ A comprehensive full-stack job portal platform built with modern web technologie
 - **File Upload**: Cloudinary integration for resumes and images
 - **Payment Integration**: Razorpay for subscription payments
 - **Email Notifications**: SendGrid for automated emails
-- **Rate Limiting**: Redis-based rate limiting for API protection
 - **Resume Parsing**: Automated resume analysis and parsing
 - **Heatmaps**: Activity tracking with calendar heatmaps
 
