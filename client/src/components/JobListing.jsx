@@ -20,20 +20,20 @@ const JobListing = () => {
     const [isLoadingMore, setIsLoadingMore] = useState(false)
 
     // Update jobsFilter when jobs change
-    useEffect(() => {
-        const matchCategory = job => selectedCategories.length === 0 || selectedCategories.includes(job.category);
-        const matchLocation = job => selectedLocations.length === 0 || selectedLocations.includes(job.location);
-        const matchTitle = job => searchFilter.title === "" || job.title.toLowerCase().includes(searchFilter.title.toLowerCase());
-        const matchSearchLocation = job => searchFilter.location === "" || job.location.toLowerCase().includes(searchFilter.location.toLowerCase());
-        
-        let newFilteredJobs = jobs.filter(
-            job => matchCategory(job) && matchLocation(job) && matchTitle(job) && matchSearchLocation(job)
-        );
-        newFilteredJobs = newFilteredJobs.reverse();
+   useEffect(() => {
+    const matchCategory = job => selectedCategories.length === 0 || selectedCategories.includes(job.category);
+    const matchLocation = job => selectedLocations.length === 0 || selectedLocations.includes(job.location);
+    const matchTitle = job => searchFilter.title === "" || job.title.toLowerCase().includes(searchFilter.title.toLowerCase());
+    const matchSearchLocation = job => searchFilter.location === "" || job.location.toLowerCase().includes(searchFilter.location.toLowerCase());
+    
+    let newFilteredJobs = jobs.filter(
+        job => matchCategory(job) && matchLocation(job) && matchTitle(job) && matchSearchLocation(job)
+    );
+    newFilteredJobs = newFilteredJobs.reverse();
 
-        setJobsFilter(newFilteredJobs);
-        setcurrentpage(1);
-    }, [jobs, selectedCategories, selectedLocations, searchFilter]);
+    setJobsFilter(newFilteredJobs);
+    // Remove: setcurrentpage(1);
+}, [jobs, selectedCategories, selectedLocations, searchFilter]);
 
     const handleLoadMore = async () => {
         if (jobsPagination.hasMore && !isLoadingMore) {
@@ -116,30 +116,40 @@ const JobListing = () => {
             </p>
          <div className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 '>
             {
-                jobsFilter.slice((currentpage-1)*6,currentpage*6).map((job,index)=>(
-                    <JobCard key={index} job={job}/>
-                ))
+                jobsFilter.map((job,index)=>( // Changed from slice to map all jobs
+            <JobCard key={index} job={job}/>
+        ))
             }
          </div>
            {/* pagination page */}
             
-           {jobsFilter.length > 0 && (
-                <div className='flex items-center justify-center space-x-2 mt-10'>
-                    <a href="#job-list">
-              <img className='cursor-pointer' onClick={()=> setcurrentpage(Math.max(currentpage-1),1)} src={assets.left_arrow_icon} alt="" />
-                    </a>
-                    {Array.from({length: Math.ceil(jobsFilter.length/6)}).map((_, index)=>(
-                <a href='#job-list'>
-                    <button onClick={()=> setcurrentpage(index+1)} className={`w-10 h-10 cursor-pointer flex items-center justify-center border border-gray-500 rounded ${currentpage === index+1 ? 'bg-blue-200 text-blue-500' : 'text-gray-500'}`}>
-                        {index+1}
-                    </button>
-                </a>
-                    ))}
-                    <a href="#job-list">
-                <img className='cursor-pointer' onClick={()=> setcurrentpage(Math.min(currentpage+1, Math.ceil(jobsFilter.length/6)))}  src={assets.right_arrow_icon} alt="" />
-                    </a>
-                </div>
-            )}
+          {jobsPagination.totalPages > 1 && (
+    <div className='flex items-center justify-center space-x-2 mt-10'>
+        <img 
+            className={`cursor-pointer ${jobsPagination.currentPage === 1 ? 'opacity-50' : ''}`}
+            onClick={() => jobsPagination.currentPage > 1 && fetchJobs(jobsPagination.currentPage - 1, 10)} 
+            src={assets.left_arrow_icon} 
+            alt="" 
+        />
+        
+        {Array.from({length: jobsPagination.totalPages}).map((_, index) => (
+            <button 
+                key={index}
+                onClick={() => fetchJobs(index + 1, 10)} 
+                className={`w-10 h-10 cursor-pointer flex items-center justify-center border border-gray-500 rounded ${jobsPagination.currentPage === index + 1 ? 'bg-blue-200 text-blue-500' : 'text-gray-500'}`}
+            >
+                {index + 1}
+            </button>
+        ))}
+        
+        <img 
+            className={`cursor-pointer ${!jobsPagination.hasMore ? 'opacity-50' : ''}`}
+            onClick={() => jobsPagination.hasMore && fetchJobs(jobsPagination.currentPage + 1, 10)} 
+            src={assets.right_arrow_icon} 
+            alt="" 
+        />
+    </div>
+)}
             </section>
         </div>
     );

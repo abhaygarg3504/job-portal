@@ -3,7 +3,7 @@ import { getJobs , getJobById, getJobCount} from '../controllers/jobController.j
 
 const router = express.Router();
 router.get('/',  getJobs)
-router.get('/:id', getJobById);
 router.get('/count/total', getJobCount);
+router.get('/:id', getJobById);
 
 export default router
