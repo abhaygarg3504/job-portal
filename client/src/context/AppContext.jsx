@@ -72,7 +72,7 @@ useEffect(() => {
     //     }
     // };
 
-    const fetchJobs = async (page = 1, limit = 50) => {
+   const fetchJobs = async (page = 1, limit = 10) => { // Changed default from 50 to 10
     try {
         const { data } = await axios.get(`${backendURL}/api/jobs`, {
             params: { page, limit }
@@ -286,7 +286,7 @@ const unsaveJobForUser = async (jobId) => {
     // },[])
 
     useEffect(()=>{
-    fetchJobs(1, 50) // Load first 50 jobs initially
+    fetchJobs(1, 10) // Changed from 50 to 10 jobs per page
     const storedCompanyToken = localStorage.getItem('companyToken')
     if(storedCompanyToken){
         setcompanyToken(storedCompanyToken)
