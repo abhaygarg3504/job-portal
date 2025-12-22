@@ -31,6 +31,17 @@ app.use(express.json());
 app.use(clerkMiddleware());
 const server = http.createServer(app);
 await connectDB();
+import User from "./models/User.js";
+try {
+  await User.collection.dropIndex("slug_1");
+  console.log("✅ Dropped old slug_1 index");
+} catch (error) {
+  if (error.code === 27) {
+    console.log("⚠️ slug_1 index doesn't exist (already dropped)");
+  } else {
+    console.warn("Index drop warning:", error.message);
+  }
+}
 await connectCloudinary();
 app.get("/", async (req, res) => {
   res.send("API working");
