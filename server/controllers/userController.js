@@ -41,7 +41,7 @@ export const getUserData = async (req, res) => {
 // ✅ Create a new function to handle user creation
 export const createUserData = async (req, res) => {
     try {
-        const { id, name, resume, image, email } = req.body; // ✅ Get user data from request body
+        const { id, name, resume, image, email } = req.body;
 
         if (!id || !email) {
             return res.status(400).json({ success: false, message: "User ID and Email are required" });
@@ -49,14 +49,31 @@ export const createUserData = async (req, res) => {
 
         let user = await User.findById(id);
         if (!user) {
-            user = new User({ _id: id, name, resume, image, email });
+            user = new User({ 
+                _id: id, 
+                name: name || "User", // Add default if name is empty
+                resume: resume || "", 
+                image: image || "", 
+                email 
+            });
             await user.save();
+            console.log("✅ New user created:", email);
+        } else {
+            console.log("ℹ️ User already exists:", email);
         }
 
         return res.json({ success: true, user });
     } catch (err) {
-        console.error(`Error in createUserData: ${err.message}`);
-        return res.status(500).json({ success: false, message: "Internal Server Error" });
+        // Log the FULL error details
+        console.error(`❌ Error in createUserData:`, err);
+        console.error(`Error name: ${err.name}`);
+        console.error(`Error code: ${err.code}`);
+        console.error(`Error message: ${err.message}`);
+        
+        return res.status(500).json({ 
+            success: false, 
+            message: err.message || "Internal Server Error" 
+        });
     }
 };
 
