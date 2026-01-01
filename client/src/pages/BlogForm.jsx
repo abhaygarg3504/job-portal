@@ -115,13 +115,16 @@ const BlogForm = ({ blog, onSuccess, onCancel }) => {
     e.preventDefault();
 
     // build correct endpoint + token
-    const url = isRecruiter
-      ? blog
-        ? `${backendURL}/api/company/blogs/${blog.id}`
-        : `${backendURL}/api/company/blogs`
-      : blog
-      ? `${backendURL}/api/users/blogs/${blog.id}`
-      : `${backendURL}/api/users/blogs`;
+    // const url = isRecruiter
+    //   ? blog
+    //     ? `${backendURL}/api/company/blogs/${blog.id}`
+    //     : `${backendURL}/api/company/blogs`
+    //   : blog
+    //   ? `${backendURL}/api/users/blogs/${blog.id}`
+    //   : `${backendURL}/api/users/blogs`;
+    const url = blog 
+      ? `${backendURL}/api/${isRecruiter ? 'company' : 'users'}/blogs/${blog.id || blog._id}`
+      : `${backendURL}/api/${isRecruiter ? 'company' : 'users'}/blogs`;
 
     const authToken = isRecruiter ? companyToken : token;
     if (!authToken) {

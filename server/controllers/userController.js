@@ -723,24 +723,48 @@ export const getAllBlogs = async (req, res) => {
     
     const companies = await Company.find({ _id: { $in: companyIds } });
     const users = await User.find({ _id: { $in: userIds } });
-    const enrichedBlogs = blogs.map(blog => {
-    const company = companies.find(c => c._id.toString() === blog.companyId);
-    const user = users.find(u => u._id.toString() === blog.userId);
+    // const enrichedBlogs = blogs.map(blog => {
+    // const company = companies.find(c => c._id.toString() === blog.companyId);
+    // const user = users.find(u => u._id.toString() === blog.userId);
 
-      let author = null;
+    //   let author = null;
       
-      if (company) {
-        author = { type: "company", ...company.toObject() };
-      } else if (user) {
-        author = { type: "user", ...user.toObject() };
-      }
+    //   if (company) {
+    //     author = { type: "company", ...company.toObject() };
+    //   } else if (user) {
+    //     author = { type: "user", ...user.toObject() };
+    //   }
       
 
-      return {
-        ...blog,
-        author,
-      };
-    });
+    //   return {
+    //     ...blog,
+    //     author,
+    //   };
+    // });
+
+    // Fix the ID comparison in getAllBlogs controller
+const enrichedBlogs = blogs.map(blog => {
+  const company = companies.find(c => c._id.toString() === blog.companyId);
+  const user = users.find(u => u._id.toString() === blog.userId);
+
+  let author = null;
+  if (company) {
+    author = { type: "company", name: company.name, image: company.image };
+  } else if (user) {
+    author = { type: "user", name: user.name, image: user.image };
+  }
+
+  return {
+    id: blog.id, // Ensure id field is present
+    title: blog.title,
+    content: blog.content,
+    image: blog.image,
+    createdAt: blog.createdAt,
+    userId: blog.userId,
+    companyId: blog.companyId,
+    author,
+  };
+});
 
     res.json({ success: true, blogs: enrichedBlogs });
   } catch (err) {

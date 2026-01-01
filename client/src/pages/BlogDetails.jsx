@@ -14,17 +14,29 @@ const BlogDetails = ({ blog, onClose, onBlogChange }) => {
   const { isRecruiter, token, companyToken, backendURL, userId, companyId } = useContext(AppContext);
   const [showEdit, setShowEdit] = useState(false);
 
-  const blogId = blog.id || blog._id;
-
+  // const blogId = blog.id || blog._id;
+  // const blogId = blog.id || blog._id;
+   const blogId = blog?.id || blog?._id;
+  const normalizedBlog = { ...blog, id: blogId };
   // Check ownership
-  const isOwner = isRecruiter
-    ? blog.companyId === companyId || blog.companyId?._id === companyId
-    : blog.userId === userId || blog.userId?._id === userId;
+  // const isOwner = isRecruiter
+  //   ? blog.companyId === companyId || blog.companyId?._id === companyId
+  //   : blog.userId === userId || blog.userId?._id === userId;
 
-  const handleDelete = async () => {
-    const route = isRecruiter
-      ? `${backendURL}/api/company/blogs/${blogId}`
-      : `${backendURL}/api/users/blogs/${blogId}`;
+  const isOwner = isRecruiter
+  ? (blog.companyId === companyId || blog.companyId?._id === companyId || blog.companyId?.toString() === companyId)
+  : (blog.userId === userId || blog.userId?._id === userId || blog.userId?.toString() === userId);
+
+ const handleDelete = async () => {
+  if (!blogId) {
+    toast.error("Invalid blog ID");
+    console.error("Blog ID is undefined:", blog);
+    return;
+  }
+  
+  const route = isRecruiter
+    ? `${backendURL}/api/company/blogs/${blogId}`
+    : `${backendURL}/api/users/blogs/${blogId}`;
 
     const authToken = isRecruiter ? companyToken : token;
 

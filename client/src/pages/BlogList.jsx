@@ -40,26 +40,59 @@ const BlogList = () => {
     }
   };
 
-  const fetchComments = async (blogId) => {
-    setCommentsLoading(true);
-    try {
-      const res = await axios.get(`${backendURL}/api/blog/comments/${blogId}`);
-      if (res.data.success) {
-        setBlogComments(res.data.comments || []);
-      } else {
-        setBlogComments([]);
-      }
-    } catch (err) {
-      setBlogComments([]);
-    } finally {
-      setCommentsLoading(false);
-    }
-  };
+  // const fetchComments = async (blogId) => {
+  //   setCommentsLoading(true);
+  //   try {
+  //     const res = await axios.get(`${backendURL}/api/blog/comments/${blogId}`);
+  //     if (res.data.success) {
+  //       setBlogComments(res.data.comments || []);
+  //     } else {
+  //       setBlogComments([]);
+  //     }
+  //   } catch (err) {
+  //     setBlogComments([]);
+  //   } finally {
+  //     setCommentsLoading(false);
+  //   }
+  // };
 
-  const handleSelectBlog = (blog) => {
-    setSelectedBlog(blog);
-    fetchComments(blog._id);
+  // const handleSelectBlog = (blog) => {
+  //   setSelectedBlog(blog);
+  //   fetchComments(blog._id);
+  // };
+  const fetchComments = async (blogId) => {
+  setCommentsLoading(true);
+  try {
+    // Use the correct route based on user type
+    const url = isRecruiter
+      ? `${backendURL}/api/company/blogs/${blogId}/comments`
+      : `${backendURL}/api/users/blogs/${blogId}/comments`;
+    
+    const res = await axios.get(url);
+    if (res.data.success) {
+      setBlogComments(res.data.comments || []);
+    } else {
+      setBlogComments([]);
+    }
+  } catch (err) {
+    console.error("Error fetching comments:", err);
+    setBlogComments([]);
+  } finally {
+    setCommentsLoading(false);
+  }
+};
+
+const handleSelectBlog = (blog) => {
+  // Ensure the blog object has a normalized ID
+  const normalizedBlog = {
+    ...blog,
+    id: blog.id || blog._id // Normalize the ID field
   };
+  
+  console.log("Selected blog:", normalizedBlog); // Debug log
+  setSelectedBlog(normalizedBlog);
+  fetchComments(normalizedBlog.id);
+};
 
   const handleClose = () => {
     setSelectedBlog(null);

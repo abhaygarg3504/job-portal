@@ -36,19 +36,21 @@ const BlogCommentSection = ({ blogId }) => {
 
   useEffect(() => { fetchComments(); }, [blogId]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!authToken) return;
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!authToken) return;
 
-    try {
-      const url = editing
-        ? `${backendURL}/api/${isRecruiter ? "company" : "users"}/comments/${editing.id}`
-        : `${backendURL}/api/${isRecruiter ? "company" : "users"}/blogs/${blogId}/comments`;
+  try {
+    const url = editing
+      ? `${backendURL}/api/${isRecruiter ? "company" : "users"}/comments/${editing.id}`
+      : `${backendURL}/api/${isRecruiter ? "company" : "users"}/blogs/${blogId}/comments`;
 
-      const method = editing ? axios.put : axios.post;
-      await method(url, { content, rating }, {
-        headers: { Authorization: `Bearer ${authToken}` }
-      });
+    console.log("Comment API URL:", url); // Debug log
+
+    const method = editing ? axios.put : axios.post;
+    await method(url, { content, rating }, {
+      headers: { Authorization: `Bearer ${authToken}` }
+    });
 
       setContent("");
       setRating(0);
@@ -59,11 +61,20 @@ const BlogCommentSection = ({ blogId }) => {
     }
   };
 
+  // const handleEdit = (comment) => {
+  //   setEditing(comment);
+  //   setContent(comment.content);
+  //   setRating(comment.rating || 0);
+  // };
+  
   const handleEdit = (comment) => {
-    setEditing(comment);
-    setContent(comment.content);
-    setRating(comment.rating || 0);
-  };
+  setEditing({
+    ...comment,
+    id: comment.id || comment._id // Ensure ID is present
+  });
+  setContent(comment.content);
+  setRating(comment.rating || 0);
+};
 
   const handleDelete = async (id) => {
     if (!authToken) return;
@@ -115,9 +126,13 @@ const BlogCommentSection = ({ blogId }) => {
 
       <List>
         {comments.map(c => {
+          // const isMyComment = isRecruiter
+          //   ? c.companyId === companyId
+          //   : c.userId === userId;
+          const commentId = c.id || c._id;
           const isMyComment = isRecruiter
-            ? c.companyId === companyId
-            : c.userId === userId;
+            ? (c.companyId === companyId || c.companyId?.toString() === companyId)
+            : (c.userId === userId || c.userId?.toString() === userId);
 
           const authorName = c.author?.name || "Unknown";
           const authorImage = c.author?.image || "https://via.placeholder.com/40";
@@ -127,9 +142,13 @@ const BlogCommentSection = ({ blogId }) => {
               secondaryAction={
                 isMyComment && (
                   <>
-                    <IconButton onClick={() => handleEdit(c)}><EditIcon /></IconButton>
-                    <IconButton onClick={() => handleDelete(c.id)}><DeleteIcon /></IconButton>
-                  </>
+                   <IconButton onClick={() => handleEdit({...c, id: commentId})}>
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton onClick={() => handleDelete(commentId)}>
+                      <DeleteIcon />
+                    </IconButton>
+                    </>
                 )
               }
             >
