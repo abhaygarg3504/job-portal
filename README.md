@@ -7,7 +7,6 @@ A comprehensive full-stack job portal platform built with modern web technologie
 ### For Job Seekers
 - **Advanced Job Search**: Filter jobs by title, location, and category
 - **Application Management**: Track and manage job applications
-- **Real-time Chat**: Connect with recruiters instantly
 - **Job Recommendations**: Personalized job suggestions based on profile
 - **Saved Jobs**: Bookmark favorite job listings
 - **User Analytics**: Track application statistics and insights
@@ -19,7 +18,6 @@ A comprehensive full-stack job portal platform built with modern web technologie
 - **Company Dashboard**: Manage jobs, applications, and analytics
 - **Job Posting**: Create and manage job listings with detailed requirements
 - **Application Review**: View and manage job applications
-- **Real-time Communication**: Chat with candidates
 - **Analytics Dashboard**: Track hiring metrics and performance
 - **Blog Management**: Publish company blogs and updates
 - **Interview Scheduling**: Calendar integration for interviews
@@ -89,12 +87,6 @@ A comprehensive full-stack job portal platform built with modern web technologie
 - **Webhook** integration for Clerk authentication
 - **Rate limiting** on sensitive endpoints
 - **File upload** handling with Multer
-
-### Real-time Features
-- **Socket.io** namespaces for different chat rooms
-- **Online status** tracking
-- **Message delivery** confirmation
-- **Typing indicators** (potential enhancement)
 
 ## 📦 Installation
 
