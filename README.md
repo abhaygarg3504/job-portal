@@ -41,7 +41,6 @@ A comprehensive full-stack job portal platform built with modern web technologie
 - **Framer Motion** - Animation library for smooth transitions
 - **React Router** - Client-side routing
 - **Chart.js** - Data visualization
-- **Socket.io Client** - Real-time communication
 - **React Quill** - Rich text editor for blogs
 - **React Calendar** - Date picker and calendar components
 
@@ -51,7 +50,6 @@ A comprehensive full-stack job portal platform built with modern web technologie
 - **MongoDB** - Primary database for user and job data
 - **PostgreSQL** - Secondary database for blogs and analytics
 - **Prisma** - ORM for PostgreSQL
-- **Socket.io** - Real-time bidirectional communication
 - **JWT** - JSON Web Tokens for authentication
 - **Bcrypt** - Password hashing
 
@@ -60,7 +58,6 @@ A comprehensive full-stack job portal platform built with modern web technologie
 - **Cloudinary** - Media storage and optimization
 - **SendGrid** - Email service
 - **Razorpay** - Payment gateway
-- **Docker** - Containerization (optional)
 - **ESLint** - Code linting
 - **Nodemon** - Development auto-restart
 
